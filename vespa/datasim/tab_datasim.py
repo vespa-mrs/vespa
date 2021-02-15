@@ -624,7 +624,7 @@ class TabDatasim(datasim_ui.DatasimUI):
         lshape = (ds.mmol_lineshape=='gaussian')
         self.grid_cell_changed(event, lshape, lim)
 
-    def on_import_hlsvd_file(self, event):
+    def on_mmol_import_hlsvd_file(self, event):
         self.grid_import_hlsvd_file(grid=self.GridMmol)
 
     def on_preset_mmol(self, event):
