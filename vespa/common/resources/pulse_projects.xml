@@ -1,0 +1,127 @@
+<vespa_export version="1.0.0">
+	<!-- 
+This XML file is in Vespa Interchange File Format (VIFF). You can download
+applications that read and write VIFF files and learn more about VIFF here:
+http://scion.duhs.duke.edu/vespa/
+ -->
+	<timestamp>2011-05-04T13:11:19</timestamp>
+	<comment />
+	<pulse_project id="6fe1a2a8-3761-4038-8798-0b6b8bece88f" version="1.0.0">
+		<name>Example - Hyperbolic Secant</name>
+		<created>2011-05-04T13:07:10</created>
+		<creator>The Vespa Team</creator>
+		<comment>This is an example of a 64-point Hyperbolic Secant pulse with an additional transformation that rescales the pulse.</comment>
+		<machine_settings version="1.0.0">
+			<machine_type>Whole Body MRI</machine_type>
+			<field_strength>3.0</field_strength>
+			<max_b1_field>22.0</max_b1_field>
+			<zero_padding>0</zero_padding>
+			<min_dwell_time>1.0</min_dwell_time>
+			<dwell_time_increment>0.2</dwell_time_increment>
+			<gradient_raster_time>10.0</gradient_raster_time>
+			<gradient_slew_rate>200.0</gradient_slew_rate>
+			<gradient_maximum>24.0</gradient_maximum>
+		</machine_settings>
+		<master_parameters version="1.0.0">
+			<calc_resolution>5000</calc_resolution>
+			<pulse_bandwidth_convention>half_height</pulse_bandwidth_convention>
+		</master_parameters>
+		<transformation version="1.0.0">
+			<type>create_hyperbolic_secant</type>
+			<parameters version="1.0.0">
+				<total_rotation>1440.0</total_rotation>
+				<time_points>64</time_points>
+				<dwell_time>32.0</dwell_time>
+				<quality_cycles>6.0</quality_cycles>
+				<power_n>1</power_n>
+				<sharpness_mu>4.0</sharpness_mu>
+				<filter_application>0.0</filter_application>
+				<filter_type>no_selection</filter_type>
+			</parameters>
+			<result version="1.0.0">
+				<created>2011-05-04T13:07:32</created>
+				<rf_pulse version="1.0.0">
+					<waveform data_type="complex128" encoding="xdr zlib base64">eNplk11MEmAUhmdGgjdaeeEPF+rSxkozZpkVHTC5SUttNo22pswfotzQNHXOSYquMDVBa0jM4VCHNTUUYbY6XXTBNG1aOXWaZOYPtDAtrTTW/eHy27593znv+zxY3WieY9pisCBstcc4GYlyP4E4O1SFlcMZzeXyG1i8vdmskzGwVtseEs3KxdSZ695rfS9QKdSG+gkSQKaJ+10S0Ir1A12Z/mU7UFPxxZl2y4X3mZMctvM7NEw9rREP5OPdpSgfh/MqqEZaHPNtDpSyzbbsWRu0VAu9976aBln0O3dDRiCo86eU3z51wL3Ln9cy+LPQKGTxd6znQO1eyLcqN6AqOOcKO8wX2tKePToZJ8KsFXuSMEEKOtfbj6xfqVi/T9+jP+IFOvudSyGLJtT4Fgb5mDdBo7qGpeYy1DfVXdxItsBDd+HhiSYudga/lP4c1ULRPC/AkCvErppW15byNir4x6qZKWPYmTO0v/smFzXb8vfjP+yoN0YsSpIH0aD4s7CokeLj8N21ikBv7JnInOMZ17EyZdQ0nHYc+2LG6qQnNqA2dkrGOhOB/U/StYkiMei8Is4mzLzBfsk/H8lWOHQfDWKP/y3H3lOlkmLeB+i1yofDEtvR6Nyz2i2KB1NeBUdYN44G1Xm3cUsDg8aopQOOC6izMdzrNhcMxRYeqorcQfXBaUPM6zywcHZDIkuaUSHI4ljDJWB57u/kmkewYPmrPT2UDxYnm7ES34unlxlFkgdJnmd6n7xH/6Pz0HnpPnRfmgfJi+bpkTftg/bl0Sfpm/JAeaE8Ed4ojx68Up4p79QH6gv1ifhGffTwlfpMfP8PJUARqw==</waveform>
+					<waveform_x_axis data_type="float64" encoding="xdr zlib base64">eNpjYIAAe4Zj3xdsfdtrLwClJbWKCwWehNgrQPkqP7Z2PM74aK8JFdeNMYy0i99ubwCVN7p/bcqZ1fb2JlB15oJTan6pLbK3hKq3dg5KVV/Eam8L1WdfKuAbKptp7wDV73g5XeqgT5q9E9Qc5zdufDe4JOxdoOa5saoyvTt+0t4daq6HHPN31tZqe0+o+V5mj17LOOvae0Pt8fE/eN+Y4Z69L9Q+v4wFlz33TbD3h9ob4LD/8QY7RfsAqP2Bvvqxu+f8sg+EuiMoct71Y78v2QdB3ROcxhd4KWq1fTDUXSFFtafv7myxD4G6L7TuretLiVj7MKg7w7pj9n8pN7MPh7o3fPoZy//X+O0joO6OWGK9hdvkuX0k1P2RG1briU0+YB8F9UfUXqkVip9m2kdD/RN9sktJN7DIPgbqr5irP+dYbPC2j4X6L/ZRppgLv4p9HNSfce9uTPDP/WMfD/Vv/G8PrqgzV+0ToP5OaL59yFj0OgBMhODA</waveform_x_axis>
+				</rf_pulse>
+			</result>
+		</transformation>
+		<transformation version="1.0.0">
+			<type>interpolate_rescale</type>
+			<parameters version="1.0.0">
+				<do_interpolate>false</do_interpolate>
+				<interpolation_factor>1</interpolation_factor>
+				<new_dwell_time>32.0</new_dwell_time>
+				<do_rescaling>true</do_rescaling>
+				<angle>1200.0</angle>
+			</parameters>
+			<result version="1.0.0">
+				<created>2011-05-04T13:07:32</created>
+				<rf_pulse version="1.0.0">
+					<waveform data_type="complex128" encoding="xdr zlib base64">eNplk2tIE2AUhpPKjYhJYKxlpJhhOaeJ5CXFY7bsZoka1EQi7SaKqawfc2lsuum6qBObmzdqGyrT2VJploUndZZlBTNKIm9ZI3LNwjkyytX/s58ffHzfOe/7PHjN8cHC0rkwN/l7TUy4H4otbP2vKD6KRp16W2IGFpcc/X1a4YXlXqb9aQwrpvguecvFkSj/0vVzo/kM5HcynAWvnFi1+cGRcz4ikMTX8zl7tqJsyhSYZNGAYrrGUbpgxTLr3ZwqxT6oTdNNPTO+xwvD6tK0m3qoY8eWVyxnQd6KabUh7g0oudPC0fPhIDu4ST1mZsD12CpzMEcOSsMA1yJ8DiX2jJYkPxmoFgfKeGHbMIsXUCa8bATNksR7WjuIlfLKhx/1E6Cx9duHvirx9gxzIYLdAqrUlCufh+awlX9D+i1ECrfSn6h7G0+gtuFwxbjbDYVFjwMvZRSgbvjvkm6sFyVzwWpvxy7UvnWwzGEdqNI3rJ/cPo+thRC0NqQUtRyxLf4dF+sPTQzXJXRiu8A/JzLnB4oKdmPzgTY0uNc0dU82gdTIZDJ6krHLFN1dbF8GDfcOo3rDS+wStPWv48+CPjUvyXg1Gw3hrNCzM6FgaHza7PeIi22NPHZUgBTudb7mv9i7itqgavf8SjD0RLcn+IzEocaaeVKYvgV6pUwnHtuBteODF//YU6HveEe+K9uFkk87RZxiN/QNxoz8U4sx1+5ray6KgL5FdWbifRZG5QlmT/krPc/0PnmP/kfnofPSfei+NA+SF83TI2/aB+3Lo0/SN+WB8kJ5IrxRHj14pTxT3qkP1BfqE/GN+ujhK/WZ+P4fGLEQBw==</waveform>
+					<waveform_x_axis data_type="float64" encoding="xdr zlib base64">eNpjYIAAe4Zj3xdsfdtrLwClJbWKCwWehNgrQPkqP7Z2PM74aK8JFdeNMYy0i99ubwCVN7p/bcqZ1fb2JlB15oJTan6pLbK3hKq3dg5KVV/Eam8L1WdfKuAbKptp7wDV73g5XeqgT5q9E9Qc5zdufDe4JOxdoOa5saoyvTt+0t4daq6HHPN31tZqe0+o+V5mj17LOOvae0Pt8fE/eN+Y4Z69L9Q+v4wFlz33TbD3h9ob4LD/8QY7RfsAqP2Bvvqxu+f8sg+EuiMoct71Y78v2QdB3ROcxhd4KWq1fTDUXSFFtafv7myxD4G6L7TuretLiVj7MKg7w7pj9n8pN7MPh7o3fPoZy//X+O0joO6OWGK9hdvkuX0k1P2RG1briU0+YB8F9UfUXqkVip9m2kdD/RN9sktJN7DIPgbqr5irP+dYbPC2j4X6L/ZRppgLv4p9HNSfce9uTPDP/WMfD/Vv/G8PrqgzV+0ToP5OaL59yFj0OgBMhODA</waveform_x_axis>
+				</rf_pulse>
+			</result>
+		</transformation>
+	</pulse_project>
+	<pulse_project id="468d2f24-7547-436a-917a-33aa18530aaf" version="1.0.0">
+		<name>Example - SLR</name>
+		<created>2011-05-04T13:08:31</created>
+		<creator>The Vespa Team</creator>
+		<comment>This is an example of a 250-point SLR pulse with an additional transformation that interpolates the data points in the pulse.</comment>
+		<machine_settings version="1.0.0">
+			<machine_type>Whole Body MRI</machine_type>
+			<field_strength>3.0</field_strength>
+			<max_b1_field>22.0</max_b1_field>
+			<zero_padding>0</zero_padding>
+			<min_dwell_time>1.0</min_dwell_time>
+			<dwell_time_increment>0.2</dwell_time_increment>
+			<gradient_raster_time>10.0</gradient_raster_time>
+			<gradient_slew_rate>200.0</gradient_slew_rate>
+			<gradient_maximum>24.0</gradient_maximum>
+		</machine_settings>
+		<master_parameters version="1.0.0">
+			<calc_resolution>5000</calc_resolution>
+			<pulse_bandwidth_convention>half_height</pulse_bandwidth_convention>
+		</master_parameters>
+		<transformation version="1.0.0">
+			<type>create_slr</type>
+			<parameters version="1.0.0">
+				<tip_angle>90.0</tip_angle>
+				<time_points>250</time_points>
+				<duration>8.0</duration>
+				<bandwidth>1.0</bandwidth>
+				<separation>0.0</separation>
+				<is_single_band>true</is_single_band>
+				<nc_phase_subtype>linear</nc_phase_subtype>
+				<use_remez>true</use_remez>
+				<pass_ripple>1.0</pass_ripple>
+				<reject_ripple>1.0</reject_ripple>
+			</parameters>
+			<result version="1.0.0">
+				<created>2011-05-04T13:08:57</created>
+				<rf_pulse version="1.0.0">
+					<waveform data_type="complex128" encoding="xdr zlib base64">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</waveform>
+					<waveform_x_axis data_type="float64" encoding="xdr zlib base64">eNotk3lUzXkYxpPDNCGZjqYapuGEUUgi6/SUkqK0SKv23O5tue6+L2mSpUFiOGY6yTaWGFmaiZTJkImmMTUpe2QdOzlZwnDmuf/cc+/93e/3fZ/n87Gw+P8Fi/russqHq2DLd0dXudT2ZiS+4meXl5XLO4VPMZrfj13oEeud9CvG8/cJ186vbywHJvK5yYPWG16P3IqpfH66X8SiUVv74hv+D0rbkAVDhfDh/31bMpzqggWYyXP8HgTYtFs7wJ/nBfQZYfno9BnM5rmBX/bu7rNUjyCeP8frxv0hfmMxl/cEh9Zd87S4ihDeN09Y1hJUW4RQ3hvmc7yzwnsYwnh/eIh7QnXJa4RzjojY0rb6Ny2I4DzzBTbhzXHlmM+5ImXGs1eO5COS8y0wPZx1zyEBUZwzqnDh8S61F6I5b/TGxqnvz9sghnPHbJ9+uN/EO4jl/LEV5ePs19UhjnvE1TjtGvbsB8Rzn/iGlcPHhsuwkHstbH1VMqViLhK4X8INkb3/QBckcs/ER+1FoTlvkcR9k94EWsc1tiKZeyd/e+mE5+A2JHP/FGs785RT/khhDilFc2d4KyqQwjxS7fNe+bsMRSpzSS05+ktQywqkMp+04c/koXkvkMac0na7jl8wIQVpzCvdPeVh3PUmpDO39MpNe5LXTkM681s0/e8Mgc9OLGKOi0586pL1xA4C5ikI9Lku3ZwLAXMVNGlK1fMeIoP5ZkRWxBvexSCDOWdcvOuQt+8UhMxbmOLcujzBA0LmLrwTXby6fylEzF+UsyZ03TFriNiD6Pnp/puy1MhkH5nadw2bnTqRyV6yLLwKtp8JQxb7ySoQ++3RViOLPWX3/8miYvTXyGZf2cVXairb1yObveU4DtZVL++FHPaXszlkct1kMXLYo3hEflf97YsQs09x+bEDjRtmQ8xeF3t0iZtnHcJi9ru4aoxb2wtnLGbPEuePDwRAwr4lqSHNT3f3QMLeJTtEBxRLDkLC/iV3l67pjhVCSg6kblvEOg9nSMmDVFwT/NaqFVJyIT1wwc3cUQgp+ZB2vbC2rJoJGTmRTbH9cOJLyMiLTD/mtFXGz5CRG1lt4I5CpENGfuS90vNtPneCnBzJ/XNTix6dg5w8yZeV+NrVF0BOruRnqpw3lM6AnHwpBrS8c1Q+h4KcKcIeXy4J2Q0FeVOs71ftPCIJCnKnaBu1actbeyjIn9LJT+PyTyOU5FCZkBS1c28elORRWaaf5Jo/BUpyqezcaLcv/jFU5FM18uCz8Z47oCKnKlHTuUP94qEir6q9/+6f1DkIKnKretJ3VdXRP6Amv2rP4dnTi41Qk2O1yntObaYn1ORZfSRutK/vPajJtbpH9clJxzJoyLcGa28HPI2Chpxr8vadbGjoDw1515xq2BZc9js05F5rdWvJXxottORfG9wrOSLMHVp6oF0z1Lt11C1o6YO2eerQ6Pcl0NIL3eDINxfbIqCjH7oYycWE/VbQ0RPdj99VdRTUQkdfdFd3bUxLVEJPb/TDTipve7lBT3/06R2RogEd0NMj/c6eCfdvbYSePunvOwwS14TAQK8M4zwfP/2+Nwz0yyANbVJkH4GBnhkOZ+3t9pfAQN8M3csKdUNGwkjvjNO2iXqeX4aR/hmNxwPNZ4thpIfG3y6NstwWBCN9NH2MWfceJnppmv3ZTauISpjop2nluBOFrtkw0VPTn3O22FgOh4m+mm0F5qIL7TDTW/P8vES7A6thpr/mDzBvWOEPMz02Xzj6hWPya5jpc65NZk/TkBjk0utc95cPBi73RC79zg0vuBTWZfMf0TWObQ==</waveform_x_axis>
+				</rf_pulse>
+			</result>
+		</transformation>
+		<transformation version="1.0.0">
+			<type>interpolate_rescale</type>
+			<parameters version="1.0.0">
+				<do_interpolate>true</do_interpolate>
+				<interpolation_factor>1</interpolation_factor>
+				<new_dwell_time>16.0</new_dwell_time>
+				<do_rescaling>false</do_rescaling>
+				<angle>90.0</angle>
+			</parameters>
+			<result version="1.0.0">
+				<created>2011-05-04T13:09:38</created>
+				<rf_pulse version="1.0.0">
+					<waveform data_type="complex128" encoding="xdr zlib base64">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</waveform>
+					<waveform_x_axis data_type="float64" encoding="xdr zlib base64">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</waveform_x_axis>
+				</rf_pulse>
+			</result>
+		</transformation>
+	</pulse_project>
+</vespa_export>

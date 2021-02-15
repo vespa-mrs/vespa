@@ -1,0 +1,29 @@
+<vespa_export version="1.0.0">
+	<!-- Don't be fooled! This is not a real Vespa export file but it was
+	     copy/pasted from one.
+	
+	     You can include as many machine settings definitions in here as 
+	     you like. Each will be added to the database as a template.
+	-->
+	<timestamp>2011-03-08T18:53:55</timestamp>
+	<comment>This is the master file for populating the database.</comment>
+	<machine_settings version="1.0.0">
+		<name>Generic 3T</name>
+		<machine_type>Whole Body MRI</machine_type>
+		<!-- field_strength is in tesla -->
+		<field_strength>3.0</field_strength>
+		<!-- max_b1_field is in microtesla -->
+		<max_b1_field>22.0</max_b1_field>
+		<zero_padding>0</zero_padding>
+		<!-- min_dwell_time is in microseconds -->
+		<min_dwell_time>1.0</min_dwell_time>
+		<!-- dwell_time_increment is in microseconds -->
+		<dwell_time_increment>0.2</dwell_time_increment>
+		<!-- gradient_raster_time is in microseconds -->
+		<gradient_raster_time>10.0</gradient_raster_time>
+		<!-- gradient_slew_rate is in mT/m/ms (millitesla/meter/millisecond) -->
+		<gradient_slew_rate>200.0</gradient_slew_rate>
+		<!-- gradient_maximum is in mT/m (millitesla/meter) -->
+		<gradient_maximum>24.0</gradient_maximum>
+	</machine_settings>
+</vespa_export>

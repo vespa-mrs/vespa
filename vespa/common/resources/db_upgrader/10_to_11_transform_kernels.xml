@@ -1,0 +1,254 @@
+<vespa_export version="1.0.0">
+	<!--
+This XML file is in Vespa Interchange File Format (VIFF). You can download
+applications that read and write VIFF files and learn more about VIFF here:
+http://scion.duhs.duke.edu/vespa/
+
+It was created with Vespa version 0.9.4.
+-->
+	<timestamp>2016-12-08T13:14:15</timestamp>
+	<comment />
+	<transform_kernel id="dc5fea03-368e-49f0-a60c-ddac09244bac" version="1.0.0">
+		<type>Create Transform</type>
+		<name>Import from File no Gradient v1.1</name>
+		<menu_label>Import from File v1.1</menu_label>
+		<created>2016-12-08T11:47:46</created>
+		<creator>bjs</creator>
+		<comment>Cloned 08 December, 2016 11:47:46 from 814e1d0e-7068-4583-9110-72f0ccf4914e (Import from File no Gradient)
+
+Version 1.1
+Found that the dwell time was getting clipped by int() to nearest usec. So if I typed in 2.8 dwell I got 2.0.  Set this version to have float() input.  Not sure if good or bad, yet, but fixes immediate problem.  May need to conform to Machine Specs values at some point.
+</comment>
+		<hide_file1>false</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>true</hide_time_steps>
+		<hide_duration>true</hide_duration>
+		<hide_tip_angle>true</hide_tip_angle>
+		<hide_bandwidth>true</hide_bandwidth>
+		<file1_label>Select File from which to Import Waveform (ampl,phase) pairs:</file1_label>
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>128</time_steps>
+		<duration>1.0</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Dwell Time [usec]</name>
+			<type>Double</type>
+			<default>32.0</default>
+			<variable>dwell_time</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Max Intensity [uT]</name>
+			<type>Double</type>
+			<default>20.0</default>
+			<variable>max_intensity</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Phase Units</name>
+			<type>Choice</type>
+			<default>Degrees,Radians</default>
+			<variable>phase_units</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Time Steps [int]</name>
+			<type>Output</type>
+			<default>None</default>
+			<variable>out_time_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Duration [msec]</name>
+			<type>Output</type>
+			<default>None</default>
+			<variable>out_duration</variable>
+		</transform_kernel_control>
+		<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+import cmath
+
+# 3rd party stuff
+import numpy as np
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+GAMMA1H = 42.576    
+
+DEGREES_TO_RADIANS = math.pi / 180
+
+
+
+def run(trans_desc):
+    """
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - the number of data points in the output waveform
+    dwell_time      - the spacing between points in microseconds.
+    
+    resolution      - the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    See the following articles:
+
+    J. Pauly, P. Le Roux, D. Nishimura, A. Macovski, 
+    'Parmater Relations for the Shinnar-Le Roux Selective Excitation Pulse Design Algorithm',
+    IEEE Transactions on Medical Imaging, Vol. 10, No. 1, pp 53-65, March 1991.
+
+    G.B. Matson, 'An Integrated Program for Amplitude-Modulated RF Pulse Generation  
+    andRe-mapping with Shaped Gradients', Magnetic Resonace Imaging, 
+    Vol. 12, No. 8, pp 1205-1225, 1994'''
+
+    """
+    
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters if needed
+
+    file_path       = param['file1']
+    dwell_time      = float(param["dwell_time"])    # float, usec
+    max_intensity   = float(param["max_intensity"]) # float, uT
+    phase_units     =   int(param["phase_units"])   # choice, 0-degs, 1-rads
+    
+    
+    # these extra items are used in making profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution'])       # int
+
+    is_phase_degrees = True if phase_units == 0 else False
+
+    #--------------------------------------------------------------------------
+    # pulse creation code starts here
+
+    rf_waveform = read_pulse(file_path, max_intensity, is_phase_degrees)
+    
+    dwell = dwell_time/1000000.0
+    npts  = len(rf_waveform)
+
+    rf_xaxis = np.arange(npts) * dwell
+    
+    gradient  = None
+    grad_axis = None
+
+    #--------------------------------------------------------------------------
+    # fill and output dictionary, if needed
+
+    outputs = {}
+    outputs['out_time_steps'] = npts
+    outputs['out_duration'] = npts * dwell * 1000.0  # msec
+
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_waveform)
+    rf_x = np.array(rf_xaxis)
+    gr_y = gradient
+    gr_x = grad_axis
+
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+    
+
+def _crect(r, phi):
+    # The useful function rect() wasn't added to the cmath module until
+    # Python 2.6. We use it when it exists. Python 2.5 users get the 
+    # simplified implementation (which doesn't handle inf correctly).
+    if hasattr(cmath, "rect"):
+        return cmath.rect(r, phi)
+    else:
+        return r * (math.cos(phi) + math.sin(phi)*1j)
+
+    
+def read_pulse(file_path, max_intensity=1.0, is_phase_degrees=True):
+    
+    """ 
+    file_path - complete path of file to read, as a string.
+    max_intensity - the maximum intensity to which to scale the 
+                    pulse at its absolute peak, as a float
+    is_phase_degrees - bool, 
+    Return a numpy array containing the pulse field intensity
+    as a function of time. 
+
+    """
+    try:
+        f = open(file_path)        
+    except IOError, ioe:
+        errstr = "File I/O Error: %s" % ioe.message
+        raise TransformRunException(errstr, -1)          
+
+    rf_y = []
+
+    for ll, line in enumerate(f.readlines()):
+        line = line.strip()
+
+        # Ignore blank lines and comments
+        if (not len(line)) or line.startswith('#') or line.startswith(';'):
+            continue
+            
+        # Split any/all whitespace; also strip that whitespace from the substrings
+        substrings = line.split()
+
+        # validate that this data line has a valid format.
+        if len(substrings) != 2:
+            errstr = "Only two arguments per line allowed, found %d: Error on line %d" %(len(substrings), ll)
+            raise pulse_func_exception.PulseFuncException(errstr, -1)
+
+        amplitude, phase = substrings
+        
+        try:
+            amplitude = float(amplitude)
+        except ValueError, tpe:
+            errstr = "Could not convert %s into a float, on line %d" %(amplitude, ll)
+            raise TransformRunException(errstr, -1)
+        
+        try:
+            phase = float(phase)
+        except ValueError, tpe:
+            errstr = "Could not convert %s into a float, on line %d" %(phase, ll)
+            raise TransformRunException(errstr, -1)            
+        
+        ph_radians = phase
+        if is_phase_degrees == True:
+            # Convert phase to radians.
+            ph_radians = phase * DEGREES_TO_RADIANS
+        c = _crect(amplitude, ph_radians)
+        rf_y.append(c)
+        
+    rf_y = np.array(rf_y)
+    
+    if len(rf_y) &lt; 2:
+        errstr = "Pulse file has less than 2 points"
+        raise TransformRunException(errstr, -1)             
+        
+    max_ = np.max(np.abs(rf_y))
+    # Scale pulse to user specified maximum intensity.
+    # The 1000 in the denominator is used because we internally
+    # represent these pulses in milliTesla (but display as microTesla).
+    rf_y = rf_y * max_intensity / (max_*1000)
+    
+    return rf_y
+</algorithm_code>
+	</transform_kernel>
+</vespa_export>

@@ -1,0 +1,8 @@
+suite: PulseFuncTests
+
+command: python testrunner.py
+compare: slr_output.txt, golden/mp_64pts_linear_90deg_8ms.txt
+
+command: python testrunner2.py
+compare: slr_output2.txt, golden/mp_32pts_max_90deg_10ms.txt
+

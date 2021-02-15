@@ -1,0 +1,54 @@
+# This takes the format of a pip requirements.txt file, but it's not
+# used for that because some of these requirements are not pip-installable.
+# It's used by our script check_dependencies.py.
+
+# Packaging is only used by the dependency checker which uses some simple
+# core functionality to read this file. Any version will work.
+packaging
+
+# PyDicom is pure Python and is on conda-forge, so it's easy to get.
+pydicom>=2.0.0
+
+# PyGamma has wheels on PyPI as of version 4.3.3. Need version compiled for Py3.
+pygamma>4.3.3
+
+# working with a recent version as of September 2020.
+numpy>=1.18.0
+
+# working with a recent version as of September 2020.
+scipy>=1.5.0
+
+# working with a recent version as of September 2020.
+matplotlib>3.1.0
+
+# working with a recent version as of September 2020. Found that 4.1.0 throws 
+# an exception, maybe with wxGlade, will have to debug
+wxPython>=4.0.4,<4.1.0
+
+# LMFit. Any version will work.
+lmfit
+
+# PyPubsub. WxPython no longer has pubsub in it. So we need the stand
+# alone version. Any version will work.
+Pypubsub
+
+
+# Proposed versions of these packages in Ubuntu 16.04 (xenial) which is neither
+# finalized nor released yet, are similar to those in Anaconda 4.0.0.
+# Package      Ubuntu 16.04   Anaconda 4.0
+# -----------+--------------+--------------
+# numpy      |    1.11.0    |    1.10.4
+# scipy      |    0.17.0    |    0.17.0
+# matplotlib |     1.5.1    |     1.5.1
+# PyWavelets |     0.3.0    |     N/A
+# wxPython   |     3.0.2    |     3.0.0
+
+
+## HLSVDPro has wheels on PyPI. Since we distribute it and it doesn't yet have
+## any users outside of Vespa, the latest version will be Vespa-compatible.
+#hlsvdpro
+
+## We would like to pin to PyWavelets 0.3.0, but Ubuntu 14.04 only offers
+## PyWavelets 0.2.2, thus the range below.
+#PyWavelets>=0.2.2,<=0.3.0
+

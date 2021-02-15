@@ -1,0 +1,30 @@
+Version 1.0.0rc3 - 18 September, 2020
+------------------------------------------------------------------------------
+NOTE - Backwards Incompatibility Notice !!!! Read below.
+
+Due to a lot of free time during the COVID-1 pandemic, Vespa has been rewritten,
+refactored, and redesigned to work under Python 3.x. Due to numerous changes in 
+the Vespa code, this version does not work in Python 2.7.x anymore. But,
+the overall program is backwards compatible at the database and VIFF and other
+saved file formats. Ie. it should read in your old *.xml results sets just
+fine. 
+
+We have bumped a major version number to 1.0.0 to reflect this change. There
+may still be a few bugs under the hood from all the coding 'improvements' but
+we are working diligently to squash them all as reported.
+
+Major Changes
+--------------
+
+- added algorithms to Preprocess tab for more Coil combination, Data Exclusion,
+  B0 and Phase Correction, and more ways to display and review results.
+- added standard data parsers for Philips DICOM MRS files, Siemens Twix sLASER
+  files from CMRR, Siemens Twix svs_se files, Siemens Twix svs_se_edit WIP529
+  files.
+- moved HLSVDPro water removal into Python code
+- moved wavelet filter baseline code into Python code
+- Vespa now uses most-ish recent wxPython, matplotlib, numpy, scipy, pydicom 
+  and other dependencies modules.
+- Priorset application has been renamed to DataSim for better clarity of purpose.
+
+

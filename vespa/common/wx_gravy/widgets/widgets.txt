@@ -1,0 +1,5 @@
+#float_spin
+
+[Custom]
+floatspin
+floatspin_multiplier

@@ -1,0 +1,3420 @@
+<vespa_export version="1.0.0">
+	<!--
+This XML file is in Vespa Interchange File Format (VIFF). You can download
+applications that read and write VIFF files and learn more about VIFF here:
+http://scion.duhs.duke.edu/vespa/
+
+It was created with Vespa version 0.8.4.
+-->
+	<timestamp>2015-11-18T18:08:02</timestamp>
+	<comment />
+	<transform_kernel id="1278ab4f-bcd9-48fd-aff8-6d97e3062181" version="1.0.0">
+		<type>Create Transform</type>
+		<name>BASSI Warnking Paper</name>
+		<menu_label>BASSI - Warnking</menu_label>
+		<created>2015-11-03T17:06:18</created>
+		<creator>Brian J Soher</creator>
+		<comment>Derived from Warnking paper MRM 52:1190-1199 (2004)
+
+Note. this code was rewritten to be all in one function (ie. no separate
+aBt or bBt functs so as to make port to C/C++ easier
+
+vref [uT] = reference voltage for scaling, default for Siemens 1ms hard 180 pulse = 11.7uT
+
+    Pulse Shape Parameters and Variables and Their Units and Definitions
+    ----------------------------------------------------------------------------------------------
+    Variable        Units       Description                             Definition
+    ----------------------------------------------------------------------------------------------
+    a, a0, aB       rad         Amplitude parameter                     Eqs. [1] and [2]
+    alpha             deg         Effective flip angle                    alpha = acos(1-2Pe)
+    AM                rad/s       RF amplitude modulation function        Eq. [1]
+    b, b0, bB       rad         Bandwidth parameter                     Eqs. [1] and [2], b = pi*mu
+    beta              rad         Truncation factor of driving function   g(+/-Tp/2)=+/-2*beta
+    c                     1           Normalized off-resonance                Eqs. [3] and [5]
+    f0                   1           Maximal relative bandwidth increase     Eq. [15]
+    FM                rad/s       RF frequency modulation function        Eq. [2]
+    g                   rad         HS driving function                     Eqs. [1] and [2]
+    gdot             rad/s       Derivative of the driving function
+    gamma       rad/s*T     Gyromagnetic ratio                      2.675222exp8 rad/s*T
+    G                  T/m         Slice-select gradient                   Eq. [18]
+    kappa             1           BASSI amplitude scaling parameter       Eqs. [14] and [15]
+    L                     1           relative RF energy, as function of Pc   Eq. 9
+    mu                  1           Bandwidth parameter, notation from (14) mu = beta/pi
+    Pe                   1           Population inversion                    Pe=(1-cos(alpha))/2
+    Tp                   s           Pulse duration
+    x0                  m           Center of inversion / saturation band
+    deltax            m           Width of inversion / saturation slab
+
+    The population Pe inversion corresponds to an effective flip angle (i.e., the 
+    flip angle of a plane rotation that would produce the same longitudinal 
+    magnetization), of alpha = arccos(1-2Pe).
+
+
+    Pulse parameters, as well as peak B1, peak gradient amplitude (Gmax) and width of the frequency 
+    sweep (BW), for the pulses compared in the simulations and phantom experiments
+    -----------------------------------------------------------------------------------------------
+    Pulse                      Tp      alpha       beta    b0      f0      Peak B1     Gmax       BW
+                                 (ms)     (deg)       (rad)                          (uT)       mT/m)     (kHz)
+    -----------------------------------------------------------------------------------------------
+    HS                         8.1        90          5.3     157     1       23.0         4.9         20.8
+    FOCI                     8.1        90          5.3     157     3.2    23.0        15.7        66.7
+    BASSI(kappa=2)   8.1        90          5.3     168     3       23.1        15.7        66.7
+    VERSE-HS              8.1        90          5.3     503              22.8        19.0        81.0
+
+    HS                          10.24   170         5.3     37.7     1       22.9        0.9         4.0
+    FOCI                      10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(kappa=2)    10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(kappa=1.6)10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(GOIA)         10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    VERSE-HS              10.24   175         5.3     251               23.0        23.6        100.5
+
+Imported 03 November, 2015 17:05:11
+
+</comment>
+		<hide_file1>true</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>false</hide_time_steps>
+		<hide_duration>false</hide_duration>
+		<hide_tip_angle>false</hide_tip_angle>
+		<hide_bandwidth>true</hide_bandwidth>
+		<file1_label />
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>1024</time_steps>
+		<duration>2.048</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Time Steps [int]</name>
+			<type>Long</type>
+			<default>1024</default>
+			<variable>time_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Duration [msec]</name>
+			<type>Double</type>
+			<default>2.048</default>
+			<variable>duration</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Tip Angle [deg]</name>
+			<type>Double</type>
+			<default>90.0</default>
+			<variable>tip_angle</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Truncation Factor [beta]</name>
+			<type>Double</type>
+			<default>5.3</default>
+			<variable>trunc_factor</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Bandwidth Factor [b0]</name>
+			<type>Double</type>
+			<default>15.0</default>
+			<variable>bw_factor</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Max Relative Bandwidth [f0]</name>
+			<type>Double</type>
+			<default>3.0</default>
+			<variable>max_relative_bw</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Amplitude Scale [kappa]</name>
+			<type>Double</type>
+			<default>2.0</default>
+			<variable>ampl_scale</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Slab Width [meters]</name>
+			<type>Double</type>
+			<default>0.04</default>
+			<variable>slab_width</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Slab Center [meters]</name>
+			<type>Double</type>
+			<default>0.0</default>
+			<variable>slab_center</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Bandwidth [Hz}</name>
+			<type>Output</type>
+			<default>0.0</default>
+			<variable>bw_calc</variable>
+		</transform_kernel_control>
+		<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+GAMMA1H = 42.576    
+PI = np.pi
+
+
+
+def run(trans_desc):
+    """
+    Stub Summary
+    ------------------
+    This is a template that you can use as a starting point to develop 
+    algorithm code for both Create and Modify types of Transforms. 
+    
+    It has the same format needed for cut/paste insertion directly into 
+    the Transform Editor. 
+    
+    It is also set up so you can call it directly from the command line. 
+    The code in the   __name__ == '__main__'  section will create the
+    'trans_desc' dictionary based on default values you provide, and 
+    the resultant rf waveform, gradient and time axis will be used to 
+    run a bloch simulation to create a frequency profile for display. 
+    
+    Create or Modify Transform Information
+    ---------------------------------------------
+    Listed below are the input parameters and extra parameters being passed
+    into this script.
+
+    time_steps      - int, the number of data points in the output waveform
+    duration        - float, total time of pulse, in msec
+    
+    resolution      - int, the number of points used in calculating the 
+                        frequency domain computations.
+    bandwidth_convention    - int, choice
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -------------------------------
+
+    Derived from Warnking paper MRM 52:1190-1199 (2004)
+
+    Note. this code was rewritten to be all in one function (ie. no separate
+    aBt or bBt functs so as to make port to C/C++ easier
+
+    vref [uT] = reference voltage for scaling, default for Siemens 1ms hard 180 pulse = 11.7uT
+
+    Pulse Shape Parameters and Variables and Their Units and Definitions
+    ----------------------------------------------------------------------------------------------
+    Variable        Units       Description                             Definition
+    ----------------------------------------------------------------------------------------------
+    a, a0, aB       rad         Amplitude parameter                     Eqs. [1] and [2]
+    alpha           deg         Effective flip angle                    alpha = acos(1-2Pe)
+    AM              rad/s       RF amplitude modulation function        Eq. [1]
+    b, b0, bB       rad         Bandwidth parameter                     Eqs. [1] and [2], b = pi*mu
+    beta            rad         Truncation factor of driving function   g(+/-Tp/2)=+/-2*beta
+    c               1           Normalized off-resonance                Eqs. [3] and [5]
+    f0              1           Maximal relative bandwidth increase     Eq. [15]
+    FM              rad/s       RF frequency modulation function        Eq. [2]
+    g               rad         HS driving function                     Eqs. [1] and [2]
+    gdot            rad/s       Derivative of the driving function
+    gamma           rad/s*T     Gyromagnetic ratio                      2.675222exp8 rad/s*T
+    G               T/m         Slice-select gradient                   Eq. [18]
+    kappa           1           BASSI amplitude scaling parameter       Eqs. [14] and [15]
+    L               1           relative RF energy, as function of Pc   Eq. 9
+    mu              1           Bandwidth parameter, notation from (14) mu = beta/pi
+    Pe              1           Population inversion                    Pe=(1-cos(alpha))/2
+    Tp              s           Pulse duration
+    x0              m           Center of inversion / saturation band
+    deltax          m           Width of inversion / saturation slab
+
+    The population Pe inversion corresponds to an effective flip angle (i.e., the 
+    flip angle of a plane rotation that would produce the same longitudinal 
+    magnetization), of alpha = arccos(1-2Pe).
+
+
+    Pulse parameters, as well as peak B1, peak gradient amplitude (Gmax) and width of the frequency 
+    sweep (BW), for the pulses compared in the simulations and phantom experiments
+    -----------------------------------------------------------------------------------------------
+    Pulse               Tp      alpha       beta    b0      f0      Peak B1     Gmax       BW
+                       (ms)     (deg)       (rad)                    (uT)       mT/m)     (kHz)
+    -----------------------------------------------------------------------------------------------
+    HS                  8.1     90          5.3     157     1       23.0        4.9         20.8
+    FOCI                8.1     90          5.3     157     3.2     23.0        15.7        66.7
+    BASSI(kappa=2)      8.1     90          5.3     168     3       23.1        15.7        66.7
+    VERSE-HS            8.1     90          5.3     503             22.8        19.0        81.0
+
+    HS                  10.24   170         5.3     37.7    1       22.9        0.9         4.0
+    FOCI                10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(kappa=2)      10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(kappa=1.6)    10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(GOIA)         10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    VERSE-HS            10.24   175         5.3     251             23.0        23.6        100.5
+
+    """
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters 
+    #
+    # - Add or Modify the values below as needed
+
+    time_steps      = int(param["time_steps"])          # int
+    duration        = float(param["duration"])          # float, msec
+    flip_angle      = float(param['tip_angle'])
+    trunc_factor    = float(param['trunc_factor'])
+    bw_factor       = float(param['bw_factor'])
+    max_relative_bw = float(param['max_relative_bw'])
+    slab_width      = float(param['slab_width'])        # float, in meters
+    slab_center     = float(param['slab_center'])       # float, in meters
+    ampl_scale      = float(param['ampl_scale'])        # float, 2 or 1.6
+    
+    dwell_time      = (1000 * duration) / (time_steps)     # in usec
+    
+    # these extra items may be used in making waveform or profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution']) # int
+
+    # Use TransformRunException to check parameter ranges and alert users
+    # - an example is shown below
+    # - when your code returns with this exception, it fails 'gracefully'
+    # - no result is changed by this exception 
+    # - an error dialog shows the message passed back
+    # - can be used *anywhere* in code to fail and pass info back to the user
+
+    if time_steps &lt; 1:
+        error_msg =  "The number of time steps in the pulse must be &gt; 0"
+        raise TransformRunException(error_msg, 1)
+
+
+    #--------------------------------------------------------------------------
+    # transform algorithm code starts here
+
+    npts   = time_steps         #1024       # 8100 with dwell 0.000001
+    dwell  = dwell_time * 1e-6  #0.000002
+    Tp     = npts * dwell
+    alpha  = flip_angle         #90.0
+    beta   = trunc_factor       #5.3
+    b0     = bw_factor          #15.0  #168.0
+    f0     = max_relative_bw    #3.0
+    deltax = slab_width         #0.04
+    x0     = slab_center        #0.0
+    kappa  = ampl_scale         #2.0
+
+    # Output Units: Tesla, Hz, T/m, deg
+    amt,  fmt,  g,  phit  = pulse_bassi_warnking(npts, dwell, alpha, beta, b0, f0, kappa=kappa, deltax=deltax, x0=x0)
+
+    amt = amt * 1000.0      # convert T to mT
+    g   = g   * 1000.0      # convert T/m to mT/m
+    
+    rf_waveform = amt * np.exp(1j*phit)    
+    rf_xaxis    = np.arange(time_steps) * dwell
+    
+    gradient    = g 
+    grad_xaxis  = np.arange(time_steps) * dwell
+    
+    # end transform algorithm
+    #--------------------------------------------------------------------------
+
+    #--------------------------------------------------------------------------
+    # fill an output dictionary, or leave as None
+
+    outputs = {}
+
+    bw = (g[0] * 0.1) * 4358.0 * (deltax*100)    # (mT/m-&gt;G/cm)  Hz/G  cm 
+    outputs['bw_calc'] = bw
+    
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_waveform)
+    rf_x = np.array(rf_xaxis)
+    gr_y = gradient
+    gr_x = grad_xaxis
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+    
+    
+
+def pulse_bassi_warnking(npts, dwell, alpha, beta, b0, f0, 
+                         vref=11.7, b1ref=11.7, kappa=2.0, 
+                         x0=0.0, deltax=0.02):
+    r"""
+
+    See comments above for description of this pulse algorithm
+    
+    """
+    gamma = 267522200.       # 2.675222 x 10^8 rad/s*T
+
+    Tp = npts * dwell
+    t  = np.arange(npts) * dwell
+    t  = t - (Tp/2.0)
+
+    Pe = 0.5*(1-np.cos(alpha*PI/180.0))      # from comment above
+    
+    # Equation 9
+    L = (1.0/(2*PI))*np.log(1.0/(np.sqrt(1-Pe)))
+
+    # Equation 15,  bB(t) = bBt
+    bBt = np.power(np.power((np.power(np.cosh(2*beta*t/Tp),kappa)*(b0-(PI*L)) + (PI*L)),-2) + np.power(f0*b0,-2), -0.5)
+    bB0 = np.power(np.power((np.power(np.cosh(2*beta*0/Tp),kappa)*(b0-(PI*L)) + (PI*L)),-2) + np.power(f0*b0,-2), -0.5)
+    
+    # Equation 14
+    aBt = np.power((bBt-PI*L)/(b0-PI*L),1.0/kappa) * np.sqrt(b0*b0 - 4*np.power(np.arccosh(np.cosh(b0/2)*np.sqrt(1-Pe)),2))
+    aB0 = np.power((bB0-PI*L)/(b0-PI*L),1.0/kappa) * np.sqrt(b0*b0 - 4*np.power(np.arccosh(np.cosh(b0/2)*np.sqrt(1-Pe)),2))
+    
+    # Equation 16
+    #
+    # Acc'd to paper, if we plug in vref and b1ref output is in Volts
+    # For now, we set vref=b1ref thus removing that term from the equation
+    # and it returns in T (I think)
+    
+    amt = (vref/b1ref)*(2*aB0*beta/(PI*gamma*Tp)) * (aBt.copy()/aB0)*(1.0/np.cosh(2*beta*t/Tp)) # for sech()
+        
+    # Equation 18
+    #
+    # Acc'd to paper this returns in Tesla/meter
+    
+    g = bBt.copy()*4*beta /(PI*gamma*deltax*Tp)
+    
+    # Equation 17
+    # 
+    # first we create the function, then integrate under it for each point
+    fmt  = ((2*bBt.copy()*beta)/(PI*Tp))*((-2*x0/deltax) + np.tanh(2*beta*t/Tp))
+    phit = np.cumsum(fmt*dwell)
+    phit = phit % (PI*2)
+    
+    return amt, fmt, g, phit
+
+
+
+def b_acosh(x):
+    return np.log(x + np.sqrt(np.power(x,2) - 1))
+
+
+_PI     = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348;
+_TWO_PI = 6.2831853071795864769252867665590057683943387987502116419498891846156328125724179972560696;
+
+# Floating-point modulo
+# The result (the remainder) has same sign as the divisor.
+# Similar to matlab's mod(); Not similar to fmod() -   Mod(-3,4)= 1   fmod(-3,4)= -3
+def Mod(x,y):
+
+    if 0.0 == y:
+        return x
+
+    m = x - y * np.floor(x/y)
+
+    # handle boundary cases resulted from floating-point cut off:
+    if y &gt; 0:                   # modulo range: [0..y)
+        if m &gt;= y:              # Mod(-1e-16             , 360.    ): m= 360.
+            return 0
+        if m &lt;0:
+            if (y+m) == y:
+                return 0        # just in case...
+            else:
+                return y+m      # Mod(106.81415022205296 , _TWO_PI ): m= -1.421e-14 
+    else:                       # modulo range: (y..0]
+        if m &lt;= y:              # Mod(1e-16              , -360.   ): m= -360.
+            return 0
+        if m &gt; 0:
+            if (y+m) == y:
+                return 0    # just in case...
+            else:
+                return y+m  # Mod(-106.81415022205296, -_TWO_PI): m= 1.421e-14 
+    return m
+
+
+# wrap [rad] angle to [-PI..PI)
+def WrapPosNegPI(fAng):
+    return Mod(fAng + _PI, _TWO_PI) - _PI
+
+# wrap [rad] angle to [0..TWO_PI)
+def WrapTwoPI(fAng):
+    return Mod(fAng, _TWO_PI)
+
+# wrap [deg] angle to [-180..180)
+def WrapPosNeg180(fAng):
+    return Mod(fAng + 180.0, 360.0) - 180.0
+
+# wrap [deg] angle to [0..360)
+def Wrap360(fAng):
+    return Mod(fAng ,360.0)
+
+
+    </algorithm_code>
+	</transform_kernel>
+	<transform_kernel id="2ef0891e-ceef-4bc8-b998-8e8dff565e28" version="1.0.0">
+		<type>Visualize Transform</type>
+		<name>Contour Plot for  B1 Immunity</name>
+		<menu_label>Contour Plot for  B1 Immunity</menu_label>
+		<created>2015-11-11T09:28:14</created>
+		<creator>Brian J Soher</creator>
+		<comment />
+		<hide_file1>true</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>true</hide_time_steps>
+		<hide_duration>true</hide_duration>
+		<hide_tip_angle>true</hide_tip_angle>
+		<hide_bandwidth>true</hide_bandwidth>
+		<file1_label />
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>128</time_steps>
+		<duration>1.0</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Pulse Type:</name>
+			<type>Choice</type>
+			<default>Excite,Saturate,Invert,Spin Echo</default>
+			<variable>pulse_type</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Center Freq [kHz]:</name>
+			<type>Double</type>
+			<default>0.0</default>
+			<variable>freq_center</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Freq Range [+/- kHz]:</name>
+			<type>Double</type>
+			<default>4.0</default>
+			<variable>freq_range</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Freq Steps:</name>
+			<type>Long</type>
+			<default>40</default>
+			<variable>freq_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>B1 Strengh [uT]:</name>
+			<type>Double</type>
+			<default>35.0</default>
+			<variable>b1_strength</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>B1 Range [+/- %]:</name>
+			<type>Double</type>
+			<default>20.0</default>
+			<variable>b1_range</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>B1 Steps:</name>
+			<type>Long</type>
+			<default>50</default>
+			<variable>b1_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Magnetization Vector:</name>
+			<type>Choice</type>
+			<default>Mx,AbsTransverse,Mz</default>
+			<variable>magn_vector</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Reference B1 Limits [+/- %]:</name>
+			<type>Double</type>
+			<default>20.0</default>
+			<variable>ref_b1_limits</variable>
+		</transform_kernel_control>
+		<algorithm_code>import numpy as np
+from vespa.common.transform_run_exception import TransformRunException
+
+def run(trans_desc):
+    
+    param = trans_desc.parameters
+    
+    b1  = trans_desc.previous_rf
+    b1x = trans_desc.previous_rf_xaxis
+    gr  = trans_desc.previous_gradient 
+    grx = trans_desc.previous_grad_xaxis 
+
+    outs = {}
+    outs["pulse_type"]    = param["pulse_type"]
+    outs["freq_center"]   = param["freq_center"]
+    outs["freq_range"]    = param["freq_range"]
+    outs["freq_steps"]    = param["freq_steps"]
+    outs["b1_strength"]   = param["b1_strength"]
+    outs["b1_range"]      = param["b1_range"]
+    outs["b1_steps"]      = param["b1_steps"]
+    outs["magn_vector"]   = param["magn_vector"]
+    outs["ref_b1_limits"] = param["ref_b1_limits"]
+
+    outs["update_method"] = 'update_b1_immunity'
+    outs["plot_method"]   = 'plot_b1_immunity'
+ 
+    return b1, b1x, gr, grx, outs
+</algorithm_code>
+	</transform_kernel>
+	<transform_kernel id="3d58c135-f9ff-44a7-a8b0-2b73ce9f7e2f" version="1.0.0">
+		<type>Create Transform</type>
+		<name>GOIA WURST - Dinesh Deelchand CMRR</name>
+		<menu_label>GOIA WURST - Dinesh</menu_label>
+		<created>2015-11-03T16:29:11</created>
+		<creator>Brian J Soher</creator>
+		<comment>
+    Based on Matlab code from Dinesh Deelchand, CMRR, 14 September 2015
+    % Updated 29 Sept 2015
+
+    simulB1Goia2(pulseType,Tpms,HSn,RkHz,Gradm,fMod,B1vals,myOffset)
+    %*************************************************
+    % FOCI, GOIA-HS or GOIA-WURST gradient-modulated RF pulses
+    % - RF and gradient waveforms are generated internally
+    % - based on Andronesi et al. JMR 2010 paper </comment>
+		<hide_file1>true</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>false</hide_time_steps>
+		<hide_duration>false</hide_duration>
+		<hide_tip_angle>true</hide_tip_angle>
+		<hide_bandwidth>false</hide_bandwidth>
+		<file1_label />
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>400</time_steps>
+		<duration>4.0</duration>
+		<bandwidth>10.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Time Steps [int]</name>
+			<type>Long</type>
+			<default>400</default>
+			<variable>time_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Duration [msec]</name>
+			<type>Double</type>
+			<default>4.0</default>
+			<variable>duration</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Bandwidth [kHz]</name>
+			<type>Double</type>
+			<default>10.0</default>
+			<variable>bandwidth</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Pulse Algorithm</name>
+			<type>Choice</type>
+			<default>GOIA-HS,GOIA-WURST,FOCI</default>
+			<variable>pulse_type</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>HSn Modulation</name>
+			<type>Double</type>
+			<default>8.0</default>
+			<variable>hsn_modulation</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Grad Modulation</name>
+			<type>Double</type>
+			<default>4.0</default>
+			<variable>grad_modulation</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Grad Factor</name>
+			<type>Double</type>
+			<default>0.9</default>
+			<variable>grad_factor</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Total Rotation [Hz]</name>
+			<type>Double</type>
+			<default>575.0</default>
+			<variable>total_rotation</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Slice Width [cm]</name>
+			<type>Double</type>
+			<default>2.0</default>
+			<variable>slice_thick</variable>
+		</transform_kernel_control>
+		<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+import scipy.integrate as integrate
+import scipy.stats.distributions as distributions
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+def run(trans_desc):
+    """
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - the number of data points in the output waveform
+    dwell_time      - the spacing between points in microseconds.
+    
+    resolution      - the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -----------------------------
+
+    pulse_type      - 'FOCI', 'GOIA-HS' or 'GOIA-WURST'
+    time_steps      - Number of points
+    duration        - float, [sec]
+    bandwidth       - float, [kHz]
+    hsn_modulation  - float, 
+    grad_modulation - float, 
+    grad_factor     - float, [0.0-1.0] gradient modulation factor. The higher 
+                             the value the more G "drops" in the middle of the 
+                             pulse and the less B1max is required. 0.9 is typical
+    total_rotation  - float, [kHz]
+    offset_hz       - float, [Hz] offset from central frequency
+    slice_thick     - float, [cm] 
+
+    Based on Matlab code from Dinesh Deelchand, CMRR, 14 September 2015
+    % Updated 29 Sept 2015
+
+    simulB1Goia2(pulseType,Tpms,HSn,RkHz,Gradm,fMod,B1vals,myOffset)
+    %*************************************************
+    % FOCI, GOIA-HS or GOIA-WURST gradient-modulated RF pulses
+    % - RF and gradient waveforms are generated internally
+    % - based on Andronesi et al. JMR 2010 paper 
+
+    """
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters if needed
+
+    pulse_type          = param['pulse_type']               # string
+    time_steps          = int(param["time_steps"])          # int
+    duration            = float(param["duration"])          # float, [sec]
+    bw                  = float(param["bandwidth"])         # float
+    hsn                 = float(param["hsn_modulation"])    # float
+    gmod                = float(param["grad_modulation"])   # float
+    gfact               = float(param["grad_factor"])       # float
+    b1rot               = float(param["total_rotation"])    # float
+#    offset              = float(param["offset_hz"])         # float, %
+    slice_thick         = float(param["slice_thick"])       # float, [cm]
+
+    if pulse_type == 0:
+        pulse_type = 'GOIA-HS'
+    elif pulse_type == 1:
+        pulse_type = 'GOIA-WURST'
+    else:
+        pulse_type = 'FOCI'
+    
+    duration = duration * 0.001		# convert [ms] to [sec] here
+
+    rval                = (duration * 1e3) * bw
+    dwell_time          = (duration * 1e6) / time_steps     # in usec
+    gamma               = 4257.0                            # Hz/G
+    
+    # these extra items are used in making profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution']) # int
+
+
+    #--------------------------------------------------------------------------
+    # simulate GOIA/FOCI RF and grad waveforms
+
+    if pulse_type =='FOCI' and (hsn&gt;1):
+        hsn = 1
+
+    beta = np.arccosh(1.0/0.01)   # arcsech(x) = arccosh(1/x)   # 10% cut off
+    t    = np.linspace(0, duration, time_steps) 
+    tau  = 2*t/duration - 1 
+
+    #***************************************************
+    # Modulation parameters and Equations
+    #***************************************************
+    # Amplitude
+    
+    b1max = 1
+
+    aa = np.zeros(len(tau))
+
+    if pulse_type == 'GOIA-HS' or pulse_type =='FOCI':
+
+        if pulse_type == 'FOCI':
+            # shaping function, i.e. C-shaped, Kinchesh et al. JMR 2005
+            thresh = 10     # 100-f*100
+            temp2 = 1.0 / np.cosh(beta * tau)   # sech = 1/cosh
+            for i in range(len(temp2)): 
+                if temp2[i] &gt; (1/thresh):
+                    aa[i] = np.cosh(beta*tau[i])
+                else:
+                    aa[i] = thresh
+
+            # for gradient
+            aag = aa / thresh
+
+            # reset params
+            gfact = 0   # need to set OFF gradient modulation factor
+            hsn   = 1   # order of B1 modulation, e.g. hsn
+
+        else:
+            aa  = 1
+            aag = 1
+
+        # Amplitude waveform
+        amp = aa * b1max / np.cosh(beta * tau**hsn)          # sech = 1/cosh
+
+        # Gradient waveform
+        grad = aag * (1 - gfact / np.cosh(beta * tau**gmod))   # sech = 1/cosh
+
+        # Frequency modulation
+        feq = lambda x: (b1max / np.cosh(beta * x**hsn))**2 / ((1 - gfact / np.cosh(beta * x**gmod)))
+
+
+    elif pulse_type == 'GOIA-WURST':
+        
+        # Amplitude waveform
+        amp = b1max * (1 - np.abs(np.sin(np.pi/2*tau))**hsn)
+
+        # Gradient waveform
+        grad = ((1 - gfact) + gfact * np.abs(np.sin(np.pi/2*tau))**gmod)
+
+        # Frequency modulation
+        feq = lambda x: (b1max * (1 - np.abs(np.sin(np.pi/2*x))**hsn))**2 / (((1 - gfact) + gfact * np.abs(np.sin(np.pi/2*x))**gmod))
+
+    else:
+        print 'Type of RF pulse to generate NOT defined'
+        return
+
+
+    #***************************************************
+    # Frequency modulation
+    # - cumulative integration built-in Matlab script
+    # - wc is center freq where w(Tp/2)=0, i.e. freq at 
+    #   middle of pulse is 0
+    #***************************************************
+    
+    ctr = -1+len(tau)/2
+    tmp = integrate.cumtrapz(feq(tau), x=tau, initial=0);
+    tmp = tmp - tmp[ctr]
+
+    w1 = grad * tmp
+    A  = rval / (2*duration)
+    w  = w1 / np.max(w1) * A
+
+
+    #***************************************************
+    # Phase modulation
+    # - using cumulative trapz integration
+    # - shift phase to have zero value at bottom
+    #***************************************************
+    
+    phas = 2 * np.pi * integrate.cumtrapz(w, t, initial=0);
+    phas = phas - np.min(phas)      # in rad here
+    
+
+    #***************************************************
+    # Amplitude waveform - normalized
+    amp_norm = amp / np.max(amp)
+
+    
+    #***************************************************
+    # Complex RF waveform 
+    re = amp_norm * np.cos(phas)
+    im = amp_norm * np.sin(phas)
+    b1 = re + 1j*im
+
+    # Complex RF waveform 
+    # - normalized so sum(rf)=1
+    # - rescaled based on user-defined B1/Hz
+    
+    mypulse       = b1 / np.sum(np.real(b1))      # normalize sum(b1)=1
+    mypulseG      = mypulse / (2 * np.pi * gamma * duration/len(mypulse))
+    mypulseHz     = mypulseG * gamma                # convert to Hz
+    mypulseHzNorm = mypulseHz / np.max(np.abs(mypulseHz))
+
+    # gradient waveform
+    g   = (rval/duration)/(gamma*slice_thick)
+    gx  = grad * g * 10
+
+    # RF pulse at total rotation value
+    mypulseHzreq = mypulseHzNorm * b1rot
+
+    # convert B1 to Gauss
+    mypulseGnew = 0.1 * mypulseHzreq / gamma
+
+    rf_waveform = mypulseGnew
+    rf_xaxis    = np.arange(time_steps) * 0.00001    # in sec
+    
+    gradient    = gx
+    grad_xaxis  = np.arange(time_steps) * 0.00001    # in sec
+    
+    #--------------------------------------------------------------------------
+    # fill and output dictionary, if needed
+
+    outputs = {}
+
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_waveform)
+    rf_x = np.array(rf_xaxis)
+    gr_y = gradient
+    gr_x = grad_xaxis
+
+    return rf_y, rf_x, gr_y, gr_x, outputs</algorithm_code>
+	</transform_kernel>
+	<transform_kernel id="814e1d0e-7068-4583-9110-72f0ccf4914e" version="1.0.0">
+		<type>Create Transform</type>
+		<name>Import from File no Gradient</name>
+		<menu_label>Import from File</menu_label>
+		<created>2015-08-06T15:17:20</created>
+		<creator>bjs</creator>
+		<comment />
+		<hide_file1>false</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>true</hide_time_steps>
+		<hide_duration>true</hide_duration>
+		<hide_tip_angle>true</hide_tip_angle>
+		<hide_bandwidth>true</hide_bandwidth>
+		<file1_label>Select File from which to Import Waveform (ampl,phase) pairs:</file1_label>
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>128</time_steps>
+		<duration>1.0</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Dwell Time [usec]</name>
+			<type>Double</type>
+			<default>32.0</default>
+			<variable>dwell_time</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Max Intensity [uT]</name>
+			<type>Double</type>
+			<default>20.0</default>
+			<variable>max_intensity</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Phase Units</name>
+			<type>Choice</type>
+			<default>Degrees,Radians</default>
+			<variable>phase_units</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Time Steps [int]</name>
+			<type>Output</type>
+			<default>None</default>
+			<variable>out_time_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Duration [msec]</name>
+			<type>Output</type>
+			<default>None</default>
+			<variable>out_duration</variable>
+		</transform_kernel_control>
+		<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+import cmath
+
+# 3rd party stuff
+import numpy as np
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+GAMMA1H = 42.576    
+
+DEGREES_TO_RADIANS = math.pi / 180
+
+
+
+def run(trans_desc):
+    """
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - the number of data points in the output waveform
+    dwell_time      - the spacing between points in microseconds.
+    
+    resolution      - the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    See the following articles:
+
+    J. Pauly, P. Le Roux, D. Nishimura, A. Macovski, 
+    'Parmater Relations for the Shinnar-Le Roux Selective Excitation Pulse Design Algorithm',
+    IEEE Transactions on Medical Imaging, Vol. 10, No. 1, pp 53-65, March 1991.
+
+    G.B. Matson, 'An Integrated Program for Amplitude-Modulated RF Pulse Generation  
+    andRe-mapping with Shaped Gradients', Magnetic Resonace Imaging, 
+    Vol. 12, No. 8, pp 1205-1225, 1994'''
+
+    """
+    
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters if needed
+
+    file_path       =  param['file1']
+    dwell_time      =   int(param["dwell_time"])    # float, usec
+    max_intensity   = float(param["max_intensity"]) # float, uT
+    phase_units     =   int(param["phase_units"])   # choice, 0-degs, 1-rads
+    
+    
+    # these extra items are used in making profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution']) # int
+
+    is_phase_degrees = True if phase_units == 0 else False
+
+    #--------------------------------------------------------------------------
+    # pulse creation code starts here
+
+    rf_waveform = read_pulse(file_path, max_intensity, is_phase_degrees)
+    
+    dwell = dwell_time/1000000
+    npts  = len(rf_waveform)
+
+    rf_xaxis = np.arange(npts) * dwell
+    
+    gradient = None
+    grad_axis = None
+
+    #--------------------------------------------------------------------------
+    # fill and output dictionary, if needed
+
+    outputs = {}
+    outputs['out_time_steps'] = npts
+    outputs['out_duration'] = npts * dwell * 1000.0  # msec
+
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_waveform)
+    rf_x = np.array(rf_xaxis)
+    gr_y = gradient
+    gr_x = grad_axis
+
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+    
+
+def _crect(r, phi):
+    # The useful function rect() wasn't added to the cmath module until
+    # Python 2.6. We use it when it exists. Python 2.5 users get the 
+    # simplified implementation (which doesn't handle inf correctly).
+    if hasattr(cmath, "rect"):
+        return cmath.rect(r, phi)
+    else:
+        return r * (math.cos(phi) + math.sin(phi)*1j)
+
+    
+def read_pulse(file_path, max_intensity=1.0, is_phase_degrees=True):
+    
+    """ 
+    file_path - complete path of file to read, as a string.
+    max_intensity - the maximum intensity to which to scale the 
+                    pulse at its absolute peak, as a float
+    is_phase_degrees - bool, 
+    Return a numpy array containing the pulse field intensity
+    as a function of time. 
+
+    """
+    try:
+        f = open(file_path)        
+    except IOError, ioe:
+        errstr = "File I/O Error: %s" % ioe.message
+        raise TransformRunException(errstr, -1)          
+
+    rf_y = []
+
+    for ll, line in enumerate(f.readlines()):
+        line = line.strip()
+
+        # Ignore blank lines and comments
+        if (not len(line)) or line.startswith('#') or line.startswith(';'):
+            continue
+            
+        # Split any/all whitespace; also strip that whitespace from the substrings
+        substrings = line.split()
+
+        # validate that this data line has a valid format.
+        if len(substrings) != 2:
+            errstr = "Only two arguments per line allowed, found %d: Error on line %d" %(len(substrings), ll)
+            raise pulse_func_exception.PulseFuncException(errstr, -1)
+
+        amplitude, phase = substrings
+        
+        try:
+            amplitude = float(amplitude)
+        except ValueError, tpe:
+            errstr = "Could not convert %s into a float, on line %d" %(amplitude, ll)
+            raise TransformRunException(errstr, -1)
+        
+        try:
+            phase = float(phase)
+        except ValueError, tpe:
+            errstr = "Could not convert %s into a float, on line %d" %(phase, ll)
+            raise TransformRunException(errstr, -1)            
+        
+        ph_radians = phase
+        if is_phase_degrees == True:
+            # Convert phase to radians.
+            ph_radians = phase * DEGREES_TO_RADIANS
+        c = _crect(amplitude, ph_radians)
+        rf_y.append(c)
+        
+    rf_y = np.array(rf_y)
+    
+    if len(rf_y) &lt; 2:
+        errstr = "Pulse file has less than 2 points"
+        raise TransformRunException(errstr, -1)             
+        
+    max_ = np.max(np.abs(rf_y))
+    # Scale pulse to user specified maximum intensity.
+    # The 1000 in the denominator is used because we internally
+    # represent these pulses in milliTesla (but display as microTesla).
+    rf_y = rf_y * max_intensity / (max_*1000)
+    
+    return rf_y
+</algorithm_code>
+	</transform_kernel>
+	<transform_kernel id="1930f3f6-322a-48d3-811d-279ba0dce514" version="1.0.0">
+		<type>Create Transform</type>
+		<name>Matpulse Gaussian from gaussian3()</name>
+		<menu_label>Matpulse - Gaussian</menu_label>
+		<created>2015-10-23T11:47:52</created>
+		<creator>bjs</creator>
+		<comment>Cloned 23 October, 2015 11:47:52 from 49685001-abc2-40ee-971f-3fedf4a408c3 (Gaussian - Matpulse gaussian3())
+</comment>
+		<hide_file1>true</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>false</hide_time_steps>
+		<hide_duration>false</hide_duration>
+		<hide_tip_angle>false</hide_tip_angle>
+		<hide_bandwidth>false</hide_bandwidth>
+		<file1_label />
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>250</time_steps>
+		<duration>8.0</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Time Steps [int]</name>
+			<type>Long</type>
+			<default>250</default>
+			<variable>time_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Duration [msec]</name>
+			<type>Double</type>
+			<default>8.0</default>
+			<variable>duration</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Tip Angle [deg]</name>
+			<type>Double</type>
+			<default>90.0</default>
+			<variable>tip_angle</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Bandwidth [kHz]</name>
+			<type>Double</type>
+			<default>1.0</default>
+			<variable>bandwidth</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Filter Type</name>
+			<type>Choice</type>
+			<default>None,Cosine,Hamming</default>
+			<variable>filter_type</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Filter Application [%]</name>
+			<type>Double</type>
+			<default>0.0</default>
+			<variable>filter_application</variable>
+		</transform_kernel_control>
+		<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+
+# Local imports
+import vespa.common.util.math_ as util_math
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+GAMMA1H = 42.576    
+
+
+
+def run(trans_desc):
+    """
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - the number of data points in the output waveform
+    dwell_time      - the spacing between points in microseconds.
+    
+    resolution      - the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    ----------
+    Bandwidth is set up in Hz, but we need to calc in time domain so we convert
+    to time. Note that Gaussian is typically described by a standard deviation
+    variable, sigma, rather than full width at half height. So we have to 
+    ensure that our 'sigma^2' or 'gb' value, is solved for time at which we are
+    at half height. 
+    
+    y = exp(-(t^2)/(2 * sigma^2))
+
+    solving for t in this equation for t = T(1/2 height) we get a sqrt(ln(2))
+    constant, which is the 0.83255461 constant below
+
+    See the following articles:
+
+    """
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters if needed
+
+    time_steps          = int(param["time_steps"])          # int
+    duration            = float(param["duration"])          # float, msec
+    tip_angle           = float(param["tip_angle"])         # float, deg
+    bandwidth           = float(param["bandwidth"])         # float, Hz
+    # Choice, 0-None, 1-Cosine, 2-Hamming
+    filter_type         = int(param["filter_type"])         # int
+    filter_application  = float(param["filter_application"])  # float, percent
+    
+    dwell_time      = (1000 * duration) / (time_steps)      # in usec
+    
+    # these extra items are used in making profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution']) # int
+
+
+    #--------------------------------------------------------------------------
+    # pulse creation code starts here
+
+#     rf_y = analytic_pulse.gaussian3(self.parameters.time_steps,
+#                                      dwell_time,
+#                                      self.parameters.bandwidth,
+#                                      filter_type, filter_application,
+#                                      self.parameters.tip_angle)   
+#    
+#    def gaussian3(npts, dwell_time, bandwidth, filter_type, filter_percent, angle):
+    
+    npts = time_steps
+    filter_percent = filter_application
+    angle = tip_angle
+    
+    dwell = dwell_time*0.000001
+    sw    = 1.0 // dwell
+    gb    = 1.0 / (1.92 * bandwidth * 1000.0)   
+    # this used to be a factor of 2.0, but empirically 1.92 works better
+    # to get a full width half max bandwidth of 1kHz for a 90 degree 
+    # pulse of 8ms duration and 250 points. This is due to the interaction
+    # of a Gaussian pulse with the Bloch equation for something other than
+    # a small (1-20 degrees) tip angle. For small tip angles the Fourier 
+    # Transform approximation is pretty good for FWHM estimation. As we go
+    # to larger tip angles, we have to be more empirical about getting the 
+    # actual bandwidth we want. Which is why we plot the Freq Profile for
+    # the user to look at and measure.
+    
+    # Determine whether npts even or odd (even = 1 or 0)
+    if npts%2 == 0:
+        is_even = True
+        xvals = (np.arange(npts//2)+0.5) * dwell 
+    else:
+        is_even = False
+        xvals = np.arange(npts//2 + 1) * dwell
+    
+    gb = (0.83255461 / gb)
+    # the call to exp() tends to underflow with larger durations
+    y = util_math.safe_exp(-((gb * xvals)**2 ), 0)
+
+    # Make a "whole" pulse from half...
+    if is_even:
+        yw = np.hstack([y[::-1], y]) 
+    else:
+        z = y.copy() 
+        z = np.delete(z,0)
+        yw = np.hstack([z[::-1], y])
+    
+    yf = filter_pulse(yw, xvals, filter_type, filter_percent)    
+        
+    pulse_type = 1  # pf_constants.AnalyticType.GAUSSIAN
+    ys = scale_pulse(yf, dwell_time, angle, pulse_type)  
+    
+    # Convert real array to complex array.
+    rf_waveform = ys + 1j * np.zeros(len(ys))
+        
+    rf_xaxis = np.arange(time_steps) * dwell    # in sec
+
+    #--------------------------------------------------------------------------
+    # fill and output dictionary, if needed
+
+    outputs = None
+
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_waveform)
+    rf_x = np.array(rf_xaxis)
+    gr_y = None
+    gr_x = None
+
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+
+
+def scale_pulse(b1, dwell_time, angle, pulse_type):  
+
+    # Scale b1 to requested angle.
+    multiplier = 1000*(angle/360.0)
+    if pulse_type == 3:  #pf_constants.AnalyticType.HYPERBOLIC_SECANT:
+        sfact = np.sum(np.abs(b1))
+    else:
+        sfact = np.sum(b1)
+    nfact = multiplier/(GAMMA1H * dwell_time * sfact) 
+    return nfact*b1 
+    
+
+def filter_pulse(b1, xvals, filter_type, filter_percent):
+    
+    length = len(b1)
+    if length%2 == 0:
+        even_flag = 1  
+    else:
+        even_flag = 0     
+    
+    # seq to ~ pi/2 **    
+    maxx = np.amax(xvals)
+    f = (xvals*math.pi/maxx/2.0)*(filter_percent/100.0)
+
+    # Cosine apodization
+    if filter_type == 1:  #pf_constants.ApodizationFilterType.COSINE:   
+        g = np.cos(f) 
+    # Hamming apodization
+    elif filter_type == 2:  #pf_constants.ApodizationFilterType.HAMMING:              
+        g = 0.5*(1 - np.cos(math.pi+2*f)) 
+    else:
+        g = np.ones(len(f))
+
+    if even_flag == 1:
+        g = np.hstack([g[::-1], g]) 
+    else:     
+        h = g.copy() 
+        h = np.delete(h,0)
+        g = np.hstack([h[::-1], g]) 
+
+    z = g*b1
+    
+    return z </algorithm_code>
+	</transform_kernel>
+	<transform_kernel id="d6b9efe0-1d85-43f4-871c-3b06aa637ec6" version="1.0.0">
+		<type>Create Transform</type>
+		<name>Matpulse Hyperbolic Secant</name>
+		<menu_label>Matpulse - Hyperbolic Secant</menu_label>
+		<created>2015-11-18T17:05:26</created>
+		<creator>bjs</creator>
+		<comment>Cloned 31 August, 2015 21:22:44 from 987d6443-f6e2-4d74-a729-0550653702c8 (Hypebolic Secant - Matpulse)
+
+Cloned 18 November, 2015 17:05:26 from 8cad1526-ff81-43c6-a708-f4fd8f5cd63a (Hypebolic Secant - Matpulse)
+</comment>
+		<hide_file1>true</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>false</hide_time_steps>
+		<hide_duration>false</hide_duration>
+		<hide_tip_angle>true</hide_tip_angle>
+		<hide_bandwidth>true</hide_bandwidth>
+		<file1_label />
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>250</time_steps>
+		<duration>8.0</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Time Steps [int]</name>
+			<type>Long</type>
+			<default>250</default>
+			<variable>time_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Duration [msec]</name>
+			<type>Double</type>
+			<default>8.0</default>
+			<variable>duration</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Total Rotation [deg]</name>
+			<type>Double</type>
+			<default>1440</default>
+			<variable>total_rotation</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Cycles</name>
+			<type>Double</type>
+			<default>6.0</default>
+			<variable>quality_cycles</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Power(n)</name>
+			<type>Long</type>
+			<default>1</default>
+			<variable>power_n</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Sharpness(mu)</name>
+			<type>Double</type>
+			<default>4.0</default>
+			<variable>sharpness_mu</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Filter Type</name>
+			<type>Choice</type>
+			<default>None,Cosine,Hamming</default>
+			<variable>filter_type</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Filter Application [%]</name>
+			<type>Double</type>
+			<default>0.0</default>
+			<variable>filter_application</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Dwell Time [usec]</name>
+			<type>Output</type>
+			<default>None</default>
+			<variable>out_dwell_time</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Bandwidth [kHz]</name>
+			<type>Output</type>
+			<default>None</default>
+			<variable>out_bandwidth</variable>
+		</transform_kernel_control>
+		<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+import scipy.integrate as integrate
+import scipy.stats.distributions as distributions
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+GAMMA1H = 42.576    
+
+
+
+def run(trans_desc):
+    """
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - the number of data points in the output waveform
+    dwell_time      - the spacing between points in microseconds.
+    
+    resolution      - the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -----------------------------
+
+    pulse_type - HYPERBOLIC_SECANT
+    time_steps - Number of points
+    quality_cycles - Number of cycles before truncating pulse.
+    filter_type - ApodizationFilterType: 0-None, 1-Cosine, 2-Hamming
+    filter_percent - How much to apply the filter (0.0 to 100.0)
+    total_rotation - Total rotation angle in degrees (used for hyperbolic-secant).
+    power_n - Power of hyperbolic secant function.
+    sharpness_mu - Parameter that defines sharpness of function.
+    dwell_time - The dwell time in microseconds.
+
+    """
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters if needed
+
+    time_steps          = int(param["time_steps"])          # int
+    duration            = float(param["duration"])          # float, msec
+    total_rotation      = float(param["total_rotation"])    # float, degrees
+    quality_cycles      = float(param["quality_cycles"])    # float
+    power_n             = int(param["power_n"])             # int
+    sharpness_mu        = float(param["sharpness_mu"])      # float
+    filter_application  = float(param["filter_application"]) # float, %
+    # Choice, 0-None, 1-Cosine, 2-Hamming
+    filter_type         = int(param["filter_type"])         # int
+    
+    dwell_time          = (1000 * duration) / (time_steps)  # in usec
+    dwell               = dwell_time / 1000000.0            # in sec
+    
+    # these extra items are used in making profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution']) # int
+
+
+    #--------------------------------------------------------------------------
+    # pulse creation code starts here
+
+#     rf_y = analytic_pulse.hyperbolic_secant(time_points, cycles,
+#                                 filter_type, filter_application, 
+#                                 total_rotation, n, mu, dwell_time)
+#
+#     def hyperbolic_secant(nop, cycles, filter_type, filter_percent, angle, n, mu, dwell_time):
+#         return analytic_pulse(pulse_type,nop,cycles,filter_type,filter_percent,angle,n,mu,dwell_time)
+#    
+#     def analytic_pulse(pulse_type, nop, cycles, filter_type, filter_percent, \
+#                                        angle, n=1, mu=1, dwell_time=100):
+    
+    pulse_type = 3  #pf_constants.AnalyticType.HYPERBOLIC_SECANT:
+    nop = time_steps
+    cycles = quality_cycles
+    angle = total_rotation
+    n = power_n
+    mu = sharpness_mu
+    filter_percent = filter_application
+    
+    # Set local values
+    
+    g = np.ones(nop)
+    y = g.copy()
+    z = g.copy()
+    
+    # Determine whether nop even or odd (even = 1 or 0)
+    if nop%2 == 0:
+        even_flag = 1  
+    else:
+        even_flag = 0 
+    
+    # Generate symmetric sequence
+    # starts at 0 for odd, at +1/2 for even
+    if even_flag == 1:          
+        # even_flag, starts at 1/2
+        # matlab code; x = (1:nop/2) - 1/2
+        x = np.arange(nop/2) + 1/2
+    else:
+        # odd, starts at 0
+        # matlab code; x = (1:(nop+1)/2) -1
+        x = np.arange((nop+1)/2)
+
+    # HS pulse
+    # sech(beta*t), where tmax = 1; so beta = cycles/2
+    if n == 1:
+        y = pow( math.pi*distributions.hypsecant.pdf(x*cycles/nop), complex(1, mu) ) 
+    else:
+        sqrtn = math.sqrt(n)
+        s = (cycles/(sqrtn*nop))*x
+        y = math.pi*distributions.hypsecant.pdf(s**n) 
+    
+        wfunct = lambda q: math.pi*distributions.hypsecant.pdf(q**n)**2
+        
+        w = np.zeros(len(s))
+           
+        for k in range(len(s)): 
+            integral = integrate.quad(wfunct, 0, s[k])
+            w[k] = integral[0]
+            w[k] *= -mu*2.0*math.pi
+             
+        dphi = s[1]*w
+        phi = dphi.cumsum(axis=0)
+        
+        y = y * np.exp(complex(0,1)*phi)
+    
+    # Note that beta, when n = 1, is cycles/2;
+    # Gives width = mu*beta/pi = cycles*mu/pi
+    
+    if even_flag == 1:
+        y = np.hstack([y[::-1], y]) 
+    else:
+        z = y.copy() 
+        z = np.delete(z,0)
+        y = np.hstack([z[::-1], y])
+        
+    # Check for apodization (Filter funct = g)
+    # Then use apodization
+    if not filter_type:
+        z = y        
+    else:
+        z = filter_pulse(y, x, filter_type, filter_percent)
+
+    z = scale_pulse(z, dwell_time, angle, pulse_type)    
+
+    rf_waveform = z
+    rf_xaxis = np.arange(time_steps) * dwell    # in sec
+    
+    gradient = None
+    grad_xaxis = None
+    
+    #--------------------------------------------------------------------------
+    # fill and output dictionary, if needed
+
+    bandwidth = dwell_bandwidth_interconvert(dwell_time, sharpness_mu, quality_cycles, time_steps)
+    outputs = {}
+    outputs['out_bandwidth'] = bandwidth
+    outputs['out_dwell_time'] = dwell_time
+
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_waveform)
+    rf_x = np.array(rf_xaxis)
+    gr_y = gradient
+    gr_x = grad_xaxis
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+    
+    
+def scale_pulse(b1, dwell_time, angle, pulse_type):  
+
+    # Scale b1 to requested angle.
+    multiplier = 1000*(angle/360.0)
+    if pulse_type == 3:  #pf_constants.AnalyticType.HYPERBOLIC_SECANT:
+        sfact = np.sum(np.abs(b1))
+    else:
+        sfact = np.sum(b1)
+    nfact = multiplier/(GAMMA1H * dwell_time * sfact) 
+    return nfact*b1 
+
+
+def filter_pulse(b1, xvals, filter_type, filter_percent):
+    
+    length = len(b1)
+    if length%2 == 0:
+        even_flag = 1  
+    else:
+        even_flag = 0     
+    
+    # seq to ~ pi/2 **    
+    maxx = np.amax(xvals)
+    f = (xvals*math.pi/maxx/2.0)*(filter_percent/100.0)
+
+    # Cosine apodization
+    if filter_type == 1:  #pf_constants.ApodizationFilterType.COSINE:   
+        g = np.cos(f) 
+    # Hamming apodization
+    elif filter_type == 2:  #pf_constants.ApodizationFilterType.HAMMING:              
+        g = 0.5*(1 - np.cos(math.pi+2*f)) 
+    else:
+        g = np.ones(len(f))
+
+    if even_flag == 1:
+        g = np.hstack([g[::-1], g]) 
+    else:     
+        h = g.copy() 
+        h = np.delete(h,0)
+        g = np.hstack([h[::-1], g]) 
+
+    z = g*b1
+    
+    return z 
+
+
+def dwell_bandwidth_interconvert(dtb, sharpness_mu, cycles, time_points):        
+    # Note: dwell_time in microseconds and bandwidth in kHz.
+    multiplier = sharpness_mu/math.pi
+    return multiplier * cycles * 1000 / (time_points * dtb)  </algorithm_code>
+	</transform_kernel>
+	<transform_kernel id="c004c294-1a57-472c-96b3-aa65e9fb9383" version="1.0.0">
+		<type>Modify Transform</type>
+		<name>Matpulse Interpolate - Rescale</name>
+		<menu_label>Interp-Rescale</menu_label>
+		<created>2015-11-18T17:09:57</created>
+		<creator>The Vespa Team</creator>
+		<comment>
+</comment>
+		<hide_file1>true</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>true</hide_time_steps>
+		<hide_duration>true</hide_duration>
+		<hide_tip_angle>true</hide_tip_angle>
+		<hide_bandwidth>true</hide_bandwidth>
+		<file1_label />
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>128</time_steps>
+		<duration>1.0</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Interpolate [flag]:</name>
+			<type>Choice</type>
+			<default>Off,On</default>
+			<variable>do_interpolate</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>New Dwell Time [usec]:</name>
+			<type>Double</type>
+			<default>0.0</default>
+			<variable>new_dwell_time</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Previous Dwell Time [usec]:</name>
+			<type>Output</type>
+			<default>n/a</default>
+			<variable>previous_dwell_time</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Rescale [flag]:</name>
+			<type>Choice</type>
+			<default>Off,On</default>
+			<variable>do_rescaling</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>On Resonance Tip Angle [deg]:</name>
+			<type>Double</type>
+			<default>90.0</default>
+			<variable>new_angle</variable>
+		</transform_kernel_control>
+		<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+from scipy.interpolate import interp1d
+
+# Local imports
+from vespa.common.transform_run_exception import TransformRunException
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+GAMMA1H = 42.576
+
+# Size limit on b1 for root reflection
+# b1 to polynomial will automagically truncate to this
+# so calling code should check and issue a warning
+b1rootlimit = 65
+
+# Small number used for floating point comparisons.
+epsilon = 0.000001  
+
+# Very small number used for double precision comparisons.
+small_epsilon = 0.00000000001  
+
+# An even smaller number; used to represent an acceptable fractional error
+# or difference from an expected or desired value.
+EPS = pow(2,-52)  
+
+
+def run(trans_desc):
+    
+    """
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - int, the number of data points in the output waveform
+    duration        - float, total time of pulse, in msec
+    
+    resolution      - the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -------------------------------
+
+    Interpolation routine does a two sided 
+    interpolation, first using the values from one
+    side of the dwell_time range, and then the other,
+    and averaging the two. 
+    
+    This type of interpolation is appropriate for a 
+    histogram type graph.
+    
+    Attempts to cover the current duration.
+    Assumes xvals are equally spaced.
+
+
+    """
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    previous_rf        = copy.deepcopy(trans_desc.previous_rf)
+    previous_rf_xaxis  = copy.deepcopy(trans_desc.previous_rf_xaxis)
+    previous_dwell     = previous_rf_xaxis[1] - previous_rf_xaxis[0]
+    
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters if needed
+
+    do_interpolate  = int(param["do_interpolate"])      # int
+    new_dwell_time  = float(param["new_dwell_time"])    # float, usec
+
+    do_rescaling    = int(param["do_rescaling"])        # int
+    angle           = float(param["new_angle"])         # float, deg
+    
+    # these extra items may be used in making waveform or profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution']) # int
+
+
+    #--------------------------------------------------------------------------
+    # pulse creation code starts here
+
+    if do_interpolate or do_rescaling:
+    
+        if do_interpolate:                
+            y, x = interpolate_dwell(previous_rf, previous_rf_xaxis, new_dwell_time/1000000.0)                
+            previous_rf = y
+            previous_rf_xaxis = x
+            
+        if do_rescaling:
+            dwell_time = previous_rf_xaxis[1] - previous_rf_xaxis[0]
+            dwell_time *= 1e6   # need this in usec
+            y = rescale(previous_rf, angle, dwell_time)
+            previous_rf = y
+                  
+    #--------------------------------------------------------------------------
+    # fill and output dictionary, if needed
+
+    outputs = {}
+    outputs['previous_dwell_time'] = previous_dwell * 1e6
+
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(previous_rf)
+    rf_x = np.array(previous_rf_xaxis)
+    gr_y = None
+    gr_x = None
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+ 
+
+def interpolate_dwell(yvals, xvals, new_dwell):
+    """
+    This interpolation routine does a two sided 
+    interpolation, first using the values from one
+    side of the dwell_time range, and then the other,
+    and averaging the two. 
+    
+    This type of interpolation is appropriate for a 
+    histogram type graph.
+    
+    Attempts to cover the current duration.
+    Assumes xvals are equally spaced.
+    
+    May raise PulseFuncException.
+    """
+    
+    length = len(xvals)
+    if length &lt; 2:
+        error_msg =  "Cannot do a meaningful linear interpolation with less than two points"
+        raise TransformRunException(error_msg, 1)
+    
+    if not (new_dwell &gt; 0):
+        error_msg =  "new dwell time must be greater than zero"
+        raise TransformRunException(error_msg, 1)       
+    
+    if not (xvals[1] &gt; xvals[0]):
+        error_msg =  "xvals[1] must be greater than xvals[0]"
+        raise TransformRunException(error_msg, 1)    
+    
+    old_dwell = (xvals[1] - xvals[0])
+    duration = xvals[length-1] + old_dwell
+    
+    time_step = xvals[0]+new_dwell
+    # make sure at least 2 points.
+    x = [xvals[0], time_step]
+    while time_step + new_dwell &lt; duration - small_epsilon:
+        time_step += new_dwell
+        x.append(time_step)  
+        
+    new_length = len(x)
+    
+    x = np.array(x)
+    
+    # Filling will be done at the very end of our waveform.
+    # If we add more points we will have to fill - and it makes
+    # the most sense to fill at the end with the value at the end.
+    izzy1 = interp1d(xvals, yvals, kind='linear', bounds_error=False, fill_value=yvals[length-1])
+    
+    # Tried to do this using np.fliplr
+    # but received this error:
+    # raise ValueError, "Input must be &gt;= 2-d."
+
+    yvals_flipped = _fliplr1d(yvals)
+    
+    izzy2 = interp1d(xvals, yvals_flipped, kind='linear', bounds_error=False, fill_value=yvals_flipped[length-1])
+    
+    y1 = izzy1(x)
+    y2 = izzy2(x)
+    
+    y = (y1 + _fliplr1d(y2))/2
+    
+    return y, x
+
+   
+def _fliplr1d(y_in):
+    yvals_flip = []
+    i = len(y_in)
+    while i &gt; 0:
+        yvals_flip.append(y_in[i-1])
+        i -= 1
+    return np.array(yvals_flip)
+
+
+def rescale(b1b2, angle, dwell_time):
+       
+    eps = EPS
+    if np.max(np.abs(np.imag(b1b2))) &gt; 10000*eps:
+        # If there is any significant imaginary component    
+        scale_factor = angle/((GAMMA1H) *  (dwell_time/1000)*np.sum(np.abs(b1b2))*360)
+    else:
+        # Only real, i.e. not significant imaginary component
+        scale_factor = angle/((GAMMA1H) * (dwell_time/1000)*np.sum(b1b2)*360)
+    
+    return b1b2 * scale_factor
+
+</algorithm_code>
+	</transform_kernel>
+	<transform_kernel id="ffc9c755-ad1f-4d37-af19-cb5993bb525d" version="1.0.0">
+		<type>Create Transform</type>
+		<name>Matpulse SLR</name>
+		<menu_label>Matpulse - SLR</menu_label>
+		<created>2015-11-18T17:07:02</created>
+		<creator>bjs</creator>
+		<comment>
+</comment>
+		<hide_file1>true</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>false</hide_time_steps>
+		<hide_duration>false</hide_duration>
+		<hide_tip_angle>false</hide_tip_angle>
+		<hide_bandwidth>false</hide_bandwidth>
+		<file1_label />
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>250</time_steps>
+		<duration>8.0</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Time Steps [int]</name>
+			<type>Long</type>
+			<default>250</default>
+			<variable>time_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Duration [msec]</name>
+			<type>Double</type>
+			<default>8.0</default>
+			<variable>duration</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Tip Angle [deg]</name>
+			<type>Double</type>
+			<default>90.0</default>
+			<variable>tip_angle</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Bandwidth [kHz]</name>
+			<type>Double</type>
+			<default>1.0</default>
+			<variable>bandwidth</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Separation [kHz]</name>
+			<type>Double</type>
+			<default>1.0</default>
+			<variable>separation</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Single or Dual Band</name>
+			<type>Choice</type>
+			<default>Single,Dual</default>
+			<variable>is_dual_band</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Non-Coalesced Phase Type</name>
+			<type>Choice</type>
+			<default>Linear,Min,Max</default>
+			<variable>phase_type</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Filter Type</name>
+			<type>Choice</type>
+			<default>SLR (Remez),Least-Squares</default>
+			<variable>use_lsq</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Passband Ripple [%]</name>
+			<type>Double</type>
+			<default>1.0</default>
+			<variable>pass_ripple</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Reject Ripple [%]</name>
+			<type>Double</type>
+			<default>1.0</default>
+			<variable>reject_ripple</variable>
+		</transform_kernel_control>
+		<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+import scipy as sp
+import scipy.signal as sps
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+GAMMA1H = 42.576    
+
+# Small number used for floating point comparisons.
+epsilon = 0.000001  
+
+# Very small number used for double precision comparisons.
+small_epsilon = 0.00000000001  
+
+# An even smaller number; used to represent an acceptable fractional error
+# or difference from an expected or desired value.
+EPS = pow(2,-52)
+
+
+def run(trans_desc):
+    """
+    Adapted from Matpulse - mplcalcc.m: 
+    
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - int, the number of data points in the output waveform
+    duration        - float, total time of pulse, in msec
+    tip_angle       - float, the desired tip angle, in radians
+    pass_ripple     - float, the desired pass band ripple, as a percent
+    reject_ripple   - float, the desired reject band ripple, as a percent
+    phase_type      - int, the non-coalesced phase type:
+                        1 for linear, 2 for Max, 3 for Min
+    bandwidth       - float, the bandwidth for the pulse in kilohertz
+    is_single_band  - bool, True for single band; False for 
+                      dual band.
+    separation      - float, the separation between the bands in kilohertz
+    use_remez       - bool, True remez filter, False least-squares filter
+    n_zero_pad      - int, number of zero pad pts at the begin/end of the pulse
+    
+    resolution      - int, the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -------------------------------
+    See the following articles:
+
+    J. Pauly, P. Le Roux, D. Nishimura, A. Macovski, 
+    'Parmater Relations for the Shinnar-Le Roux Selective Excitation Pulse Design Algorithm',
+    IEEE Transactions on Medical Imaging, Vol. 10, No. 1, pp 53-65, March 1991.
+
+    G.B. Matson, 'An Integrated Program for Amplitude-Modulated RF Pulse Generation  
+    andRe-mapping with Shaped Gradients', Magnetic Resonace Imaging, 
+    Vol. 12, No. 8, pp 1205-1225, 1994'''
+
+    """
+    
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # parse parameters and convert if needed
+
+    time_steps      = int(param["time_steps"])      # int
+    duration        = float(param["duration"])      # float, msec
+    tip_angle       = float(param["tip_angle"])     # float, deg 
+    pass_ripple     = float(param["pass_ripple"])   # float, deg
+    reject_ripple   = float(param["reject_ripple"]) # float, deg
+    bandwidth       = float(param["bandwidth"])     # float, deg
+    is_dual_band    = int(param["is_dual_band"])  # bool
+    use_lsq         = int(param["use_lsq"])       # bool
+    separation      = float(param["separation"])    # float, Hz
+
+    phase_type = int(param["phase_type"])+1 # Choice, 1-Linear (refocused), 2-MinPhase, 3-MaxPhase 
+    
+    bandwidth_convention = int(extra['pulse_bandwidth_type']) # Choice, 0-HalfHeight, 1-Min, 2-Max     
+    resolution           = int(extra['calc_resolution']) # int
+    n_zero_pad           = int(extra["zero_padding"])    # int
+
+    print 'tip angleee = '+str(tip_angle)
+    print 'tip angle == 180', (tip_angle == 180)
+    is_single_band = 1 - is_dual_band     # need this so default can be 0 choice
+    use_remez      = 1 - use_lsq        # need this so default can be 0 choice
+
+    # Pulse angle category (90, 180, shallow tip)
+    # - Tip angles are currently limited as shown below. 
+    # - Kim's paper has shown that we can use tip angles outside of this range, 
+    #   but we haven't written the code yet.
+    if not (tip_angle == 90) and not (tip_angle == 180) and not ((tip_angle &gt; 0) and (tip_angle &lt;=30)):
+        # FIXME bjs Implement handling of non-standard tip angles, a la Kim's paper
+        error_msg =  "The tip angle must be 90, 180 or &lt;= 30. .."
+        raise TransformRunException(error_msg, 1)
+
+    tip_angle = tip_angle * np.pi/180.0     # convert deg to radians 
+
+    dwell_time = (1000 * duration) / (time_steps)     # in usec
+    
+    if is_single_band: separation = 0.0
+
+    # Check for excessive bandwidth
+    if is_single_band == True:
+        mplttbw = bandwidth
+    else:        
+        mplttbw = separation/2 + bandwidth
+
+    if (0.8 * mplttbw) &gt; (1000.0 / dwell_time) :
+        error_msg = 'Error: Excessive pulse bandwidth'
+        raise TransformRunException(error_msg, 1)
+
+
+
+# DID CODE INSPECTION - THIS CALL DOES NOT SEEM TO AFFECT
+# THE OUTCOME OF slr_pulse.py
+#
+#    mpltran = 0
+#    mpltran = TB.transition_band(time_steps, resolution, dwell_time, duration, tip_angle, 
+#                                 pass_ripple, reject_ripple, phase_type, bandwidth, is_single_band, 
+#                                 separation, n_zero_pad, bandwidth_convention)
+
+
+    # Pulse Setup, starting with initial length (for z-padding)
+    if n_zero_pad &gt; 0:
+        # Reduced for z-padding
+        nofp = time_steps - 2 * n_zero_pad
+    else:
+        nofp = time_steps
+
+    if phase_type == 1:
+        # Refocused or Linear pulse
+
+        mplfr, mplmag, mplwts, mplcrrctf = linear_setup(nofp, dwell_time, tip_angle, pass_ripple, \
+                                                        reject_ripple, bandwidth, is_single_band, \
+                                                        separation, bandwidth_convention)
+
+    else: 
+        # Max or min phase
+
+        mplfr, mplmag, mplwts, mplcrrctf = max_min_setup(nofp, dwell_time, tip_angle, pass_ripple, \
+                                                         reject_ripple, bandwidth, is_single_band, \
+                                                         separation, bandwidth_convention) 
+
+    # ... test for monotonicity and for values between zero and one.
+    #
+    # Specific Bandwidth Tests - per Jerry Matson
+    error_msg = ''
+    if bandwidth_convention == 0: 
+        # default bandwidth convention (width at mid height)
+        if is_single_band == True:
+            if mplfr[1] &lt; 0.0:
+                error_msg = 'Bandwidth Error: Increase Bandwidth or Increase Time for Pulse'
+            if mplfr[2] &gt; 1.0:
+                error_msg = 'Bandwidth Error: Decrease Bandwidth or Increase Time for Pulse'
+        else:    # if dual band
+            if mplfr[1] &lt; 0.0:
+                error_msg = 'Bandwidth Error: Decrease Bandwidth or Increase Time for Pulse'
+            if mplfr[4] &gt; 1.0:
+                error_msg = 'Bandwidth Error: Decrease Bandwidth or Increase Time for Pulse'
+          
+    elif bandwidth_convention == 1:  
+        # specroscopic bandwidth convention (width at base of pulse)
+        # :FIXME: implement this ... and the one just below it.
+        raise NotImplementedError('Oops, forgot this case')        
+    else:
+        # filter bandwidth convention (width at top of pulse)
+        raise NotImplementedError('Oops, forgot this case')   
+
+    if error_msg:
+        raise TransformRunException(error_msg, 1)
+
+    # General Check
+    xold = 0.0
+    for x in mplfr:
+        if x &lt; xold or x &gt; 1.0:
+            error_msg = 'Values in fr need to be monotonic increasing, and between 0 and 1'
+            raise TransformRunException(error_msg, 1)
+        else:
+            xold = x        
+
+    # Calculate the expansion factor
+    expansion_factor = 1/(2*mplfr[2])
+    if not is_single_band:
+        expansion_factor = 1/(2*mplfr[4])       # Dual band pulse
+
+    # Guarantee that expansion_factor &gt;= 1 
+    if expansion_factor &lt; 1.0:
+        expansion_factor = 1.0
+
+
+    # Calculate polynomials
+    #
+    # Note: The reason min_max_filter gets passed the "is_single_band" flag and 
+    # the linear_filter does not is that min_max_filter does some pre-calculation
+    # adjustments to try to reduce or eliminate the dc offset in the reject band or
+    # region. This step is not done in the linear filter case.
+
+    if phase_type == 1:    # Linear pulse
+        # mplfr  - pass and stop
+        # mplmag - magnetization
+        # mplwts - weights        
+        
+        mpgbb, mpgaa, mplw = linear_filter(mplfr, mplmag, mplwts, nofp,
+                                           use_remez, resolution)
+    else:
+        mpgbb, mpgaa, mplw = max_min_filter(mplfr, mplmag, mplwts, nofp,
+                                             use_remez, resolution, is_single_band)
+
+    # Calculatel b1:
+    #  
+    #  mmgaa and mmgbb - returned from linear_filter or max_min_filter above.
+    mpgb1 = inverse_slr(nofp, dwell_time, mpgaa, mpgbb)
+
+    # mplcrrctf returned from setup routines above.
+    if mplcrrctf != 0:
+        mpgb1 = mplcrrctf * mpgb1
+
+    # Add zero padding if asked for:
+    if n_zero_pad &gt; 0:
+        mpgb1 = np.hstack([np.zeros(n_zero_pad), mpgb1, np.zeros(n_zero_pad)])
+
+    # Reverse for max phase pulse
+    if phase_type == 2:
+        mpgb1 = mpgb1[::-1]  # Max phase pulse 
+
+    waveform = mpgb1
+
+    temparr = []
+    pulse_time = duration/1000.0
+    for ix in range(time_steps):
+        temparr.append(ix*pulse_time/(time_steps))    
+
+    waveform_xaxis = temparr
+
+    rf_y = np.array(waveform)
+    rf_x = np.array(waveform_xaxis)
+    
+    
+    rf_waveform = np.array(rf_y)
+    rf_xaxis    = np.array(rf_x)
+    gradient    = None
+    grad_xaxis  = None
+
+
+    return rf_waveform, rf_xaxis, gradient, grad_xaxis, None
+    
+
+
+def linear_setup(nlength, dwell, tip_angle, pass_ripple, reject_ripple, bandwidth, 
+                 is_single_band, separation, bandwidth_convention):
+
+    '''
+    Setup script for linear (or refocused) rf pulses. 
+
+    Input values: 
+       nlength - number of points.
+       dwell - dwell time in microseconds
+       tip_angle - in radians        
+       pass_ripple - bandpass ripple
+       reject_ripple - bandreject ripple
+       bandwidth - in kHz        
+       is_single_band - band type; single or dual.        
+       separation - in kHz
+       bandwidth_convention
+    
+    May raise (or throw) PulseFuncException
+    
+    For detailed information on algorithms, see:
+    K.J. Lee, 'General parameter relations for the Shinnar-Le Roux pulse design algorithm',
+    J. Magnetic Resonance, 186, pp 272-258, 2007, 
+    and:
+    J. Pauly, P. Le Roux, D. Nishimura, A. Macovski, 
+    'Parmater Relations for the Shinnar-Le Roux Selective Excitation Pulse Design Algorithm',
+    IEEE Transactions on Medical Imaging, Vol. 10, No. 1, pp 53-65, March 1991.
+    '''
+                
+    # Adapted from Matlab: MPLRB1C.M
+
+    if not (pass_ripple &gt; 0 and reject_ripple &gt; 0):
+        error_msg = 'Error: passband and reject band ripple must both be greater than zero'
+        raise TransformRunException(error_msg, 1)
+
+    # Set desired pass_ripple (bandpass) and reject_ripple (bandreject); 
+    sigm1=pass_ripple/100 
+    sigm2=reject_ripple/100
+
+    # Initialize corrctf for later correction if needed
+    corrctf = 0
+
+    # Set local variable names
+    na = nlength
+    ang = tip_angle
+
+    if is_single_band == True:
+        bw = bandwidth        
+    else:           
+        # Dual band pulse
+        # Get narrowest band.
+        bw = separation
+        if bandwidth &lt; separation: 
+            bw = bandwidth
+        
+    # pulse length (ms)
+    ms = dwell*(na)/1000      
+       
+    # Time-bandwidth product
+    tb = ms*bw
+        
+    # D(l), wts, and transb calculated using Lee
+    sigi = sigm1
+    sigo = sigm2
+    phi = ang
+
+    is180 = False
+    # See if angle is either 180 or 90.
+    if abs(tip_angle - np.pi) &lt; epsilon:                 
+        # SE pulse
+        sigm1 = (1/(2*sigi))*(4*(1-sigi/2) - 4*math.sqrt(1-sigi))
+        sigm2 = (1+sigm1)*math.sqrt(sigo) 
+        is180 = True
+        
+    elif abs(tip_angle - np.pi/2.0) &lt; epsilon:             
+        # 90 pulse
+        n = 0
+        f = 0.1
+        
+        # sigm1 calc
+        while abs(f) &gt; 0.00001 and n &lt; 100:
+            sigin = abs( (2*math.sqrt(1 - math.pow((1+sigm1),2) * math.pow(math.sin(phi/2),2)) \
+                                         *(1+sigm1)*math.sin(phi/2)-math.sin(phi))/math.sin(phi) )
+            f = (sigi-sigin)/(2*sigi)
+            sigm1 = abs(sigm1*(1 + f))
+            n = n+1
+        
+        # sigm2 calc
+        n = 0
+        f = 0.1
+        while abs(f) &gt; 0.00001 and n &lt; 100:
+            sigin = abs(2*math.sqrt(1 - math.pow(sigm2,2) * math.pow(math.sin(phi/2),2))\
+                                                           *sigm2*math.sin(phi/2)/math.sin(phi))
+            f = (sigo-sigin)/(2*sigo)
+            sigm2 = abs(sigm2*(1 + f))
+            n = n+1
+
+    # Re-adjust sigmas for dual band pulses
+    if not is_single_band:             
+        sigm1 = 0.5*sigm1
+        sigm2 = 2*sigm2
+
+    # Calculate transition band (only approximate for dual band pulses)
+    l1 = math.log10(sigm1)
+    l2 = math.log10(sigm2)
+    a1 = 5.309e-3
+    a2 = 7.114e-2
+    a3 = -4.761e-1
+    a4 = -2.66e-3
+    a5 = -5.941e-1
+    a6 = -4.278e-1
+
+    d = (a1 * pow(l1,2) + a2*l1 + a3)*l2 + (a4 * pow(l1,2) + a5*l1 + a6)
+
+    wt1 = 1
+    wt2 = sigm1/sigm2
+    wid = d/tb
+    transb = wid*bw
+    nq = na/(2*ms)
+    magn = math.sin(ang/2)
+        
+    # SE pulse        
+    if is180:        
+        if (magn + sigm1) &gt; 1:    
+            # B1 pulse needs correction
+            magn = 1-sigm1
+            corrctf = magn/(1-sigm1)
+        
+
+    # Calculate the bands (fp and fs)
+    if is_single_band:
+        if bandwidth_convention == 0:             
+            # Usual convention (FWHM)
+            fp = (bandwidth/2 - transb/2)/nq
+            fs = (bandwidth/2 + transb/2)/nq
+        elif bandwidth_convention == 1:            
+            # Minimum
+            fp = (bandwidth/2 - transb)/nq
+            fs = (bandwidth/2) / nq
+        elif bandwidth_convention == 2:            
+            # Maximum
+            fp = (bandwidth/2) / nq
+            fs = (bandwidth/2 + transb)/nq
+
+        fr = [0, fp, fs, 1]
+        mag = [magn, magn, 0, 0]
+        wts = [wt1, wt2]
+        
+    else:         
+        
+        # Dual band pulse
+        if bandwidth_convention == 0:
+            fp = (separation/2 - transb/2)/nq
+            fs = (separation/2 + transb/2)/nq
+        elif bandwidth_convention == 1:
+            fp = (separation/2 - transb)/nq
+            fs = (separation/2) / nq
+        elif bandwidth_convention == 2:
+            fp = (separation/2) / nq
+            fs = (separation/2 + transb)/nq        
+                
+        if bandwidth_convention == 0 :
+            fss = fs+(bandwidth-transb)/nq
+            fpp = fss+(transb)/nq
+        elif bandwidth_convention == 1:
+            fss = fs+(separation/nq)
+            fpp = fss+(transb)/nq
+        elif bandwidth_convention == 2:
+            fss = fp+(bandwidth-transb)/nq
+            fpp = fss+(transb)/nq
+
+        fr = [0, fp, fs, fss, fpp, 1]
+        mag = [0, 0, magn, magn, 0, 0]
+        wts = [wt2, wt1, wt2]
+    
+    
+    rval = (fr, mag, wts, corrctf)
+    
+    return rval
+
+
+def max_min_setup(nlength, dwell, tip_angle, pass_ripple, reject_ripple, bandwidth, 
+                  is_single_band, separation, bandwidth_convention):
+    '''
+    Setup script for RF pulse for max &amp; min phase pulses
+    
+    '''
+    if not (pass_ripple &gt; 0 and reject_ripple &gt; 0):
+        error_msg = 'Error: passband and reject band ripple must both be greater than zero'
+        raise TransformRunException(error_msg, 1)    
+
+    # Bandpass ripple (%) 
+    sigm1 = pass_ripple/100.0 
+    
+    # Bandreject ripple (%)
+    sigm2 = reject_ripple/100.0
+
+    # Initialize corrctf for later correction if needed
+    corrctf = 0
+
+    # Set local variable names
+    na = nlength  
+    ang = tip_angle
+        
+    if is_single_band == True:
+        bw = bandwidth
+    else:
+        bw = separation
+        # Get narrowest band for dual band pulses 
+        if bandwidth &lt; separation:
+            bw = bandwidth
+
+    # pulse length (ms)
+    ms = dwell*(na)/1000.0
+        
+    # Time-bandwidth product
+    tb = ms*bw            
+        
+    # D(l), wts, and transb calculated
+
+    is180 = False
+    if abs(tip_angle - np.pi) &lt; epsilon:            
+        # 180 pulse
+        sigm1 = sigm1/8.0 
+        sigm2 = math.sqrt(sigm2/2.0)
+        is180 = True
+    elif abs(tip_angle - np.pi/2.0) &lt; epsilon:            
+        # 90 pulse
+        sigm1 = sigm1/2.0 
+        sigm2 = math.sqrt(sigm2)
+
+    # add'l fudges (JM). 
+    # Notes, from conversaton with JM on 04/19/11: Apparently this
+    # fudge (and the 0.3 "fudge" 21 lines down) is here to reduce,
+    # or zero out, the dc offset in the rejection band.
+    # Per JM, these "fudges" should be calculate dynamically and 
+    # not statically to have the best effect. 
+    sigm1 = 2.0*sigm1 
+    sigm2 = (sigm2**2.0)/2.0 
+
+    # Re-adjust sigmas for dual band pulses
+    if not is_single_band:             
+        # Dual band pulse
+        sigm1 = 0.5*sigm1 
+        sigm2 = 2.0*sigm2        
+
+    # Calculate transition band (only approximate for dual band pulses)
+    l1 = math.log10(sigm1) 
+    l2 = math.log10(sigm2)
+    a1 = 5.309e-3 
+    a2 = 7.114e-2 
+    a3 = -4.761e-1
+    a4 = -2.66e-3 
+    a5 = -5.941e-1 
+    a6 = -4.278e-1
+
+    # Note: 0.3 is fudge for min/max phase filters
+    d = 0.3*( a1*pow(l1,2) + a2*l1 + a3 )*l2 + ( a4*pow(l1,2) + a5*l1 + a6 )
+
+    wt1 = 1.0
+    wt2 = sigm1/sigm2
+    wid = d/tb 
+    transb = float(wid)*bw 
+    nq = na/(2.0*ms)
+    magn = math.pow(math.sin(ang/2.0), 2.0) 
+        
+    if is180:         
+        # SE pulse
+        if (magn + sigm1) &gt; 1.0:    
+            # B1 pulse needs correction
+            magn = 1.0-sigm1 
+            corrctf = magn/(1.0-sigm1)
+
+
+    if is_single_band:
+
+        # Calculate the bands (fp and fs)
+        if bandwidth_convention == 0:                     
+            # Usual convention
+            fp = (bandwidth/2.0 - transb/2.0)/nq  
+            fs = (bandwidth/2.0 + transb/2.0)/nq
+        elif bandwidth_convention == 1:                    
+            # Minimum
+            fp = (bandwidth/2.0 - transb)/nq 
+            fs = (bandwidth/2.0)/nq
+        elif bandwidth_convention == 2:                    
+            # Maximum
+            fp = (bandwidth/2.0)/nq  
+            fs = (bandwidth/2.0 + transb)/nq
+
+        fr = [0.0, fp, fs, 1.0]
+        mag = [magn, magn, 0.0, 0.0]
+        wts = [wt1, wt2]
+        
+    else:
+        
+        # Calculate the bands (fp and fs)
+        if bandwidth_convention == 0:                     
+            # Usual conven.
+            fp = (separation/2.0 - transb/2.0)/nq  
+            fs = (separation/2.0 + transb/2.0)/nq
+        elif bandwidth_convention == 1:                    
+            # Minimum
+            fp = (separation/2.0 - transb)/nq 
+            fs = (separation/2.0)/nq
+        elif bandwidth_convention == 2:                    
+            # Maximum
+            fp = (separation/2.0)/nq  
+            fs = (separation/2.0 + transb)/nq        
+        
+        if bandwidth_convention == 0:
+            fss = fs + (bandwidth-transb)/nq  
+            fpp = fss + (transb)/nq
+        elif bandwidth_convention == 1:
+            fss = fs + (separation/nq) 
+            fpp = fss + (transb)/nq
+        elif bandwidth_convention == 2: 
+            fss = fp + (bandwidth-transb)/nq  
+            fpp = fss + (transb)/nq
+
+        fr = [0.0, fp, fs, fss, fpp, 1.0]
+        mag = [0.0, 0.0, magn, magn, 0.0, 0.0]
+        wts = [wt2, wt1, wt2]
+
+    rval = (fr, mag, wts, corrctf)
+    
+    return rval
+
+
+def linear_filter(fr, mag, wts, na, use_remez, mmgresol):
+    """
+    Function to create a (linear phase) digital filter
+    
+    Parameters [fp fs], mag, [wt1, wt2], and na from pulse setup
+    Returns h (b-polynomial (evaluated around the unit circle), 
+    a (a-polynomial evaluated around the unit circle), and w (freq)
+    
+    """
+    # fr - pass and stop
+    # mag - magnetization
+    # wts - weights
+    
+    f = np.array(fr)
+    m = np.array(mag)
+    wt = np.array(wts)    
+
+    # Check for filter function wanted
+    if use_remez:
+        # FYI: The matlab documentation for the remez() function
+        # is now included as part of "firpm()", the parks Mclellan function.
+        #
+        # remez() - 
+        # Calculate the filter-coefficients for the finite impulse response
+        # (FIR) filter whose transfer function minimizes the maximum error
+        # between the desired gain and the realized gain in the specified bands
+        # using the remez exchange algorithm.
+        #
+        # b = sps.remez(na-1, f, m, wt)
+        # default sampling frequency is 1 Hz.  
+        # Put in 2 Hz in order for this to work.        
+        #
+        b = sps.remez(na, f, m[::2], wt, 2)
+    else:        
+        # Group f values into pairs.
+        fx = f/2.0
+        i = 0
+        fin = []
+        for fi in fx:
+            if i%2 == 0:
+                fi_0 = fi
+            else:
+                fin.append( (fi_0, fi) )
+            i += 1
+                
+        # Also, take every other value out of m
+        min_ = m[0::2]
+               
+        # NOTE: RESULTS (without weights) were NOT IN AGREEMENT 
+        # WITH MATPULSE.
+        #
+        # ::FIXME:: Compare results with Matpulse to be sure
+        # we are doing the weights correctly.
+        # It looks good by visual inspection.
+        #
+        # b = firls(na-1, fin, m, wt)
+        # Changed from na-1 to na, as we did in remez, so that it will 
+        # work with an odd number of time steps / time points.
+        if na%2 == 0:
+            error_msg = 'An odd number of time steps is required for least squares filtering.'
+            raise TransformRunException(error_msg, 1)
+                
+        b = firls(na, fin, min_, wt)         
+
+
+    whole = 1
+    
+    (wr, hr) = sps.freqz(b, 1, mmgresol, whole) 
+    h = hr.copy()
+    w = wr.copy()
+    
+    # Next calculate the A(z)
+    at2 = (1 - ( (np.real(h))**2 + (np.imag(h))**2) ) 
+
+    #x = np.sqrt(at2) 
+    # Need to use this version of sqrt because it will
+    # work with negative numbers.
+    # After fixing the remez calculation above this may no longer
+    # be necessary, but probably won't hurt...
+    x = np.lib.scimath.sqrt(at2)
+    
+    # (Filter from RCEPS.M)
+    n = x.size
+    xhat = np.real(sp.fftpack.ifft(np.log(x)))
+    
+    # Not sure if epsilon is required, but will guarantee 
+    # that we get the expected result: One of n is odd, else zero.
+    odd = np.fix( n%2 + epsilon )
+    
+    aa = (n+odd)/2 - 1
+    bb = (n-odd)/2 - 1
+    wm = np.vstack( [1, 2*np.ones((aa,1)), 1, np.zeros((bb,1))] )
+ 
+    yhat = np.zeros(np.size(x), dtype=np.complex)
+
+    yhat[:] = np.real(np.transpose(wm) * xhat)
+    
+    gg = sp.fft(yhat)
+    theta = np.imag(gg)
+    
+    y = x * np.exp(1j*theta)
+    
+    a = y 
+    
+    return (h,a,w)
+
+
+def max_min_filter(frz, magz, wtz, na, use_remez, mmgresol, is_single_band):
+    '''
+    Function to create the (min/max phase) digital filter
+    
+    Parameters [fp fs], mag, [wt1, wt2], and na from pulse setup.
+    Returns h (b-polynomial), a (a-polynomial), and w (freq)
+    
+    '''
+    fr  = np.array(frz)
+    mag = np.array(magz)
+    wts = np.array(wtz)         
+    
+    # A pre-calculation will be done first to determine the dc offset and then 
+    # correct for it in the real, full length calculation, so the reject band
+    # is closer to zero. 
+    
+    # 2011.04.06 
+    # Jerry believes he got this idea from Pauly and
+    # his collaborators in a private conversation.
+    
+    nb = 2*na-1
+    
+    # First determine bias on shorter length pulse   
+    frnn = 0 
+    nn = na
+
+    # determine pulse length
+    while frnn &lt; 0.6:        
+        if is_single_band:     
+            frnn = fr[2]*nb/nn      # Single band
+        else:    
+            frnn = fr[3]*nb/nn      # Dual band
+        nn = nn/2
+
+    # Suggested initial pulse length
+    nn = 4*nn-1        
+
+    # Don't let nn be too small
+    nn = int(math.ceil(nn))
+    if nn &lt; 63:
+        nn = 63
+
+    if is_single_band:
+
+        nbdnn = float(nb)/nn
+        frn = np.hstack([ fr[0], fr[1]*nbdnn, fr[2]*nbdnn, fr[3] ])
+        
+        fs = frn[2] 
+
+        # check that fs less than 0.82
+        if fs &gt; 0.82:
+            error_msg = 'Error: Try a larger number of steps'
+            raise TransformRunException(error_msg, 1)
+
+
+        # Check for filter function wanted
+        if use_remez:        
+            # b-poly coefficients
+            bp = sps.remez(nn, frn, mag[::2], wts, 2)
+        else:            
+            # Group f values into pairs.
+            fx = frn/2.0
+            i = 0
+            fin = []
+            for fi in fx:
+                if i%2 == 0:
+                    fi_0 = fi
+                else:
+                    fin.append( (fi_0, fi) )
+                i += 1
+                    
+            # Also, Take every other value out of m
+            min_ = mag[0::2]            
+            
+            bp = firls(nn, fin, min_, wts)
+
+        # evaluated on unit/2 circle
+        wp,hp = sps.freqz(bp, 1, mmgresol)
+        
+        local_resol = len(wp)
+        
+        selct = int(np.ceil( 1.2*fs*local_resol ) )
+
+        # partt = [zeros(1,selct) ones(1,mmgresol-selct)]' ;
+        # The conjugation method (') does not seem to be needed here since 
+        # the arrays are all reals, and the subsequent array multiplication 
+        # works without any problem.
+        partt = np.hstack( [np.zeros((1, selct)), np.ones((1, local_resol-selct))] )
+
+        bias = 0.93 * np.max(np.ravel((np.abs(hp))*partt))
+
+        # Set bias for calc
+        magn = mag + np.hstack([0.0, 0.0, bias, bias])
+
+    else:     
+        # Dual band pulse
+        nbdnn = float(nb)/nn
+        frn = np.hstack( [0.0, fr[1]*nbdnn, fr[2]*nbdnn, fr[3]*nbdnn, 1.1*fr[3]*nbdnn, 1.0] )
+
+        fs = frn[4] 
+
+        # check that fs is less than 0.82
+        if fs &gt; 0.82:
+            error_msg = 'Error: Try a larger number of steps'
+            raise TransformRunException(error_msg, 1)
+
+        # Check for filter function wanted
+        if use_remez:
+            # b-poly coefficients
+            bp = sps.remez(nn, frn, mag[::2], wts, 2)
+        else:
+            # Group f values into pairs.
+            fx = frn/2.0
+            i = 0
+            fin = []
+            for fi in fx:
+                if i%2 == 0:
+                    fi_0 = fi
+                else:
+                    fin.append( (fi_0, fi) )
+                i += 1
+                    
+            # Also, Take every other value out of m
+            min_ = mag[0::2]                   
+            
+            #bp = firls(nn-1,frn,mag,wts)
+            bp = firls(nn, fin, min_, wts)
+
+        # evaluated on unit/2 circle
+        wp,hp = sps.freqz(bp, 1, mmgresol)
+        
+        local_resol = len(wp)
+        
+        fs = frn[1]
+        
+        selct = int( math.ceil(0.8 * fs * local_resol)  )
+        
+        partt = np.hstack([np.ones( (1,selct) ), np.zeros( (1, local_resol-selct) )])
+        
+        # Changed from .9 to .02 (7/15/05) (JM)
+        bias = 0.02 * np.max(np.ravel(np.abs(hp) * partt))
+
+        # Set bias for calc
+        magn = mag + np.hstack([bias, bias, 0.0, 0.0, 4*bias, 4*bias])
+
+
+    # Next the B(z) (h,w) (evaluated on the unit circle)
+
+    # Check for filter function wanted
+    #
+    # FIXME: The calls to remez (and firls below) are using
+    # nb, and not na. Why? nb = 2*na-1 so if na=16, nb=31    
+    if use_remez:
+        b = sps.remez(nb, fr, magn[::2], wts, 2)
+    else:
+        # Group f values into pairs.
+        fx = fr/2.0
+        i = 0
+        fin = []
+        for fi in fx:
+            if i%2 == 0:
+                fi_0 = fi
+            else:
+                fin.append( (fi_0, fi) )
+            i += 1
+                
+        # Also, Take every other value out of m
+        min_ = magn[0::2]    
+    
+        b = firls(nb, fin, min_, wts)
+
+    whole = 1
+    wr, hr = sps.freqz(b, 1, mmgresol, whole)
+
+    w = wr.copy()
+    hr = np.lib.scimath.sqrt(np.abs(hr))
+    x = np.abs(hr)
+    n = x.size
+    xhat = np.real(sp.fftpack.ifft(np.log(x))) 
+    
+    odd = int(np.fix( n % 2 ))    
+    
+    aa = (n+odd)/2 - 1
+    bb = (n-odd)/2 - 1
+    wm = np.vstack([1.0, 2*np.ones((aa,1)), 1.0, np.zeros((bb,1))])
+    
+    yhat = np.zeros(x.size) 
+    wmxf = wm.transpose() * xhat    
+
+    yhat[:] = np.real(wmxf)
+    theta = np.imag(sp.fft(yhat))
+    
+    y = x * (np.exp(1j*theta))
+    h = y.copy()
+
+    
+    # Next the A(z)
+    at2 = (1 - (np.real(h)**2 + np.imag(h)**2) )
+    x = np.sqrt(at2)
+
+    # (Filter from RCEPS.M)
+    n = x.size
+    xhat = np.real(sp.fftpack.ifft(np.log(x)))
+    odd = int(np.fix(n % 2))
+    
+    aa = (n+odd)/2 - 1
+    bb = (n-odd)/2 - 1
+    wm = np.vstack([1, 2*np.ones((aa,1)), 1, np.zeros((bb,1))])
+    
+    yhat = np.zeros( x.size, dtype=np.complex)
+
+    yhat[:] = np.real(wm.transpose() * xhat)
+    theta = np.imag(sp.fft(yhat))
+    
+    y = x * np.exp(1j*theta)
+    a = y.copy()
+    
+    return (h,a,w)
+    
+
+def firls(N,f,D,wts=None):
+    """
+    Least-squares FIR filter routine.
+    
+    N -- filter length, must be odd
+    f -- list of tuples of band edges
+         Units of band edges are Hz with 0.5 Hz == Nyquist
+         and assumed 1 Hz sampling frequency
+    D -- list of desired responses, one per band
+    wts -- list of weights for each of the bands
+    
+    May raise (or throw) PulseFuncException
+    
+    """
+    if wts == None:
+        wts = [1.0 for d in D]
+        
+    assert len(D) == len(f), "must have one desired response per band"
+
+    h = np.zeros(N)    
+    
+    if N % 2:    
+        L = (N-1)//2
+        k = np.arange(L+1)
+        k.shape = (1, L+1)
+        j = k.T
+    
+        R = 0
+        r = 0
+        for i, (f0, f1) in enumerate(f):
+            R += wts[i]*np.pi*(f1*np.sinc(2*(j-k)*f1) - f0*np.sinc(2*(j-k)*f0) + \
+                               f1*np.sinc(2*(j+k)*f1) - f0*np.sinc(2*(j+k)*f0))
+    
+            r += wts[i]*D[i]*2*np.pi*(f1*np.sinc(2*j*f1) - f0*np.sinc(2*j*f0))
+    
+        a = np.dot(np.linalg.inv(R), r)
+        a.shape = (-1,)
+
+        h[:L] = a[:0:-1]/2.
+        h[L] = a[0]
+        h[L+1:] = a[1:]/2.
+    else:
+        # FIXME: Can we make this work for an even number of points?
+        # It looks plausible that doing so should be possible.
+        # L = N//2
+  
+        error_msg = 'Error: Increase (or decrease) the number of points by one'
+        raise TransformRunException(error_msg, 1)
+
+    return h    
+
+
+def inverse_slr(na, mpldtmu, mpgaa, mpgbb):
+    '''
+    Perform the inverse SLR transformation. 
+    Gives b1 for a set of a &amp; b polynomials. 
+       
+    See also:
+    J. Pauly, P. Le Roux, D. Nishimura, A. Macovski, 
+    'Parmater Relations for the Shinnar-Le Roux Selective Excitation Pulse Design Algorithm',
+    IEEE Transactions on Medical Imaging, Vol. 10, No. 1, pp 53-65, March 1991.
+    '''
+       
+    # Adapted from Matlab, MPLPMB1F.M
+       
+    # Define local constants (mtesla)
+    
+    # GAMMA1H - Gamma for protons (kHz/mT)
+    const = (GAMMA1H/2) * (mpldtmu/1000.0) * 2.0 * np.pi
+    a = mpgaa
+    b = mpgbb 
+
+    # Generate coefficients bc and ac 
+
+    bc = sp.fftpack.ifft(b) 
+    ac = sp.fftpack.ifft(a)
+ 
+    # Preserve orig bc and ac (as 'aa' and 'bb')
+    bb = bc.copy() 
+    aa = ac.copy()
+
+    # Inverse SLR Transform
+
+    # idx = na
+    # changed to na-1 to adapt to zero based indexing.
+    idx = na-1
+    
+    etheta = np.zeros(na, dtype=complex)
+    b1 = np.zeros(na, dtype=complex)
+    c  = np.zeros(na, dtype=complex)
+    s  = np.zeros(na, dtype=complex)
+
+    while idx &gt; -1:  # &gt;= 0
+    
+        #etheta(idx) = bc(1)/ac(1)/(i*abs(bc(1)/ac(1)))
+        # DCT 02/27/09 - convert to bc(0), etc.
+        etheta[idx] = ( bc[0]/ac[0] ) / (1j * np.abs(bc[0]/ac[0]))
+
+        b1[idx] = (1/const) * (etheta[idx]) * np.arctan( np.abs(bc[0]/ac[0]) )
+                       
+        c[idx] = np.cos( const * np.abs(b1[idx]) )
+        s[idx] = 1j * etheta[idx] * np.sin(const * np.abs(b1[idx]))
+
+        acu = np.delete(ac, 0)
+        acl = np.delete(ac, idx)        
+        bcu = np.delete(bc, 0)
+        bcl = np.delete(bc, idx)
+        
+        qc = c[idx]        
+        qs = s[idx]
+        
+        ac =  qc*acl + (qs.conj())*bcl    
+        bc = -qs*acu + qc*bcu
+      
+        idx = idx-1
+
+    # b1 = -np.imag(b1) is bad! It converts the complex array to a real array.
+    # Doing as shown below preserves the values as complex numbers.
+    for ii in range(len(b1)):
+        b1[ii] = -np.imag(b1[ii])
+    
+    return b1
+    
+    
+</algorithm_code>
+	</transform_kernel>
+	<transform_kernel id="339b2fda-f914-460e-9f31-70a193c3738d" version="1.0.0">
+		<type>Create Transform</type>
+		<name>Randomized with rms +/- 1 uT</name>
+		<menu_label>Randomized</menu_label>
+		<created>2015-11-18T17:09:10</created>
+		<creator>bjs</creator>
+		<comment>
+</comment>
+		<hide_file1>true</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>false</hide_time_steps>
+		<hide_duration>false</hide_duration>
+		<hide_tip_angle>true</hide_tip_angle>
+		<hide_bandwidth>true</hide_bandwidth>
+		<file1_label />
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>250</time_steps>
+		<duration>8.0</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Time Steps [int]</name>
+			<type>Long</type>
+			<default>250</default>
+			<variable>time_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Duration [msec]</name>
+			<type>Double</type>
+			<default>8.0</default>
+			<variable>duration</variable>
+		</transform_kernel_control>
+		<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+GAMMA1H = 42.576    
+
+
+
+def run(trans_desc):
+    """
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - int, the number of data points in the output waveform
+    duration        - float, total time of pulse, in msec
+    
+    resolution      - the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -------------------------------
+    
+    Given the number of points expected in the array, returns a complex
+    array of microTesla values with each real/imag value randomized in the 
+    interval (-1, 1).
+        
+    See the following articles:
+
+    """
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters if needed
+
+    time_steps      = int(param["time_steps"])      # int
+    duration        = float(param["duration"])      # float, msec
+    
+    dwell_time      = (1000 * duration) / (time_steps)     # in usec
+    
+    # these extra items are used in making profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution']) # int
+
+
+    #--------------------------------------------------------------------------
+    # pulse creation code starts here
+
+    rand = np.random.rand
+    y = (2 * rand(time_steps) - 1) + (2j * rand(time_steps) - 1j)
+    
+    # We want values in microTesla
+    rf_waveform = y / complex(1000, 1000)
+
+
+    # The call to analytic_pulse.randomized() only returned the "y"
+    # component of the profile. We generate the x_axis here.
+    dwell = dwell_time / 1000000.0
+    rf_xaxis = np.arange(time_steps) * dwell
+
+    #--------------------------------------------------------------------------
+    # fill and output dictionary, if needed
+
+    outputs = None
+
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_waveform)
+    rf_x = np.array(rf_xaxis)
+    gr_y = None
+    gr_x = None
+
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+    
+</algorithm_code>
+	</transform_kernel>
+	<transform_kernel id="c1960e53-0ef7-422c-8600-f457c033b107" version="1.0.0">
+		<type>Create Transform</type>
+		<name>Example Simple Sinc</name>
+		<menu_label>Example Simple Sinc</menu_label>
+		<created>2016-02-25T12:46:18</created>
+		<creator>Brian J Soher</creator>
+		<comment />
+		<hide_file1>true</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>false</hide_time_steps>
+		<hide_duration>false</hide_duration>
+		<hide_tip_angle>true</hide_tip_angle>
+		<hide_bandwidth>true</hide_bandwidth>
+		<file1_label />
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>128</time_steps>
+		<duration>2.56</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>Time Steps [int]</name>
+			<type>Long</type>
+			<default>128</default>
+			<variable>time_steps</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Duration [msec]</name>
+			<type>Double</type>
+			<default>2.56</default>
+			<variable>duration</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>n-cycles</name>
+			<type>Long</type>
+			<default>6</default>
+			<variable>ncycles</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Filter Type</name>
+			<type>Choice</type>
+			<default>None,hamming</default>
+			<variable>filter</variable>
+		</transform_kernel_control>
+		<algorithm_code>import numpy as np
+from vespa.common.transform_run_exception import TransformRunException
+
+def run(trans_desc):
+    """
+    Simple Sinc Summary
+    ---------------------
+    I started with the kernel_stub.py template as a starting point. I added
+    two input parameters ('ncycles' and 'sfilter') and forced them to be
+    specific types. I added code to calculate the rf_waveform (rf_y) output 
+    parameter and did not change the rf_xaxis (rf_x), gradient (gr_y) or 
+    gradient_xaxis (gr_x) parameters already caculated in the stub.
+    
+    Using this template, I get the format I need to cut/paste the code
+    directly into the Transform Editor. But, I keep command line 
+    convenience, too, in case my debugging is more complicated than the
+    Vespa GUI allows. 
+    
+    You can call this kernel_code module directly from the command line. 
+    The code in the   __name__ == '__main__'  section will create the
+    'trans_desc' dictionary based on default values you provide, and 
+    the resultant rf waveform, gradient and time axis will be used to 
+    run a bloch simulation to create a frequency profile for display. 
+    
+    Create or Modify Transform Information
+    ---------------------------------------------
+    Listed below are the input parameters and extra parameters being passed
+    into this script.
+
+    time_steps      - int, the number of data points in the output waveform
+    duration        - float, total time of pulse, in msec
+    
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse in mT.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis time points in seconds.
+        gradient     - ndarray, float OR None, units are mT/m
+        grad_xaxis   - ndarray, float OR None (usually same as rf_axis ...)
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -------------------------------
+
+    This is the same as the 'hsinc' function I use to test my bloch_lib_hargreaves
+    module.  It returns a sinc function of length npts, with ncycles sinc-cycles. 
+    This yields a time-bandwidth value of 4 * ncycles
+
+    """
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters 
+    #
+    # - Add or Modify the values below as needed
+    # - Don't forget to add them to __main__ as well
+    
+    time_steps      = int(param["time_steps"])      # int
+    duration        = float(param["duration"])      # float, msec
+    ncycles         = int(param["ncycles"])         # int, positive
+    sfilter         = param["filter"]               # choice, 0=None, 1='hamming' 
+    
+    dwell_time      = (duration * 0.001) / (time_steps)     # in sec
+    
+    if sfilter == 1:
+        sfilter = 'hamming'
+    else:
+        sfilter = ''
+
+    # Use TransformRunException to check parameter ranges and alert users
+    # - an example is shown below
+    # - when your code returns with this exception, it fails 'gracefully'
+    # - no result is changed by this exception 
+    # - an error dialog shows the message passed back
+    # - can be used *anywhere* in code to fail and pass info back to the user
+
+    if time_steps &lt; 1:
+        error_msg =  "The number of time steps in the pulse must be &gt; 0"
+        raise TransformRunException(error_msg, 1)
+
+
+    #--------------------------------------------------------------------------
+    # transform algorithm code starts here
+
+    # it is best if the waveform array is complex, even if the waveform is real only
+    rf_waveform = np.zeros([time_steps,], dtype=np.complex)
+    
+    npts = time_steps - 8       # 8 is for the padding
+    
+    t = np.arange(npts) - (npts/2.0)
+    t = t / (npts/2.0)
+    val = 2*np.pi*ncycles*t + 0.00001
+    rf_y = np.sin(val) / val
+    if sfilter == 'hamming':
+        rf_y = rf_y * 4 * ncycles * (0.54 + 0.46*np.cos(np.pi*t)) / npts
+    
+    rf_y = 0.05 * rf_y/np.max(rf_y)                                         # normalize and set to T here
+    rf_y = np.concatenate((np.zeros(4), rf_y, np.zeros(4)))                 # pad edges
+    rf_x = np.arange(time_steps) * dwell_time                               # in sec
+    
+    gr_y = np.concatenate((np.zeros(4), 2.5*np.ones(npts), np.zeros(4)))    # set to mT/m here
+    gr_x = rf_x.copy()
+    
+    # end transform algorithm
+    #--------------------------------------------------------------------------
+
+    #--------------------------------------------------------------------------
+    # fill an output dictionary, or leave as None
+
+    outputs = None
+
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_y)
+    rf_x = np.array(rf_x)
+    gr_y = np.array(gr_y)
+    gr_x = np.array(gr_x)
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+</algorithm_code>
+	</transform_kernel>
+</vespa_export>

@@ -1,0 +1,24 @@
+<vespa_export version="1.0.0">
+	<!-- Don't be fooled! This is not a real Vespa export file;
+	     it was built by hand.
+	-->
+	<timestamp>2010-05-05T15:14:56</timestamp>
+	<comment>This is the master file for populating the database.</comment>
+	<bin_width>4</bin_width>
+	<bins>
+		<!-- Bin centers are below in MHz. Combined with the width above,
+		     they define the range of a bin. e.g. a bin centered on 
+		     45 with a width of 4 creates a bin from 43 - 47 inclusive. 
+		-->
+		<bin>45</bin>
+		<bin>64</bin>
+		<bin>124</bin>
+		<bin>128</bin>
+		<bin>180</bin>
+		<bin>211</bin>
+		<bin>315</bin>
+		<bin>360</bin>
+		<bin>500</bin>
+		<bin>700</bin>
+	</bins>
+</vespa_export>

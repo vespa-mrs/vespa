@@ -1,0 +1,92 @@
+<vespa_export version="1.0.0">
+	<!--
+This XML file is in Vespa Interchange File Format (VIFF). You can download
+applications that read and write VIFF files and learn more about VIFF here:
+http://scion.duhs.duke.edu/vespa/
+
+It was created with Vespa version 0.8.5.
+-->
+	<timestamp>2016-03-11T09:21:14</timestamp>
+	<comment />
+	<transform_kernel id="3cb7a9e2-bb23-4934-ae17-96c01b8d93c7" version="1.0.0">
+		<type>Create Transform</type>
+		<name>Import from RFPulse</name>
+		<menu_label>Import from RFPulse</menu_label>
+		<created>2016-03-10T16:04:23</created>
+		<creator>Brian J Soher</creator>
+		<comment>When I replaced RFPulse with Pulse application, I needed to make the previous RFPulse project results available to users, both for compatibility with existing pulse sequences but also to be a good developer and not make users lose previous work. This kernel allows me to bundle up all the waveforms previously created. I don't keep any info about how they were created, but the final RF waveform and RF time axis are preserved in one of these Create Kernels for use in Pulse.</comment>
+		<hide_file1>true</hide_file1>
+		<hide_file2>true</hide_file2>
+		<hide_time_steps>true</hide_time_steps>
+		<hide_duration>true</hide_duration>
+		<hide_tip_angle>true</hide_tip_angle>
+		<hide_bandwidth>true</hide_bandwidth>
+		<file1_label />
+		<file2_label />
+		<tip_angle>90.0</tip_angle>
+		<time_steps>128</time_steps>
+		<duration>1.0</duration>
+		<bandwidth>1.0</bandwidth>
+		<transform_kernel_control version="1.0.0">
+			<name>RF Waveform:</name>
+			<type>String</type>
+			<default>None</default>
+			<variable>rf_waveform_encoded</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>RF Time Axis:</name>
+			<type>String</type>
+			<default>None</default>
+			<variable>rf_xaxis_encoded</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Gradient:</name>
+			<type>String</type>
+			<default>None</default>
+			<variable>gradient_encoded</variable>
+		</transform_kernel_control>
+		<transform_kernel_control version="1.0.0">
+			<name>Gradient Time Axis:</name>
+			<type>String</type>
+			<default>None</default>
+			<variable>grad_xaxis_encoded</variable>
+		</transform_kernel_control>
+		<algorithm_code>import numpy as np
+import vespa.common.constants as constants
+import vespa.common.util.xml_ as util_xml
+from vespa.common.transform_run_exception import TransformRunException
+
+def run(trans_desc):
+    
+    param = trans_desc.parameters
+    
+    rf_waveform_encoded    = param["rf_waveform_encoded"]  
+    rf_xaxis_encoded       = param["rf_xaxis_encoded"]    
+    gradient_encoded       = param["gradient_encoded"]  
+    grad_xaxis_encoded     = param["grad_xaxis_encoded"]    
+    
+    if rf_waveform_encoded == '':
+        error_msg =  "No content in rf_waveform variable"
+        raise TransformRunException(error_msg, 1)
+    
+    type_complex = constants.DataTypes.any_type_to_internal(complex)
+    type_float   = constants.DataTypes.any_type_to_internal(float)
+    encoding = util_xml.NUMERIC_LIST_ENCODING
+
+    b1  = util_xml.decode_numeric_list(rf_waveform_encoded, encoding, type_complex)
+    b1x = util_xml.decode_numeric_list(rf_xaxis_encoded, encoding, type_float)
+    if gradient_encoded == 'None':
+        gr = None
+    else:    
+        gr = util_xml.decode_numeric_list(gradient_encoded, encoding, type_float)
+
+    if grad_xaxis_encoded == 'None':
+        grx = None
+    else:    
+        grx = util_xml.decode_numeric_list(grad_xaxis_encoded, encoding, type_float)
+    
+
+    return b1, b1x, gr, grx, None
+</algorithm_code>
+	</transform_kernel>
+</vespa_export>

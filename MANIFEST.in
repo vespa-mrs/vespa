@@ -1,0 +1,9 @@
+include vespa/docs/*
+include vespa/common/resources/*
+include vespa/common/resources/db_upgrader/*
+include vespa/requirements.txt
+
+# Exclude OS X hidden files. Without the line below, when running this under
+# OS X .DS_Store would be included if it appears in any directory included
+# with a * like the include of "doc/*" above.
+global-exclude  .DS_Store

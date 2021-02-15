@@ -1,0 +1,1509 @@
+<vespa_export version="1.0.0">
+	<!--
+This XML file is in Vespa Interchange File Format (VIFF). You can download
+applications that read and write VIFF files and learn more about VIFF here:
+http://scion.duhs.duke.edu/vespa/
+
+It was created with Vespa version 0.2.6.
+-->
+	<timestamp>2011-10-25T17:54:24</timestamp>
+	<comment>This is the master file for populating the database.</comment>
+	<pulse_sequence id="70457753-4a19-400c-8394-5edfd103a109" version="1.0.0">
+		<name>CP-PRESS with Variable R-groups</name>
+		<created>2011-10-21T20:51:46</created>
+		<creator>Brian Soher</creator>
+		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+
+This simulates a PRESS single voxel MRS pulse sequence which can have zero or more groups of refocussing pulses applied between the 1st and 2nd 180 degree pulse. The purpose of these refocussing pulses is to maintain the spins in a CPMG condition (CP = Carr-Purcell) which inhibits the effects of J-coupling effects on weakly coupled resonance groups like myo-Ins, glutamate, glutamine and GABA. 
+
+Thus, while the TE for the PRESS sequence is calculated as TE1+TE2, where TE1 = time from 90 to first spin echo after first 180 pulse, and where TE2 = time from first spin echo to second spin echo after second 180 pulse, the TEeffective for CP-PRESS includes TE1+TE2+Tcp, where Tcp is the total time of the Carr-Purcell refocussing pulse train.
+
+While TE1+TE2 is kept short (say 30ms), the Tcp can be lengthened (say 250ms) to yield an effective TE of 280ms. The multiplet patterns for weakly coupled resonance groups will look very similar to that of TE=30 ms, despite an effective TE of 280 ms. The longer effective TE allows short T1 signal contributions, such as residual water or lipids, to decay away.
+
+Below, the pulse_type variable can be set to create a CP refocussing train of Ideal PyGAMMA 180 degree pulses or a CP train of MLEV16 sandwich pulses.
+
+If sandwich pulses are selected, then the 'ang90' variable represents the angle of the alpha/2 pulse in the MLEV16 train, and 'pd90' is the duration of the alpha/2 pulse. In this simulation, TE1 period, TE2 period and number of refocussing groups can be varied, and the variables 'te1', 'te2' and 'rgroups' respectively, are taken from the settings for loop variables 1, 2 and 3. The r-group variable is so named for historical reasond (refocussing pulse groups). 
+
+The variable tauR can be set to a fixed amount of time that separates the application of R-groups within the MLEV16 train. This mimics the operation of the pulse sequence on the scanner where it is sometimes necessary to space out RF pulses to lower the SAR during data acquisition.
+
+</comment>
+		<loop_label>TE1 [ms]</loop_label>
+		<loop_label>TE2 [ms]</loop_label>
+		<loop_label>Rgroups [int]</loop_label>
+		<user_static_parameter>
+			<name>Pulse Type (0-Ideal/1-Sandwich)</name>
+			<type>Long</type>
+			<default>1</default>
+		</user_static_parameter>
+		<user_static_parameter>
+			<name>alpha/2 Pulse Angle [deg]</name>
+			<type>Double</type>
+			<default>100.0</default>
+		</user_static_parameter>
+		<user_static_parameter>
+			<name>alpha/2 Pulse Duration [ms]</name>
+			<type>Double</type>
+			<default>0.5</default>
+		</user_static_parameter>
+		<user_static_parameter>
+			<name>tauR Pulse Duration [ms]</name>
+			<type>Double</type>
+			<default>3.0</default>
+		</user_static_parameter>
+		<sequence_code>#-----------------------------------------------------------------------------
+# This is an PyGAMMA PyGamma pulse sequence for use in Vespa-Simulation
+#
+# This simulates a PRESS single voxel MRS pulse sequence which can have
+# zero or more groups of refocussing pulses applied between the 1st and
+# 2nd 180 degree pulse. The purpose of these refocussing pulses is to
+# maintain the spins in a CPMG condition which inhibits the effects of
+# J-coupling effects on weakly coupled resonance groups like myo-Ins,
+# glutamate, glutamine and GABA.
+#
+# Thus, while the TE for the PRESS sequence is calculated as TE1+TE2,
+# where TE1 = time from 90 to first spin echo after first 180 pulse, and
+# where TE2 = time from first spin echo to second spin echo after second
+# 180 pulse, the TEeffective for CP-PRESS includes TE1+TE2+Tcp, where
+# Tcp is the total time of the Carr-Purcell refocussing pulse train.
+#
+# While TE1+TE2 is kept short (say 30ms), the Tcp can be lengthened (say
+# 250ms) to yield an effective TE of 280ms. The multiplet patterns for
+# weakly coupled resonance groups will look very similar to that of TE=30
+# ms, despite an effective TE of 280 ms. The longer effective TE allows
+# short T1 signal contributions, such as residual water or lipids, to decay
+# away.
+#
+# Below, the pulse_type variable can be set create a CP refocussing train of
+# Ideal PyGAMMA 180 degree pulses or a CP train of MLEV16 sandwich pulses.
+#
+# If sandwich pulses are selected, then the ang90 variable represents the
+# angle of the alpha/2 pulse in the MLEV16 train, and pd90 is the duration of
+# the alpha/2 pulse. In this simulation, TE1 period, TE2 period and number of
+# refocussing groups can be varied, and the variables 'te1', 'te2' and
+# 'rgroups' respectively, are taken from the settings for loop variables 1, 2
+# and 3.
+#
+# The r-group variable is so named for historical reasond (refocussing pulse
+# groups).
+#
+# The variable tauR can be set to a fixed amount of time that separates the
+# application of R-groups within the MLEV16 train. This mimics the operation
+# of the pulse sequence on the scanner where it is sometimes necessary to
+# space out RF pulses to lower the SAR during data acquisition.
+#-----------------------------------------------------------------------------
+import pygamma as pg
+
+
+def run(sim_desc):
+    spin_system = sim_desc.spin_system
+
+    # the isotope string used to sort/select the metabolites of interest is passed 
+    # in the sim_desc object so the user can tailor other object within their 
+    # code to be nuclei specific, such as the observe operator or pulses
+    obs_iso = sim_desc.observe_isotope
+
+    # extract the dynamically changing variable from loops 1, 2 and 3, divide
+    # 'te1' and 'te2' by 1000.0 because the GUI states that values are entered
+    # in [ms], but PyGAMMA wants [sec]
+
+    te1     = sim_desc.dims[1] / 1000.0
+    te2     = sim_desc.dims[2] / 1000.0
+    rgroups = int(sim_desc.dims[3])
+
+    # extract user static parameter values from the control dictionary. They
+    # are inserted into a list in the order that they are shown in the GUI.
+
+    pulse_type = int(  sim_desc.user_static_parameters[0])
+    ang90      = float(sim_desc.user_static_parameters[1])
+    pd90       = float(sim_desc.user_static_parameters[2])
+    tauR       = float(sim_desc.user_static_parameters[3])
+
+    pd180   = pd90 * 2.0
+    ang180  = ang90 * 2.0
+    offhz   = 0.0
+
+    # set up steady state and observation variables
+    H   = pg.Hcs(spin_system) + pg.HJ(spin_system)
+    D   = pg.Fm(spin_system, obs_iso)
+    ac  = pg.acquire1D(pg.gen_op(D), H, 0.000001)
+    ACQ = ac
+
+    # apply excitation pulse and propagate to first 180 pulse
+    sigma0 = pg.sigma_eq(spin_system)
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 90.0)
+
+    Udelay = pg.prop(H, te1*0.5)
+    sigma0 = pg.evolve(sigma1, Udelay)
+
+    # apply first 180 pulse and propagate to CP train start
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 180.0)
+
+    Udelay = pg.prop(H, te1*0.5)
+    sigma0 = pg.evolve(sigma1, Udelay)
+
+    sigma1 = sigma0
+
+    # apply the Carr-Purcell refocussing pulse train
+    if pulse_type == 0:
+
+        # using Ideal 180 pulses
+        for k in range(rgroups):
+            Udelay = pg.prop(H, tauR/2.0)
+            sigma0 = pg.evolve(sigma1,Udelay)
+
+            sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 180)
+
+            Udelay = pg.prop(H, tauR/2.0)
+            sigma0 = pg.evolve(sigma1,Udelay)
+
+            sigma1 = sigma0
+    else:
+
+        for k in range(rgroups):
+
+            # using 90-180-90 square 'Sandwich' pulses with MLEV16 phase 
+            # cycling
+            if (k % 4) == 0:
+
+                Udelay = pg.prop(H, tauR/2.0)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, -ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, -ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+
+                Udelay = pg.prop(H, tauR/2.0)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = sigma0
+
+            if (k % 4) == 1:
+
+                Udelay = pg.prop(H, tauR/2.0)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, -ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, -ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+
+                Udelay = pg.prop(H, tauR/2.0)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = sigma0
+
+            if (k % 4) == 2:
+
+                Udelay = pg.prop(H, tauR/2.0)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, -ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, -ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+
+                Udelay = pg.prop(H, tauR/2.0)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = sigma0
+
+            if (k % 4) == 3:
+
+                Udelay = pg.prop(H, tauR/2.0)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, -ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, -ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  -ang90)
+
+                Udelay = pg.prop(H, tauR)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+                sigma0 = pg.Sypuls(spin_system, sigma1, H, obs_iso, offhz, pd180, ang180)
+                sigma1 = pg.Sxpuls(spin_system, sigma0, H, obs_iso, offhz, pd90,  ang90)
+
+                Udelay = pg.prop(H, tauR/2.0)
+                sigma0 = pg.evolve(sigma1,Udelay)
+
+                sigma1 = sigma0
+
+    # propagate to second 180 pulse
+    Udelay = pg.prop(H, te2*0.5)
+    sigma0 = pg.evolve(sigma1, Udelay)
+
+    # apply second 180 pulse and propagate to data acquisition
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 180.0)
+
+    Udelay = pg.prop(H, te2*0.5)
+    sigma0 = pg.evolve(sigma1, Udelay)
+
+    # instantiate and save the transition table of simulation results
+    # note. this step copies the TTable1D result from the ACQ into
+    #       a TTable1D object in the sim_desc object. Thus, when
+    #       we return from this function and the ACQ variable gets
+    #       garbage collected, our copy of the results in not affected
+    sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
+</sequence_code>
+		<binning_code>import pygamma
+import numpy as np
+
+def run(sim_desc):
+    area   = pygamma.DoubleVector(0)
+    ppm    = pygamma.DoubleVector(0)
+    phase  = pygamma.DoubleVector(0)
+    field  = sim_desc.field             # freq in MHz
+    nspins = sim_desc.nspins
+    tolppm = sim_desc.blend_tolerance_ppm
+    tolpha = sim_desc.blend_tolerance_phase
+    ppmlo  = sim_desc.peak_search_ppm_low
+    ppmhi  = sim_desc.peak_search_ppm_high
+
+    sys     = sim_desc.spin_system
+    obs_iso = sim_desc.observe_isotope
+    nlines  = sim_desc.mx.size()
+
+    # need the quantum number of the observe isotope
+    tmp = pygamma.Isotope(obs_iso)
+    obs_qn = tmp.qn()
+
+    # The original scaling factor fails when a heteronuclear spin system. We 
+    # have found empirically that scaling needs to be a product of the spin 
+    # quantum number of the non-observe nuclei minus the observe nuclei  
+    # quantum number. It also depends on the number of non-observe nuclei.
+    # So ... we get the factor calculated below, 'qnscale', with which we 
+    # modify each line returned from the transition table.
+    qnscale = 1.0
+    for i in range(nspins):
+        qnscale *= 2*sys.qn(i)+1
+    qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
+
+    freqs = []
+    outf  = []
+    outa  = []
+    outp  = []
+    nbin  = 0
+    found = False
+    
+    PI = 3.14159265358979323846
+    RAD2DEG = 180.0/PI
+
+    # Based on TTable1D::calc_spectra() ---------------------------------------
+
+    indx = sim_desc.mx.Sort(0,-1,0)
+
+    for i in range(nlines):
+        freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
+    
+    for i in range(nlines):
+        freq = freqs[i]
+        if (freq > ppmlo) and (freq &#60; ppmhi):
+            val = sim_desc.mx.I(indx[i])
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
+
+        if nbin == 0:
+            outf.append(freq)
+            outa.append(tmpa)
+            outp.append(tmpp)
+            nbin += 1
+        else:
+            for k in range(nbin):
+                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
+                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                        ampsum   =  outa[k]+tmpa
+                        outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
+                        outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
+                        outa[k] +=  tmpa;
+                        found = True 
+            if not found:
+                outf.append(freq)
+                outa.append(tmpa)
+                outp.append(tmpp)
+                nbin += 1
+            found = False
+    
+    ppm.resize(nbin)
+    area.resize(nbin)
+    phase.resize(nbin)
+
+    for i in range(nbin):
+        ppm[i]   = outf[i]
+        area[i]  = outa[i]
+        phase[i] = -1.0*outp[i]
+
+    return (ppm, area, phase)
+</binning_code>
+	</pulse_sequence>
+	<pulse_sequence id="a5e5606d-5527-4ac6-b063-8894d5fb412a" version="1.0.0">
+		<name>JPRESS Ideal</name>
+		<created>2011-10-21T20:50:28</created>
+		<creator>Brian Soher</creator>
+		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+
+A timing diagram for this pulse sequence can be found in the Appendix of the Simulation User Manual.
+</comment>
+		<loop_label>TE [ms]</loop_label>
+		<sequence_code>import pygamma as pg
+
+
+def run(sim_desc):
+    #------------------------------------------------------------------------
+    # This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+    #
+    # A timing diagram for this pulse sequence can be found in the Appendix 
+    # of the Simulation User Manual.
+    #-----------------------------------------------------------------------
+
+    spin_system = sim_desc.spin_system
+
+    # the isotope string used to sort/select the metabolites of interest is passed 
+    # in the sim_desc object so the user can tailor other object within their 
+    # code to be nuclei specific, such as the observe operator or pulses
+    obs_iso = sim_desc.observe_isotope
+
+    # extract the dynamically changing variable from loop 1, divide by 1000.0
+    # because the GUI states that values are entered in [ms], but PyGAMMA 
+    # wants [sec]
+
+    te = sim_desc.dims[1] / 1000.0
+
+    # set up steady state and observation variables
+    H   = pg.Hcs(spin_system) + pg.HJ(spin_system) 
+    D   = pg.Fm(spin_system, obs_iso) 
+    ac  = pg.acquire1D(pg.gen_op(D), H, 0.000001) 
+    ACQ = ac 
+
+    # apply excitation and refocusing pulses and propagate 
+
+    sigma0 = pg.sigma_eq(spin_system) 
+    sigma1 = pg.Ixpuls(spin_system, sigma0, obs_iso, 90.0)
+    Udelay = pg.prop(H, te*0.25)
+    sigma0 = pg.evolve(sigma1, Udelay)
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 180.0)
+    Udelay = pg.prop(H, te*0.25)
+    sigma0 = pg.evolve(sigma1, Udelay)
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 90.0)
+    Udelay = pg.prop(H, te*0.25)
+    sigma0 = pg.evolve(sigma1, Udelay)
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 180.0)
+    Udelay = pg.prop(H, te*0.25)
+    sigma0 = pg.evolve(sigma1, Udelay)
+
+    # instantiate and save transition table of simulation results
+    # note. this step copies the TTable1D result from the ACQ into
+    #       a TTable1D object in the sim_desc object. Thus, when
+    #       we return from this function and the ACQ variable gets
+    #       garbage collected, our copy of the results in not affected
+    sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))</sequence_code>
+		<binning_code>import pygamma
+import numpy as np
+
+def run(sim_desc):
+    area   = pygamma.DoubleVector(0)
+    ppm    = pygamma.DoubleVector(0)
+    phase  = pygamma.DoubleVector(0)
+    field  = sim_desc.field             # freq in MHz
+    nspins = sim_desc.nspins
+    tolppm = sim_desc.blend_tolerance_ppm
+    tolpha = sim_desc.blend_tolerance_phase
+    ppmlo  = sim_desc.peak_search_ppm_low
+    ppmhi  = sim_desc.peak_search_ppm_high
+
+    sys     = sim_desc.spin_system
+    obs_iso = sim_desc.observe_isotope
+    nlines  = sim_desc.mx.size()
+
+    # need the quantum number of the observe isotope
+    tmp = pygamma.Isotope(obs_iso)
+    obs_qn = tmp.qn()
+
+    # The original scaling factor fails when a heteronuclear spin system. We 
+    # have found empirically that scaling needs to be a product of the spin 
+    # quantum number of the non-observe nuclei minus the observe nuclei  
+    # quantum number. It also depends on the number of non-observe nuclei.
+    # So ... we get the factor calculated below, 'qnscale', with which we 
+    # modify each line returned from the transition table.
+    qnscale = 1.0
+    for i in range(nspins):
+        qnscale *= 2*sys.qn(i)+1
+    qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
+
+    freqs = []
+    outf  = []
+    outa  = []
+    outp  = []
+    nbin  = 0
+    found = False
+    
+    PI = 3.14159265358979323846
+    RAD2DEG = 180.0/PI
+
+    # Based on TTable1D::calc_spectra() ---------------------------------------
+
+    indx = sim_desc.mx.Sort(0,-1,0)
+
+    for i in range(nlines):
+        freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
+    
+    for i in range(nlines):
+        freq = freqs[i]
+        if (freq > ppmlo) and (freq &#60; ppmhi):
+            val = sim_desc.mx.I(indx[i])
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
+
+        if nbin == 0:
+            outf.append(freq)
+            outa.append(tmpa)
+            outp.append(tmpp)
+            nbin += 1
+        else:
+            for k in range(nbin):
+                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
+                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                        ampsum   =  outa[k]+tmpa
+                        outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
+                        outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
+                        outa[k] +=  tmpa;
+                        found = True 
+            if not found:
+                outf.append(freq)
+                outa.append(tmpa)
+                outp.append(tmpp)
+                nbin += 1
+            found = False
+    
+    ppm.resize(nbin)
+    area.resize(nbin)
+    phase.resize(nbin)
+
+    for i in range(nbin):
+        ppm[i]   = outf[i]
+        area[i]  = outa[i]
+        phase[i] = -1.0*outp[i]
+
+    return (ppm, area, phase)
+</binning_code>
+	</pulse_sequence>
+	<pulse_sequence id="28e07f4b-5d37-43e0-828d-4e7a733fd542" version="1.0.0">
+		<name>One-Pulse</name>
+		<created>2011-10-21T20:39:42</created>
+		<creator>Brian Soher</creator>
+		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+
+A timing diagram for this pulse sequence can be found in the Appendix of the Simulation User Manual.
+</comment>
+		<sequence_code>import pygamma as pg
+
+def run(sim_desc):
+    #------------------------------------------------------------------------
+    # This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+    #
+    # A timing diagram for this pulse sequence can be found in the Appendix 
+    # of the Simulation User Manual.
+    #------------------------------------------------------------------------
+    spin_system = sim_desc.spin_system
+
+    # the isotope string used to sort/select the metabolites of interest is passed 
+    # in the sim_desc object so the user can tailor other object within their 
+    # code to be nuclei specific, such as the observe operator or pulses
+    obs_iso = sim_desc.observe_isotope
+
+    # set up steady state and observation variables
+    H   = pg.Hcs(spin_system) + pg.HJ(spin_system) 
+    D   = pg.Fm(spin_system, obs_iso) 
+    ac  = pg.acquire1D(pg.gen_op(D), H, 0.000001) 
+    ACQ = ac 
+
+    # excite and acquire the data
+    sigma  = pg.sigma_eq(spin_system) 
+    sigma0 = pg.Iypuls(spin_system, sigma, obs_iso, 90.0) 
+
+    # instantiate and save transition table of simulation results
+    # note. this step copies the TTable1D result from the ACQ into
+    #       a TTable1D object in the sim_desc object. Thus, when
+    #       we return from this function and the ACQ variable gets
+    #       garbage collected, our copy of the results in not affected
+    sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
+</sequence_code>
+		<binning_code>import pygamma
+import numpy as np
+
+def run(sim_desc):
+    area   = pygamma.DoubleVector(0)
+    ppm    = pygamma.DoubleVector(0)
+    phase  = pygamma.DoubleVector(0)
+    field  = sim_desc.field             # freq in MHz
+    nspins = sim_desc.nspins
+    tolppm = sim_desc.blend_tolerance_ppm
+    tolpha = sim_desc.blend_tolerance_phase
+    ppmlo  = sim_desc.peak_search_ppm_low
+    ppmhi  = sim_desc.peak_search_ppm_high
+
+    sys     = sim_desc.spin_system
+    obs_iso = sim_desc.observe_isotope
+    nlines  = sim_desc.mx.size()
+
+    # need the quantum number of the observe isotope
+    tmp = pygamma.Isotope(obs_iso)
+    obs_qn = tmp.qn()
+
+    # The original scaling factor fails when a heteronuclear spin system. We 
+    # have found empirically that scaling needs to be a product of the spin 
+    # quantum number of the non-observe nuclei minus the observe nuclei  
+    # quantum number. It also depends on the number of non-observe nuclei.
+    # So ... we get the factor calculated below, 'qnscale', with which we 
+    # modify each line returned from the transition table.
+    qnscale = 1.0
+    for i in range(nspins):
+        qnscale *= 2*sys.qn(i)+1
+    qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
+
+    freqs = []
+    outf  = []
+    outa  = []
+    outp  = []
+    nbin  = 0
+    found = False
+    
+    PI = 3.14159265358979323846
+    RAD2DEG = 180.0/PI
+
+    # Based on TTable1D::calc_spectra() ---------------------------------------
+
+    indx = sim_desc.mx.Sort(0,-1,0)
+
+    for i in range(nlines):
+        freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
+    
+    for i in range(nlines):
+        freq = freqs[i]
+        if (freq > ppmlo) and (freq &#60; ppmhi):
+            val = sim_desc.mx.I(indx[i])
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
+
+        if nbin == 0:
+            outf.append(freq)
+            outa.append(tmpa)
+            outp.append(tmpp)
+            nbin += 1
+        else:
+            for k in range(nbin):
+                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
+                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                        ampsum   =  outa[k]+tmpa
+                        outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
+                        outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
+                        outa[k] +=  tmpa;
+                        found = True 
+            if not found:
+                outf.append(freq)
+                outa.append(tmpa)
+                outp.append(tmpp)
+                nbin += 1
+            found = False
+    
+    ppm.resize(nbin)
+    area.resize(nbin)
+    phase.resize(nbin)
+
+    for i in range(nbin):
+        ppm[i]   = outf[i]
+        area[i]  = outa[i]
+        phase[i] = -1.0*outp[i]
+
+    return (ppm, area, phase)
+</binning_code>
+	</pulse_sequence>
+	<pulse_sequence id="97f8fa7c-33bf-4277-be78-49ce5c5ea1a2" version="1.0.0">
+		<name>One-Pulse No Binning</name>
+		<created>2011-10-21T20:49:29</created>
+		<creator>Brian Soher</creator>
+		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+
+A timing diagram for this pulse sequence can be found in the Appendix of the Simulation User Manual.
+</comment>
+		<sequence_code>import math
+
+import pygamma as pg
+
+def run(sim_desc):
+    #------------------------------------------------------------------------
+    # This is an example PyGAMMA pulse sequence for use in Vespa-Simulation.
+    # It demonstrates how results can be returned directly by the sequence 
+    # code as opposed to being returned by the binning code. When the
+    # sequence code returns results, the binning code is never invoked.
+    #
+    # A timing diagram for this pulse sequence can be found in the Appendix 
+    # of the Simulation User Manual.
+    #------------------------------------------------------------------------
+    spin_system = sim_desc.spin_system
+
+    # the isotope string used to sort/select the metabolites of interest is passed 
+    # in the sim_desc object so the user can tailor other object within their 
+    # code to be nuclei specific, such as the observe operator or pulses
+    obs_iso = sim_desc.observe_isotope
+
+    # set up steady state and observation variables
+    H   = pg.Hcs(spin_system) + pg.HJ(spin_system) 
+    D   = pg.Fm(spin_system, obs_iso) 
+    ac  = pg.acquire1D(pg.gen_op(D), H, 0.000001) 
+    ACQ = ac 
+
+    # excite and acquire the data
+    sigma  = pg.sigma_eq(spin_system) 
+    sigma0 = pg.Iypuls(spin_system, sigma, obs_iso, 90.0) 
+
+    # instantiate transition table of simulation results
+    mx = pg.TTable1D(ACQ.table(sigma0))
+
+    # Calculate results
+    mx_indices = mx.Sort(0, -1, 0)
+    normal = 0.5 * 2**(sim_desc.nspins - 1)
+
+    ppms = []
+    areas = []
+    phases = []
+    
+    for index in mx_indices:
+        # ctmp is a complex number
+        ctmp = mx.I(index)
+
+        ppms.append(-mx.Fr(index) / (2.0 * math.pi * sim_desc.field))
+        areas.append(math.hypot(ctmp.Rec(), ctmp.Imc()) / normal)
+
+        if ctmp.Imc() or ctmp.Rec():
+            phase = (-180.0 / math.pi) * math.atan2(ctmp.Imc(), ctmp.Rec())
+        else:
+            phase = 0
+
+        phases.append(phase)
+
+    phases = [(phase * -1.0) for phase in phases]
+
+    return (ppms, areas, phases)
+</sequence_code>
+		<binning_code>def run(sim_desc):
+    # Since results for this pulse sequence are returned by the sequence
+    # code, this code won't be executed. Just to prove the point, we'll raise
+    # an error if this code runs.
+    
+    raise NotImplementedError
+</binning_code>
+	</pulse_sequence>
+	<pulse_sequence id="43be13ae-de9a-40a1-9a2d-c872d8c8b8b2" version="1.0.0">
+		<name>PRESS Ideal</name>
+		<created>2011-10-21T20:44:20</created>
+		<creator>Brian Soher</creator>
+		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+
+A timing diagram for this pulse sequence can be found in the Appendix of the Simulation User Manual.
+</comment>
+		<loop_label>TE1 [ms]</loop_label>
+		<loop_label>TE2 [ms]</loop_label>
+		<sequence_code>import pygamma as pg
+
+def run(sim_desc):
+    #----------------------------------------------------------------------
+    # This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+    #
+    # A timing diagram for this pulse sequence can be found in the Appendix 
+    # of the Simulation User Manual.
+    #----------------------------------------------------------------------
+    spin_system = sim_desc.spin_system
+
+    # the isotope string used to sort/select the metabolites of interest is passed 
+    # in the sim_desc object so the user can tailor other object within their 
+    # code to be nuclei specific, such as the observe operator or pulses
+    obs_iso = sim_desc.observe_isotope
+
+    # extract the dynamically changing variable from loop 1 and 2 for 'te1' and
+    # 'te2', divide by 1000.0 because the GUI states that values are entered in 
+    # [ms], but PyGAMMA wants [sec]
+
+    te1 = sim_desc.dims[1] / 1000.0 
+    te2 = sim_desc.dims[2] / 1000.0
+
+    # set up steady state and observation variables
+    H   = pg.Hcs(spin_system) + pg.HJ(spin_system) 
+    D   = pg.Fm(spin_system, obs_iso) 
+    ac  = pg.acquire1D(pg.gen_op(D), H, 0.000001) 
+    ACQ = ac 
+    sigma0 = pg.sigma_eq(spin_system) 
+
+    # excite, propagate, refocus and acquire the data
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 90.0)
+    Udelay = pg.prop(H, te1*0.5)
+    sigma0 = pg.evolve(sigma1, Udelay)
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 180.0)
+    Udelay = pg.prop(H, (te1+te2)*0.5)
+    sigma0 = pg.evolve(sigma1, Udelay)
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 180.0)
+    Udelay = pg.prop(H, te2*0.5)
+    sigma0 = pg.evolve(sigma1, Udelay)
+
+    # instantiate and save transition table of simulation results
+    # note. this step copies the TTable1D result from the ACQ into
+    #       a TTable1D object in the sim_desc object. Thus, when
+    #       we return from this function and the ACQ variable gets
+    #       garbage collected, our copy of the results in not affected
+    sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
+</sequence_code>
+		<binning_code>import pygamma
+import numpy as np
+
+def run(sim_desc):
+    area   = pygamma.DoubleVector(0)
+    ppm    = pygamma.DoubleVector(0)
+    phase  = pygamma.DoubleVector(0)
+    field  = sim_desc.field             # freq in MHz
+    nspins = sim_desc.nspins
+    tolppm = sim_desc.blend_tolerance_ppm
+    tolpha = sim_desc.blend_tolerance_phase
+    ppmlo  = sim_desc.peak_search_ppm_low
+    ppmhi  = sim_desc.peak_search_ppm_high
+
+    sys     = sim_desc.spin_system
+    obs_iso = sim_desc.observe_isotope
+    nlines  = sim_desc.mx.size()
+
+    # need the quantum number of the observe isotope
+    tmp = pygamma.Isotope(obs_iso)
+    obs_qn = tmp.qn()
+
+    # The original scaling factor fails when a heteronuclear spin system. We 
+    # have found empirically that scaling needs to be a product of the spin 
+    # quantum number of the non-observe nuclei minus the observe nuclei  
+    # quantum number. It also depends on the number of non-observe nuclei.
+    # So ... we get the factor calculated below, 'qnscale', with which we 
+    # modify each line returned from the transition table.
+    qnscale = 1.0
+    for i in range(nspins):
+        qnscale *= 2*sys.qn(i)+1
+    qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
+
+    freqs = []
+    outf  = []
+    outa  = []
+    outp  = []
+    nbin  = 0
+    found = False
+    
+    PI = 3.14159265358979323846
+    RAD2DEG = 180.0/PI
+
+    # Based on TTable1D::calc_spectra() ---------------------------------------
+
+    indx = sim_desc.mx.Sort(0,-1,0)
+
+    for i in range(nlines):
+        freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
+    
+    for i in range(nlines):
+        freq = freqs[i]
+        if (freq > ppmlo) and (freq &#60; ppmhi):
+            val = sim_desc.mx.I(indx[i])
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
+
+        if nbin == 0:
+            outf.append(freq)
+            outa.append(tmpa)
+            outp.append(tmpp)
+            nbin += 1
+        else:
+            for k in range(nbin):
+                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
+                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                        ampsum   =  outa[k]+tmpa
+                        outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
+                        outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
+                        outa[k] +=  tmpa;
+                        found = True 
+            if not found:
+                outf.append(freq)
+                outa.append(tmpa)
+                outp.append(tmpp)
+                nbin += 1
+            found = False
+    
+    ppm.resize(nbin)
+    area.resize(nbin)
+    phase.resize(nbin)
+
+    for i in range(nbin):
+        ppm[i]   = outf[i]
+        area[i]  = outa[i]
+        phase[i] = -1.0*outp[i]
+
+    return (ppm, area, phase)
+</binning_code>
+	</pulse_sequence>
+	<pulse_sequence id="e96ac81d-79b8-486b-88d4-5539d8cefda8" version="1.0.0">
+		<name>PRESS with RFPulse Pulses</name>
+		<created>2011-10-21T20:06:51</created>
+		<creator>Brian Soher</creator>
+		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+
+A timing diagram for this pulse sequence can be found in the Appendix of the Simulation User Manual.
+
+This pulse sequence makes use of the simulation description attribute "pulses".
+
+The "pulses" attribute is a list of "real" RF pulses that were copied from RFPulse projects in the Vespa databse. Each item in the list is an instance of the MinimalistPulse class. That class contains the pulse name (just for your information), the dwell time as a single float in microseconds (all waveforms are assumed to have evenly spaced time axis points), and the waveform as a list of complex floats in milliTesla. 
+
+As shown in the sequence code, this waveform can be converted for the field strength and gyromagnetic ratio required and turned into a PyGAMMA PulWaveform and from there inserted into a PulComposite that can be used in the pulse sequence.
+
+The formal definition of the MinimalistPulse class is in vespa/public/minimalist_pulse.py which you can view online here:
+http://scion.duhs.duke.edu/vespa/project/browser/trunk/public/minimalist_pulse.py
+</comment>
+		<loop_label>TE1 [ms]</loop_label>
+		<loop_label>TE2 [ms]</loop_label>
+		<pulse_project id="1a68f0d8-d7cb-4f17-ba11-c1b3b51644d6" version="1.0.0">
+			<name>Example - Adiabatic 180 for Simulation real pulse test</name>
+			<created>2011-10-21T20:08:45</created>
+			<creator>bjs</creator>
+			<comment>This is a generic adiabatic 180 degree inversion pulse created in RFPulse with a duration of 8ms and a bandwidth of approximately 2kHz. This is not an optimized pulse, just a demonstration.
+</comment>
+			<machine_settings version="1.0.0">
+				<machine_type>Whole Body MRI</machine_type>
+				<field_strength>3.0</field_strength>
+				<max_b1_field>22.0</max_b1_field>
+				<zero_padding>0</zero_padding>
+				<min_dwell_time>1.0</min_dwell_time>
+				<dwell_time_increment>0.2</dwell_time_increment>
+				<gradient_raster_time>10.0</gradient_raster_time>
+				<gradient_slew_rate>200.0</gradient_slew_rate>
+				<gradient_maximum>24.0</gradient_maximum>
+			</machine_settings>
+			<master_parameters version="1.0.0">
+				<calc_resolution>5000</calc_resolution>
+				<pulse_bandwidth_convention>half_height</pulse_bandwidth_convention>
+			</master_parameters>
+			<transformation version="1.0.0">
+				<type>create_hyperbolic_secant</type>
+				<parameters version="1.0.0">
+					<total_rotation>1080.0</total_rotation>
+					<time_points>250</time_points>
+					<dwell_time>32.0</dwell_time>
+					<quality_cycles>16.0</quality_cycles>
+					<power_n>1</power_n>
+					<sharpness_mu>8.0</sharpness_mu>
+					<filter_application>0.0</filter_application>
+					<filter_type>no_selection</filter_type>
+				</parameters>
+				<result version="1.0.0">
+					<created>2011-10-21T20:13:29</created>
+					<rf_pulse version="1.0.0">
+						<waveform data_type="complex128" encoding="xdr zlib base64">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</waveform>
+						<waveform_x_axis data_type="float64" encoding="xdr zlib base64">eNotk3lUzXkYxsMx0yTJdDJqMk1ONLIkkYiempJQWiTt+3a7dd19X9IkS4OEOh2dZBtLjCzNZF8GnWgaU5PILttYInKyhDnOPPefe+69v/v9vu/zfD5mZv+/YHa+t7ru2SpY893OVSaxvheJ7/nZ+U3d8s7sbozh9+Pj3WN8kn7HRP4+6dbl9U01wGQ+N3Xoev270Vswjc97+0dkuGwZiJn8HxTWIQtHCODL//u1ZtmfDs7EjzzH/2mg1RWL4QjgeYEDR/XvamjEbJ4b9N2A3oFLdZjD8+d63n3i4D8e83hPcOjpWx5mNxHC++ZnV7fOOVGCUN4b5nuys9bHCWG8PzzELeFo5TuEc46ImKr28+9bEMF5FmRahbfE1mAB54qUGi7eOFyISM630Phs1r/DExDFOaOK40/2qDyxiPMuKm+a9unyEERz7uht3ocGTX6IGM4fU1szYdi6U4jlHrHH7Xc6vaxAHPeJa1w5cny4FPHcK77tbaVX7TwkcL+Eu4JhAUOckcg9E7uulITm9SGJ+ya9D7KIbWpDMvdO/unaGQ/bdiRz/xQLG5PXOX+kMIeUknkzfOS1SGEeqcMK3gY4OyCVuaRWHvltTusKpDKftJEvZaEFr5HGnNJ2uU5cOCkFacwr3S3lWeydZqQzt/S6it3Ja6cjnflleP+dlem7AxnMMePMV87CFzbIZJ6ZQb53JJvykclcM5vVVar5T5HFfLMia+P0H6ORxZyzOh4NL9h7DtnMOzvFsW15gjuymXv2w0Wlqy2rIGD+grw1oeuOWUDAHgSvGiwrhErksI8czcfGTfadyGEvQjPPom0XQiFkP8Iikf9uzTEI2VOu5S9mtWN+QC77yi29cbzuygbksrc8O1vt0eX9kMf+8jaFTD09NQ957FE0qrDn/IMOiNinqObY/qayQIjY62L3HlHLrINYzH4X148b2/7aEYvZs9jx8wOBELNvcWpIS/euPojZu3i7YL98yQGI2b/40dI1vTHZkJADydjNIq27IyTkQSI6HvzBvA0SciHZf3Ws6XYxJORD0vPaon+9H6TkROpl/flESMmLVDeuwTzrV0jJjfRE0PZipENKfmT90gutvrGHjBzJAvJTS7ouQUaeZMsq/WzOF0FGrmQX6h3LqmZCRr7kg1s/2ileQU7O5GHPr1eG7IKcvMnXDzrqOCoJcnInb3ep2PzBFnLyp7D3Vzv/0wQFOVQkJEXt2FMABXlUVOumuBZ6QUEuFZ3lNnvjuqAkn8rRB15O9NgGJTlVCpovHRwUByV5Ve55vG9K51Aoya3yxRer6o80QEV+VR4jc71LDVCRY5XSZ+6JHA+oyLPqcOwYP7/HUJFrVZ/yy7N21VCTbzXWPgjsjoKanKsL9p5tbLSEmryrzzVuDa7+A2pyrzG/v+QvtQYa8q8J7pccEeYGDT3QrBnh0+ZyHxr6oGmZNmLRp43Q0AutbeT7jvYIaOmHNlrckbDPHFp6ot34c/3tohPQ0hftzZ3laYly6OiNzums4oGnK3T0R5d+O1Iw+A509Ei3o2/Sk/vl0NEn3ZPhQ0XHQ6CnV/oJHs+7NwyAnn7pJaHN8tzD0NMz/SHhnt4AMfT0Td+7rFjrMBoGemeYvlXQ9+o6DPTPYDgZZLpYCgM9NJy65tJ/axAM9NH4OWbtJxjppXH21/fMI+pgpJ/GlRPOFLsKYaSnxj/nbrbq7wQjfTVZZ5pKrrbDRG9NCwoSbfavhon+msqqZpStCICJHpuuHvnWLvkdTPQ53yqnr9khGvn0Ot/tzdMhyz2QT7/zw4uuhfVY/QdexI5M</waveform_x_axis>
+					</rf_pulse>
+				</result>
+			</transformation>
+		</pulse_project>
+		<sequence_code>import pygamma as pg
+import numpy as np
+import math
+
+def run(sim_desc):
+
+    #----------------------------------------------------------------
+    # This is an example PyGAMMA pulse sequence
+    # for use in Vespa-Simulation
+    #
+    # A timing diagram for this pulse sequence can be
+    # found in the Appendix of the Simulation User Manual.
+    #----------------------------------------------------------------
+    spin_system = sim_desc.spin_system
+
+    # extract the dynamically changing variable
+    # from loop 1 and 2 for 'te1' and 'te2', divide
+    # by 1000.0 because the GUI states that values
+    # are entered in [ms], but PyGAMMA wants [sec]
+    #
+    # evolution after 90 before first 180 in msec and
+    # divide by 1000 so PyGAMMA TE is in msec
+    
+    te1 = sim_desc.dims[1]/1000.0
+    te2 = sim_desc.dims[2]/1000.0
+    
+    # extract static RF pulses from the control dictionary. They are 
+    # inserted into a list in the order that they are shown in the GUI.
+    # The pulse name, dwell_time and waveform are all part of each 
+    # MinimalPulse object in the list. Dwell_time is in micro-seconds,
+    # so it needs to be converted to sec. Waveforms are the complex
+    # time array that would be played out on MR scanner. These values
+    # are complex numbers in mT, so taking the magnitude/phase of 
+    # each waveform, we can convert these values into the Hz and phase
+    # in degrees that a PulWaveform in PyGAMMA requires.
+    
+    pulsestep = sim_desc.pulses[0].dwell_time * 1e-6
+    waveform  = sim_desc.pulses[0].waveform
+    waveform  = np.array(waveform)
+    # PulWaveform expects Hz amplitude and angle in degrees, while
+    # Simulation gives us mT amplitude and angle in radians. 
+    # We need to use the appropriate gyromagnetic ratio to do the 
+    # conversion. This depends on our observe_isotope, since the pulse
+    # is not isotope specific, but the spins we expect it to affect, is.
+    # (e.g. we use 42576.0 for 1H to covert mT and RAD2DEG for phase)
+
+    obs_iso = sim_desc.observe_isotope
+    if obs_iso == '1H':
+        gyratio = 42576.0
+    elif obs_iso == '13C':
+        gyratio = 67262.0
+    elif obs_iso == '19F':
+        gyratio = 251662.0
+    elif obs_iso == '31P':
+        gyratio = 108291.0
+
+    ampl_arr  = np.abs(waveform) * gyratio
+    phas_arr  = np.angle(waveform) * 180.0 / math.pi
+
+    # set up a container and read pulse values into it. You could also
+    # read a file using Python code and subsequently inset values into
+    # the PyGAMMA row_vector container. Then create a time axis array
+    # with a time value for each point in the pulse vector
+
+    pulse = pg.row_vector(len(waveform))
+    ptime = pg.row_vector(len(waveform))
+    for j,val in enumerate(zip(ampl_arr,phas_arr)):
+        pulse.put(pg.complex(val[0],val[1]), j)
+        ptime.put(pg.complex(pulsestep,0), j)
+    total = pulse.size() * pulsestep
+
+    # create the pulse waveform and composite pulse objects from the
+    # file and pulse sequence information
+    
+    pwf  = pg.PulWaveform(pulse, ptime, "adiabatic180")
+    pulc = pg.PulComposite(pwf, spin_system, obs_iso)
+    
+    # note that below we have to now account for the time of
+    # the pulse in our propagation intervals in order to have
+    # our TE calculate correctly.
+    
+    H = pg.Hcs(spin_system) + pg.HJ(spin_system)
+    D = pg.Fm(spin_system, obs_iso)
+    Udelay1 = pg.prop(H, 0.5*(te1-total))
+    Udelay2 = pg.prop(H, 0.5*(te1-total + te2-total))
+    Udelay3 = pg.prop(H, 0.5*(te2-total))
+    ac = pg.acquire1D(pg.gen_op(D), H, 0.001)
+    ACQ = ac
+    
+    sigma0 = pg.sigma_eq(spin_system)
+    sigma1 = pg.Iypuls(spin_system, sigma0, 90.0)
+    sigma0 = pg.evolve(sigma1, Udelay1)
+    Ureal180 = pulc.GetUsum(-1)
+    sigma1 = Ureal180.evolve(sigma0)
+    sigma0 = pg.evolve(sigma1, Udelay2)
+    sigma1 = Ureal180.evolve(sigma0)
+    sigma0 = pg.evolve(sigma1, Udelay3)
+    
+    # instantiate and save the transition table of simulation results
+    # note. this step copies the TTable1D result from the ACQ into
+    # a TTable1D object in the sim_desc object. Thus, when
+    # we return from this function and the ACQ variable gets
+    # garbage collected, our copy of the results in not affected
+    
+    sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
+</sequence_code>
+		<binning_code>import pygamma
+import numpy as np
+
+def run(sim_desc):
+    area   = pygamma.DoubleVector(0)
+    ppm    = pygamma.DoubleVector(0)
+    phase  = pygamma.DoubleVector(0)
+    field  = sim_desc.field             # freq in MHz
+    nspins = sim_desc.nspins
+    tolppm = sim_desc.blend_tolerance_ppm
+    tolpha = sim_desc.blend_tolerance_phase
+    ppmlo  = sim_desc.peak_search_ppm_low
+    ppmhi  = sim_desc.peak_search_ppm_high
+
+    sys     = sim_desc.spin_system
+    obs_iso = sim_desc.observe_isotope
+    nlines  = sim_desc.mx.size()
+
+    # need the quantum number of the observe isotope
+    tmp = pygamma.Isotope(obs_iso)
+    obs_qn = tmp.qn()
+
+    # The original scaling factor fails when a heteronuclear spin system. We 
+    # have found empirically that scaling needs to be a product of the spin 
+    # quantum number of the non-observe nuclei minus the observe nuclei  
+    # quantum number. It also depends on the number of non-observe nuclei.
+    # So ... we get the factor calculated below, 'qnscale', with which we 
+    # modify each line returned from the transition table.
+    qnscale = 1.0
+    for i in range(nspins):
+        qnscale *= 2*sys.qn(i)+1
+    qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
+
+    freqs = []
+    outf  = []
+    outa  = []
+    outp  = []
+    nbin  = 0
+    found = False
+    
+    PI = 3.14159265358979323846
+    RAD2DEG = 180.0/PI
+
+    # Based on TTable1D::calc_spectra() ---------------------------------------
+
+    indx = sim_desc.mx.Sort(0,-1,0)
+
+    for i in range(nlines):
+        freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
+    
+    for i in range(nlines):
+        freq = freqs[i]
+        if (freq > ppmlo) and (freq &#60; ppmhi):
+            val = sim_desc.mx.I(indx[i])
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
+
+        if nbin == 0:
+            outf.append(freq)
+            outa.append(tmpa)
+            outp.append(tmpp)
+            nbin += 1
+        else:
+            for k in range(nbin):
+                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
+                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                        ampsum   =  outa[k]+tmpa
+                        outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
+                        outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
+                        outa[k] +=  tmpa;
+                        found = True 
+            if not found:
+                outf.append(freq)
+                outa.append(tmpa)
+                outp.append(tmpp)
+                nbin += 1
+            found = False
+    
+    ppm.resize(nbin)
+    area.resize(nbin)
+    phase.resize(nbin)
+
+    for i in range(nbin):
+        ppm[i]   = outf[i]
+        area[i]  = outa[i]
+        phase[i] = -1.0*outp[i]
+
+    return (ppm, area, phase)
+</binning_code>
+	</pulse_sequence>
+	<pulse_sequence id="dba6b2ff-8288-4c67-ab14-887a8034ae62" version="1.0.0">
+		<name>STEAM Ideal version 2</name>
+		<created>2016-03-21T12:17:07</created>
+		<creator>Brian Soher</creator>
+		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+
+A timing diagram for this pulse sequence can be found in the Appendix of the Simulation User Manual.
+
+Cloned 21 March, 2016 12:17:07 from 3b7a118a-b00e-4d74-ad67-f0df82284128 (STEAM Ideal)
+</comment>
+		<loop_label>TE [ms]</loop_label>
+		<loop_label>TM [ms]</loop_label>
+		<sequence_code>import pygamma as pg
+
+
+def run(sim_desc):
+    #------------------------------------------------------------------------
+    # This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+    #
+    # A timing diagram for this pulse sequence can be found in the Appendix 
+    # of the Simulation User Manual.
+    #------------------------------------------------------------------------
+    spin_system = sim_desc.spin_system
+
+    # the isotope string used to sort/select the metabolites of interest is passed 
+    # in the sim_desc object so the user can tailor other object within their 
+    # code to be nuclei specific, such as the observe operator or pulses
+    obs_iso = sim_desc.observe_isotope
+
+    # extract the dynamically changing variable from loops 1 and 2 for 'te'
+    # and 'tm', divide by 1000.0 because the GUI states that values are 
+    # entered in [ms], but PyGAMMA wants [sec]
+
+    te = sim_desc.dims[1] / 1000.0
+    tm = sim_desc.dims[2] / 1000.0
+
+    # set up steady state and observation variables
+    H   = pg.Hcs(spin_system) + pg.HJ(spin_system) 
+    D   = pg.Fm(spin_system, obs_iso) 
+    ac  = pg.acquire1D(pg.gen_op(D), H, 0.000001) 
+    ACQ = ac 
+
+    # excite, propagate, refocus and acquire the data
+    #
+    # for the case of STEAM, we need to simulate crusher gradients around the 
+    # second and third 90 pulses. We do this by creating 4 copies of the 
+    # operator matrix at that point, rotate respectively  by 0, 90, 180 and 270 
+    # degrees to each other, apply the 90 pulses and TM period, and then 
+    # add the four back into one normalized matrix. 
+
+    dephase_ang = [ 0.0, 90.0, 180.0, 270.0 ]
+    Udelay1     = pg.prop(H, te*0.5)
+    Udelay2     = pg.prop(H, tm)
+
+    sigma0  = pg.sigma_eq(spin_system)
+    # first 90 pulse, excite spins
+    sigma0  = pg.Iypuls(spin_system, sigma0, obs_iso, 90.0)
+    # nutate TE/2
+    sigma0  = pg.evolve(sigma0, Udelay1)
+
+    # Now we need to create the effect of crushers around the 2nd and 3rd 
+    # 90 pulses. This is done by creating 4 copies of spin state and repeating
+    # the rest of the sequence for four different rotations around z-axis
+    sigma_mult  = []
+    for i in dephase_ang:
+        sigma_mult.append(pg.gen_op(sigma0))
+
+    for i, angle in enumerate(dephase_ang):
+        # calculate and apply rotation around z-axis
+        riz = pg.gen_op(pg.Rz(spin_system, angle))
+        sigma_mult[i] = pg.evolve( sigma_mult[i], riz )
+
+        # second 90 pulse
+        sigma_mult[i] = pg.Ixpuls(spin_system, sigma_mult[i], obs_iso, 90.0)
+        # this function removes all coherences still in transverse plane
+        # this removes all stimulated echos from first and second 90 pulse
+        pg.zero_mqc(spin_system, sigma_mult[i], 0, -1 )
+        # third 90 pulse
+        sigma_mult[i] = pg.Ixpuls(spin_system, sigma_mult[i], obs_iso, 90.0)
+        # undo rotation around z-axis
+        sigma_mult[i] = pg.evolve( sigma_mult[i], riz )
+        # scale results based on the number of phase angles
+        sigma_mult[i] *= 1.0/float(len(dephase_ang))
+        
+        # sum up each rotated/unrotated results
+        if i == 0:
+            sigma_res = pg.gen_op(sigma_mult[i])
+        else:
+            sigma_res += sigma_mult[i]
+
+    # last TE/2 nutation
+    sigma0 = pg.evolve(sigma_res, Udelay1)
+
+    # instantiate and save transition table of simulation results
+    # note. this step copies the TTable1D result from the ACQ into
+    #       a TTable1D object in the sim_desc object. Thus, when
+    #       we return from this function and the ACQ variable gets
+    #       garbage collected, our copy of the results in not affected
+    sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
+</sequence_code>
+		<binning_code>import pygamma
+import numpy as np
+
+def run(sim_desc):
+    area   = pygamma.DoubleVector(0)
+    ppm    = pygamma.DoubleVector(0)
+    phase  = pygamma.DoubleVector(0)
+    field  = sim_desc.field             # freq in MHz
+    nspins = sim_desc.nspins
+    tolppm = sim_desc.blend_tolerance_ppm
+    tolpha = sim_desc.blend_tolerance_phase
+    ppmlo  = sim_desc.peak_search_ppm_low
+    ppmhi  = sim_desc.peak_search_ppm_high
+
+    sys     = sim_desc.spin_system
+    obs_iso = sim_desc.observe_isotope
+    nlines  = sim_desc.mx.size()
+
+    # need the quantum number of the observe isotope
+    tmp = pygamma.Isotope(obs_iso)
+    obs_qn = tmp.qn()
+
+    # The original scaling factor fails when a heteronuclear spin system. We 
+    # have found empirically that scaling needs to be a product of the spin 
+    # quantum number of the non-observe nuclei minus the observe nuclei  
+    # quantum number. It also depends on the number of non-observe nuclei.
+    # So ... we get the factor calculated below, 'qnscale', with which we 
+    # modify each line returned from the transition table.
+    qnscale = 1.0
+    for i in range(nspins):
+        qnscale *= 2*sys.qn(i)+1
+    qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
+
+    freqs = []
+    outf  = []
+    outa  = []
+    outp  = []
+    nbin  = 0
+    found = False
+    
+    PI = 3.14159265358979323846
+    RAD2DEG = 180.0/PI
+
+    # Based on TTable1D::calc_spectra() ---------------------------------------
+
+    indx = sim_desc.mx.Sort(0,-1,0)
+
+    for i in range(nlines):
+        freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
+    
+    for i in range(nlines):
+        freq = freqs[i]
+        if (freq &gt; ppmlo) and (freq &lt; ppmhi):
+            val = sim_desc.mx.I(indx[i])
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
+
+        if nbin == 0:
+            outf.append(freq)
+            outa.append(tmpa)
+            outp.append(tmpp)
+            nbin += 1
+        else:
+            for k in range(nbin):
+                if (freq &gt;= outf[k]-tolppm) and (freq &lt;= outf[k]+tolppm):
+                    if (tmpp &gt;= outp[k]-tolpha) and (tmpp &lt;= outp[k]+tolpha):
+                        ampsum   =  outa[k]+tmpa
+                        outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
+                        outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
+                        outa[k] +=  tmpa;
+                        found = True 
+            if not found:
+                outf.append(freq)
+                outa.append(tmpa)
+                outp.append(tmpp)
+                nbin += 1
+            found = False
+    
+    ppm.resize(nbin)
+    area.resize(nbin)
+    phase.resize(nbin)
+
+    for i in range(nbin):
+        ppm[i]   = outf[i]
+        area[i]  = outa[i]
+        phase[i] = -1.0*outp[i]
+
+    return (ppm, area, phase)
+</binning_code>
+	</pulse_sequence>
+	<pulse_sequence id="69888594-2ff1-4e63-b86c-735480da38f6" version="1.0.0">
+		<name>Spin-Echo</name>
+		<created>2011-10-21T20:47:37</created>
+		<creator>Brian Soher</creator>
+		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+
+A timing diagram for this pulse sequence can be found in the Appendix of the Simulation User Manual.
+</comment>
+		<loop_label>TE [ms]</loop_label>
+		<sequence_code>import pygamma as pg
+
+def run(sim_desc):
+    #-----------------------------------------------------------------------
+    # This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
+    #
+    # A timing diagram for this pulse sequence can be found in the Appendix 
+    # of the Simulation User Manual.
+    #-----------------------------------------------------------------------
+    spin_system = sim_desc.spin_system
+
+    # the isotope string used to sort/select the metabolites of interest is passed 
+    # in the sim_desc object so the user can tailor other object within their 
+    # code to be nuclei specific, such as the observe operator or pulses
+    obs_iso = sim_desc.observe_isotope
+
+    # extract the dynamically changing variable from loop 1 for 'te', divide
+    # by 1000.0 because the GUI states that values are entered in [ms], but 
+    # PyGAMMA wants [sec]
+
+    te1 = sim_desc.dims[1] / 1000.0  
+
+    # set up steady state and observation variables
+    H   = pg.Hcs(spin_system) + pg.HJ(spin_system) 
+    D   = pg.Fm(spin_system, obs_iso) 
+    ac  = pg.acquire1D(pg.gen_op(D), H, 0.000001) 
+    ACQ = ac 
+    sigma0 = pg.sigma_eq(spin_system) 
+
+    # excite, propagate, refocus and acquire the data
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, -90.0)
+    Udelay = pg.prop(H, te1*0.5)
+    sigma0 = pg.evolve(sigma1, Udelay)
+    sigma1 = pg.Iypuls(spin_system, sigma0, obs_iso, 180.0)
+    Udelay = pg.prop(H, te1*0.5)
+    sigma0 = pg.evolve(sigma1, Udelay)
+
+    # instantiate and save the transition table of simulation results
+    # note. this step copies the TTable1D result from the ACQ into
+    #       a TTable1D object in the sim_desc object. Thus, when
+    #       we return from this function and the ACQ variable gets
+    #       garbage collected, our copy of the results in not affected
+    sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
+</sequence_code>
+		<binning_code>import pygamma
+import numpy as np
+
+def run(sim_desc):
+    area   = pygamma.DoubleVector(0)
+    ppm    = pygamma.DoubleVector(0)
+    phase  = pygamma.DoubleVector(0)
+    field  = sim_desc.field             # freq in MHz
+    nspins = sim_desc.nspins
+    tolppm = sim_desc.blend_tolerance_ppm
+    tolpha = sim_desc.blend_tolerance_phase
+    ppmlo  = sim_desc.peak_search_ppm_low
+    ppmhi  = sim_desc.peak_search_ppm_high
+
+    sys     = sim_desc.spin_system
+    obs_iso = sim_desc.observe_isotope
+    nlines  = sim_desc.mx.size()
+
+    # need the quantum number of the observe isotope
+    tmp = pygamma.Isotope(obs_iso)
+    obs_qn = tmp.qn()
+
+    # The original scaling factor fails when a heteronuclear spin system. We 
+    # have found empirically that scaling needs to be a product of the spin 
+    # quantum number of the non-observe nuclei minus the observe nuclei  
+    # quantum number. It also depends on the number of non-observe nuclei.
+    # So ... we get the factor calculated below, 'qnscale', with which we 
+    # modify each line returned from the transition table.
+    qnscale = 1.0
+    for i in range(nspins):
+        qnscale *= 2*sys.qn(i)+1
+    qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
+
+    freqs = []
+    outf  = []
+    outa  = []
+    outp  = []
+    nbin  = 0
+    found = False
+    
+    PI = 3.14159265358979323846
+    RAD2DEG = 180.0/PI
+
+    # Based on TTable1D::calc_spectra() ---------------------------------------
+
+    indx = sim_desc.mx.Sort(0,-1,0)
+
+    for i in range(nlines):
+        freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
+    
+    for i in range(nlines):
+        freq = freqs[i]
+        if (freq > ppmlo) and (freq &#60; ppmhi):
+            val = sim_desc.mx.I(indx[i])
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
+
+        if nbin == 0:
+            outf.append(freq)
+            outa.append(tmpa)
+            outp.append(tmpp)
+            nbin += 1
+        else:
+            for k in range(nbin):
+                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
+                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                        ampsum   =  outa[k]+tmpa
+                        outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
+                        outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
+                        outa[k] +=  tmpa;
+                        found = True 
+            if not found:
+                outf.append(freq)
+                outa.append(tmpa)
+                outp.append(tmpp)
+                nbin += 1
+            found = False
+    
+    ppm.resize(nbin)
+    area.resize(nbin)
+    phase.resize(nbin)
+
+    for i in range(nbin):
+        ppm[i]   = outf[i]
+        area[i]  = outa[i]
+        phase[i] = -1.0*outp[i]
+
+    return (ppm, area, phase)
+</binning_code>
+	</pulse_sequence>
+</vespa_export>

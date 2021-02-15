@@ -1,0 +1,1227 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- SQL XML created by WWW SQL Designer, https://github.com/ondras/wwwsqldesigner/ -->
+<!-- Active URL: http://ondras.zarovi.cz/sql/demo/ -->
+<sql>
+<datatypes db="sqlite">
+    <group label="Affinity">
+        <type label="Text" default="" length="1" sql="TEXT" quote="'" color="rgb(255,200,200)"/>
+        <type label="Numeric" default="0" length="0" sql="NUMERIC" quote="" color="rgb(238,238,170)"/>
+        <type label="Integer" default="0" length="0" sql="INTEGER" quote="" color="rgb(238,238,170)"/>
+        <type label="Real" default="0" length="0" sql="REAL" quote="" color="rgb(238,238,170)"/>
+        <type label="None" default="" length="0" sql="NONE" quote="" color="rgb(200,255,200)"/>
+        <type label="Timestamp" default="" length="0" sql="TIMESTAMP" quote="'" color="rgb(200,255,200)"/>
+        <type label="Boolean" default="" length="0" sql="BOOLEAN" quote="'" color="rgb(238,238,170)"/>
+        <type label="BLOB" default="" length="0" sql="BLOB" quote="'" color="rgb(201,201,201)"/>
+    </group>
+</datatypes><table x="33" y="27" name="experiments">
+<row name="id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="experiment_metabolites" row="experiment_id" />
+</row>
+<row name="created" null="0" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+<default>CURRENT_TIMESTAMP</default></row>
+<row name="name" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="is_public" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<row name="comment" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="investigator" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="b0" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="isotope" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="peak_search_ppm_low" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.00</default></row>
+<row name="peak_search_ppm_high" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>10.0</default></row>
+<row name="blend_tolerance_ppm" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.00150</default></row>
+<row name="blend_tolerance_phase" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>50.0</default></row>
+<row name="pulse_sequence_id" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default><relation table="pulse_sequences" row="id" />
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<key type="UNIQUE" name="">
+<part>name</part>
+</key>
+</table>
+<table x="37" y="389" name="pulse_sequences">
+<row name="id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="name" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="is_public" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<row name="created" null="0" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+<default>CURRENT_TIMESTAMP</default></row>
+<row name="creator" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="comment" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="sequence_code" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="binning_code" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="734" y="24" name="metabolites">
+<row name="id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="experiment_metabolites" row="metabolite_id" />
+</row>
+<row name="name" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="is_public" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<row name="created" null="0" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+<default>CURRENT_TIMESTAMP</default></row>
+<row name="creator" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="comment" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="deactivated" null="1" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+<default>NULL</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="896" y="24" name="metabolite_spins">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="metabolite_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="metabolites" row="id" />
+</row>
+<row name="isotope" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="chemical_shift" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="display_order" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<key type="UNIQUE" name="">
+<part>metabolite_id</part>
+<part>display_order</part>
+</key>
+</table>
+<table x="1098" y="98" name="j_couplings">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="value" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="spin1_id" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default><relation table="metabolite_spins" row="id" />
+</row>
+<row name="spin2_id" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default><relation table="metabolite_spins" row="id" />
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="555" y="166" name="simulations">
+<row name="metabolite_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="metabolites" row="id" />
+</row>
+<row name="dims_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="experiment_dims" row="id" />
+</row>
+<row name="started" null="1" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+<default>NULL</default></row>
+<row name="completed" null="1" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+<default>NULL</default></row>
+<row name="ppms" null="1" autoincrement="0">
+<datatype>BLOB</datatype>
+<default>NULL</default></row>
+<row name="areas" null="1" autoincrement="0">
+<datatype>BLOB</datatype>
+<default>NULL</default></row>
+<row name="phases" null="1" autoincrement="0">
+<datatype>BLOB</datatype>
+<default>NULL</default></row>
+<key type="PRIMARY" name="">
+<part>metabolite_id</part>
+<part>dims_id</part>
+</key>
+</table>
+<table x="1241" y="18" name="isotopes">
+<row name="name" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="display_order" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+<part>name</part>
+</key>
+</table>
+<table x="285" y="384" name="pulse_sequence_user_static_parameters">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="pulse_sequence_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="pulse_sequences" row="id" />
+</row>
+<row name="type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="name" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="default_value" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="display_order" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="307" y="563" name="pulse_sequence_loops">
+<row name="pulse_sequence_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="pulse_sequences" row="id" />
+</row>
+<row name="label" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="display_order" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+<part>pulse_sequence_id</part>
+<part>display_order</part>
+</key>
+</table>
+<table x="1372" y="19" name="b0_bins">
+<row name="left" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="center" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="right" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<key type="PRIMARY" name="">
+</key>
+</table>
+<table x="261" y="23" name="experiment_user_static_parameters">
+<row name="experiment_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="experiments" row="id" />
+</row>
+<row name="value" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="display_order" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+<part>experiment_id</part>
+<part>display_order</part>
+</key>
+</table>
+<table x="1100" y="18" name="vespa">
+<row name="database_version" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+</key>
+</table>
+<table x="67" y="642" name="pulse_projects">
+<row name="id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="is_public" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="name" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<comment>Name of pulse project</comment>
+</row>
+<row name="creator" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="created" null="0" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+</row>
+<row name="comment" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default><comment>Notes about this pulse and it's applicaton(s)</comment>
+</row>
+<row name="machine_settings_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="machine_settings" row="id" />
+</row>
+<row name="master_parameters_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="master_parameters" row="id" />
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="68" y="904" name="machine_settings">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="name" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="is_template" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="is_default" null="1" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>NULL</default></row>
+<row name="machine_type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="max_b1_field" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>microTesla</comment>
+</row>
+<row name="field_strength" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In Tesla</comment>
+</row>
+<row name="zero_padding" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="min_dwell_time" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In units of microseconds</comment>
+</row>
+<row name="dwell_time_increment" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In Microseconds</comment>
+</row>
+<row name="gradient_raster_time" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In Microseconds</comment>
+</row>
+<row name="gradient_slew_rate" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In (mT/meter)/millisecond</comment>
+</row>
+<row name="gradient_maximum" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In mT/meter</comment>
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<comment>Machine specific parameters that affect pulse generation.</comment>
+</table>
+<table x="320" y="1003" name="master_parameters">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="calc_resolution" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default><comment>Number of Points to use for pulse and related calcs.</comment>
+</row>
+<row name="pulse_bandwidth_type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<comment>Parameters that are used throughout the set of transformations for any given pulse project, and are not associated with the physical machine being used.</comment>
+</table>
+<table x="368" y="818" name="transformations">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="pulse_project_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="pulse_projects" row="id" />
+</row>
+<row name="progression" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="transformation_type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="parameters_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="interpolate_rescale_parameters" row="id" />
+<relation table="hs_pulse_parameters" row="id" />
+<relation table="slr_pulse_parameters" row="id" />
+<relation table="root_reflect_parameters" row="id" />
+<relation table="gaussian_pulse_parameters" row="id" />
+<relation table="randomized_pulse_parameters" row="id" />
+<relation table="import_pulse_parameters" row="id" />
+<relation table="ocn_parameters" row="id" />
+</row>
+<row name="result_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="results" row="id" />
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<key type="UNIQUE" name="">
+<part>pulse_project_id</part>
+<part>progression</part>
+</key>
+</table>
+<table x="764" y="273" name="slr_pulse_parameters">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="tip_angle" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In Degrees</comment>
+</row>
+<row name="time_steps" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="duration" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In Milliseconds</comment>
+</row>
+<row name="bandwidth" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In kilohertz</comment>
+</row>
+<row name="separation" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In Hertz</comment>
+</row>
+<row name="is_single_band" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="nc_phase_subtype" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default><comment>non-coalesced phase sub type</comment>
+</row>
+<row name="slr_filter_type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="pass_ripple" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>Passband ripple</comment>
+</row>
+<row name="reject_ripple" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>Reject band ripple</comment>
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<comment>Parameters Used to create a new RF Pulse using the SLR algorithm.</comment>
+</table>
+<table x="716" y="941" name="interpolate_rescale_parameters">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="do_interpolate" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="interpolation_factor" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="new_dwell_time" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="do_rescaling" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="angle" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<comment>For interpolation, filtering, scaling, and resampling.</comment>
+</table>
+<table x="706" y="1122" name="results">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="created" null="0" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+</row>
+<row name="gradient_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default><relation table="gradients" row="id" />
+</row>
+<row name="ocn_state_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default><relation table="ocn_states" row="id" />
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="1000" y="272" name="hs_pulse_parameters">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="total_rotation" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="time_steps" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="dwell_time" null="1" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="was_bandwidth_specified" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="quality_cycles" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="power_n" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="sharpness_mu" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="filter_type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="filter_application" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<comment>Parameters for generating an rf pulse using the hyperbolic-secant funtion (also known as the adiabatic pulse type)</comment>
+</table>
+<table x="840" y="1141" name="rf_waveforms">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="result_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="results" row="id" />
+</row>
+<row name="time_point" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0</default></row>
+<row name="real_amplitude" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="imaginary_amplitude" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="842" y="1303" name="gradients">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+<relation table="gradient_waveforms" row="gradient_id" />
+</row>
+<row name="linear_gradient_value" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="refocused_gradient" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="frequency_offset" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="1024" y="1277" name="gradient_waveforms">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="gradient_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<row name="time_point" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="gradient_value" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="f2_value" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="1015" y="875" name="root_reflect_parameters">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="a_roots_only" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="graph_angle" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="x_axis_start" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="anorm_real" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="anorm_imaginary" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="bnorm_real" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="bnorm_imaginary" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="leading_zeros" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<row name="trailing_zeros" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="1288" y="1203" name="a_roots">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="root_reflect_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="root_reflect_parameters" row="id" />
+</row>
+<row name="aroot_real" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="aroot_imaginary" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="was_flipped" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="1288" y="1053" name="b_roots">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="root_reflect_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="root_reflect_parameters" row="id" />
+</row>
+<row name="broot_real" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="broot_imaginary" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="was_flipped" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="262" y="210" name="experiment_dims">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="experiment_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="experiments" row="id" />
+</row>
+<row name="dim1" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="dim2" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="dim3" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<key type="UNIQUE" name="">
+<part>experiment_id</part>
+<part>dim1</part>
+<part>dim2</part>
+<part>dim3</part>
+</key>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="262" y="126" name="experiment_metabolites">
+<row name="experiment_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="metabolite_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<key type="PRIMARY" name="">
+<part>experiment_id</part>
+<part>metabolite_id</part>
+</key>
+</table>
+<table x="1254" y="235" name="gaussian_pulse_parameters">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="tip_angle" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>degrees</comment>
+</row>
+<row name="time_steps" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="duration" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>milliseconds</comment>
+</row>
+<row name="bandwidth" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>kilohertz</comment>
+</row>
+<row name="filter_type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="filter_application" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<comment>Parameters for specifying a Gaussian Pulse.</comment>
+</table>
+<table x="990" y="542" name="randomized_pulse_parameters">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="time_steps" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="duration" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="1006" y="653" name="import_pulse_parameters">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="file_path" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="comment" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="file_format" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="dwell_time" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In Microseconds</comment>
+</row>
+<row name="use_max_intensity" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<row name="max_intensity" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="scale_factor" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>Multiplicative factor for rescaling pulse on import.</comment>
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="325" y="672" name="pulse_sequence_pulse_projects">
+<row name="pulse_sequence_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="pulse_sequences" row="id" />
+</row>
+<row name="pulse_project_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="pulse_projects" row="id" />
+</row>
+<row name="progression" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+</key>
+</table>
+<table x="506" y="1163" name="ocn_states">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="multiplier" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="met_max_iterations" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="met_residual_error" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="met_differential_error" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="met_max_time" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="met_increasing_error" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="run_time" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="iterations" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<row name="decreases" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="297" y="1265" name="deltab1_points">
+<row name="ocn_state_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="ocn_states" row="id" />
+</row>
+<row name="progression" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<row name="real_amplitude" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="imaginary_amplitude" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<key type="PRIMARY" name="">
+</key>
+</table>
+<table x="1331" y="437" name="ocn_parameters">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="pulse_type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="phase_type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="gradient_refocusing_value" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="tip_angle" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="bandwidth" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="step_size_multiplier" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="step_size_modification" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="excite_band_points" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="b1_immunity_range" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="steps" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="b1_maximum" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="limit_sar" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<row name="sar_factor" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="error_increase_tolerance" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="max_iteration_check" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<row name="max_iterations" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="residual_error_check" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<row name="residual_error_tolerance" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="differential_error_check" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<row name="differential_error_tolerance" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="halt_if_error_increasing" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<row name="halt_on_max_time" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<row name="max_time" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default></row>
+<row name="enforce_symmetry" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>'0'</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<comment>Optimal Control, Non-Selective.</comment>
+</table>
+<table x="276" y="1145" name="ocn_residual_errors">
+<row name="ocn_state_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="ocn_states" row="id" />
+</row>
+<row name="value" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+</row>
+<row name="progression" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+</key>
+</table>
+<table x="324" y="1449" name="pulse_designs">
+<row name="id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="is_public" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="name" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<comment>Name of pulse design</comment>
+</row>
+<row name="creator" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="created" null="0" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+</row>
+<row name="comment" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default><comment>Notes about this pulse and it's applicaton(s)</comment>
+</row>
+<row name="calc_resolution" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default><comment>Number of Points to use for pulse and related calcs.</comment>
+</row>
+<row name="pulse_bandwidth_type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="machine_specs_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="machine_specs" row="id" />
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="122" y="1595" name="machine_specs">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="name" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="is_template" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="is_default" null="1" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+<default>NULL</default></row>
+<row name="machine_type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>''''</default></row>
+<row name="max_b1_field" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>microTesla</comment>
+</row>
+<row name="field_strength" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In Tesla</comment>
+</row>
+<row name="zero_padding" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="min_dwell_time" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In units of microseconds</comment>
+</row>
+<row name="dwell_time_increment" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In Microseconds</comment>
+</row>
+<row name="gradient_raster_time" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In Microseconds</comment>
+</row>
+<row name="gradient_slew_rate" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In (mT/meter)/millisecond</comment>
+</row>
+<row name="gradient_maximum" null="0" autoincrement="0">
+<datatype>REAL</datatype>
+<default>0.0</default><comment>In mT/meter</comment>
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<comment>Machine specific parameters that affect pulse generation.</comment>
+</table>
+<table x="538" y="1436" name="transforms">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="pulse_design_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="pulse_designs" row="id" />
+</row>
+<row name="progression" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<row name="transform_kernel_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="transform_kernels" row="id" />
+</row>
+<row name="rf_result_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="rf_results" row="id" />
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+<key type="UNIQUE" name="">
+<part>pulse_design_id</part>
+<part>progression</part>
+</key>
+</table>
+<table x="979" y="1448" name="transform_kernels">
+<row name="id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="type" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="name" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="menu_label" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="is_public" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="created" null="0" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+</row>
+<row name="creator" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="comment" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="algorithm_code" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="time_steps" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="duration" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="hide_file1" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="hide_file2" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="file1_label" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="file2_label" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="hide_time_steps" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="hide_duration" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="hide_tip_angle" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="hide_bandwidth" null="0" autoincrement="0">
+<datatype>BOOLEAN</datatype>
+</row>
+<row name="tip_angle" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<row name="bandwidth" null="1" autoincrement="0">
+<datatype>TEXT</datatype>
+<default>NULL</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="742" y="1554" name="transform_parameters">
+<row name="transform_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<relation table="transforms" row="id" />
+</row>
+<row name="variable" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="type" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="value" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="sort_order" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+</key>
+</table>
+<table x="344" y="1717" name="rf_results">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="created" null="0" autoincrement="0">
+<datatype>TIMESTAMP</datatype>
+</row>
+<row name="rf_waveform" null="1" autoincrement="0">
+<datatype>BLOB</datatype>
+<default>NULL</default></row>
+<row name="rf_xaxis" null="1" autoincrement="0">
+<datatype>BLOB</datatype>
+<default>NULL</default></row>
+<row name="gradient" null="1" autoincrement="0">
+<datatype>BLOB</datatype>
+<default>NULL</default></row>
+<row name="grad_xaxis" null="1" autoincrement="0">
+<datatype>BLOB</datatype>
+<default>NULL</default></row>
+<row name="opcon_state_id" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>0</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="1215" y="1506" name="transform_kernel_controls">
+<row name="id" null="0" autoincrement="1">
+<datatype>INTEGER</datatype>
+</row>
+<row name="transform_kernel_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="transform_kernels" row="id" />
+</row>
+<row name="name_" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="type_" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="default_" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="variable_" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+</row>
+<row name="display_order" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="22" y="1446" name="pulse_sequence_pulse_designs">
+<row name="pulse_sequence_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="pulse_sequences" row="id" />
+</row>
+<row name="pulse_design_id" null="0" autoincrement="0">
+<datatype>TEXT</datatype>
+<relation table="pulse_designs" row="id" />
+</row>
+<row name="progression" null="0" autoincrement="0">
+<datatype>INTEGER</datatype>
+</row>
+<key type="PRIMARY" name="">
+</key>
+</table>
+</sql>

@@ -1,0 +1,1746 @@
+<vespa_export version="1.0.0">
+	<!--
+This XML file is in Vespa Interchange File Format (VIFF). You can download
+applications that read and write VIFF files and learn more about VIFF here:
+http://scion.duhs.duke.edu/vespa/
+
+It was created with Vespa version 0.8.4.
+-->
+	<timestamp>2015-12-21T14:34:18</timestamp>
+	<comment />
+	<pulse_design id="9b20bc2a-eca3-43e9-ada1-5835d3d3dffe" version="1.0.0">
+		<name>Example - Matpulse SLR</name>
+		<created>2015-12-21T14:01:53</created>
+		<creator>bjs</creator>
+		<comment>Example of using the Matpulse SLR kernel to design a 90 degree excite pulse</comment>
+		<calc_resolution>5000</calc_resolution>
+		<pulse_bandwidth_type>half_height</pulse_bandwidth_type>
+		<machine_specs version="1.0.0">
+			<machine_type>Whole Body MRI</machine_type>
+			<field_strength>3.0</field_strength>
+			<max_b1_field>22.0</max_b1_field>
+			<zero_padding>0</zero_padding>
+			<min_dwell_time>1.0</min_dwell_time>
+			<dwell_time_increment>0.2</dwell_time_increment>
+			<gradient_raster_time>10.0</gradient_raster_time>
+			<gradient_slew_rate>200.0</gradient_slew_rate>
+			<gradient_maximum>24.0</gradient_maximum>
+		</machine_specs>
+		<transform version="1.0.0">
+			<transform_kernel id="ffc9c755-ad1f-4d37-af19-cb5993bb525d" version="1.0.0">
+				<type>Create Transform</type>
+				<name>Matpulse SLR</name>
+				<menu_label>Matpulse - SLR</menu_label>
+				<created>2015-11-18T17:07:02</created>
+				<creator>bjs</creator>
+				<comment>
+</comment>
+				<hide_file1>true</hide_file1>
+				<hide_file2>true</hide_file2>
+				<hide_time_steps>false</hide_time_steps>
+				<hide_duration>false</hide_duration>
+				<hide_tip_angle>false</hide_tip_angle>
+				<hide_bandwidth>false</hide_bandwidth>
+				<file1_label />
+				<file2_label />
+				<tip_angle>90.0</tip_angle>
+				<time_steps>250</time_steps>
+				<duration>8.0</duration>
+				<bandwidth>1.0</bandwidth>
+				<transform_kernel_control version="1.0.0">
+					<name>Time Steps [int]</name>
+					<type>Long</type>
+					<default>250</default>
+					<variable>time_steps</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Duration [msec]</name>
+					<type>Double</type>
+					<default>8.0</default>
+					<variable>duration</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Tip Angle [deg]</name>
+					<type>Double</type>
+					<default>90.0</default>
+					<variable>tip_angle</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Bandwidth [kHz]</name>
+					<type>Double</type>
+					<default>1.0</default>
+					<variable>bandwidth</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Separation [kHz]</name>
+					<type>Double</type>
+					<default>1.0</default>
+					<variable>separation</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Single or Dual Band</name>
+					<type>Choice</type>
+					<default>Single,Dual</default>
+					<variable>is_dual_band</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Non-Coalesced Phase Type</name>
+					<type>Choice</type>
+					<default>Linear,Min,Max</default>
+					<variable>phase_type</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Filter Type</name>
+					<type>Choice</type>
+					<default>SLR (Remez),Least-Squares</default>
+					<variable>use_lsq</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Passband Ripple [%]</name>
+					<type>Double</type>
+					<default>1.0</default>
+					<variable>pass_ripple</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Reject Ripple [%]</name>
+					<type>Double</type>
+					<default>1.0</default>
+					<variable>reject_ripple</variable>
+				</transform_kernel_control>
+				<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+import scipy as sp
+import scipy.signal as sps
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+GAMMA1H = 42.576    
+
+# Small number used for floating point comparisons.
+epsilon = 0.000001  
+
+# Very small number used for double precision comparisons.
+small_epsilon = 0.00000000001  
+
+# An even smaller number; used to represent an acceptable fractional error
+# or difference from an expected or desired value.
+EPS = pow(2,-52)
+
+
+def run(trans_desc):
+    """
+    Adapted from Matpulse - mplcalcc.m: 
+    
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - int, the number of data points in the output waveform
+    duration        - float, total time of pulse, in msec
+    tip_angle       - float, the desired tip angle, in radians
+    pass_ripple     - float, the desired pass band ripple, as a percent
+    reject_ripple   - float, the desired reject band ripple, as a percent
+    phase_type      - int, the non-coalesced phase type:
+                        1 for linear, 2 for Max, 3 for Min
+    bandwidth       - float, the bandwidth for the pulse in kilohertz
+    is_single_band  - bool, True for single band; False for 
+                      dual band.
+    separation      - float, the separation between the bands in kilohertz
+    use_remez       - bool, True remez filter, False least-squares filter
+    n_zero_pad      - int, number of zero pad pts at the begin/end of the pulse
+    
+    resolution      - int, the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -------------------------------
+    See the following articles:
+
+    J. Pauly, P. Le Roux, D. Nishimura, A. Macovski, 
+    'Parmater Relations for the Shinnar-Le Roux Selective Excitation Pulse Design Algorithm',
+    IEEE Transactions on Medical Imaging, Vol. 10, No. 1, pp 53-65, March 1991.
+
+    G.B. Matson, 'An Integrated Program for Amplitude-Modulated RF Pulse Generation  
+    andRe-mapping with Shaped Gradients', Magnetic Resonace Imaging, 
+    Vol. 12, No. 8, pp 1205-1225, 1994'''
+
+    """
+    
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # parse parameters and convert if needed
+
+    time_steps      = int(param["time_steps"])      # int
+    duration        = float(param["duration"])      # float, msec
+    tip_angle       = float(param["tip_angle"])     # float, deg 
+    pass_ripple     = float(param["pass_ripple"])   # float, deg
+    reject_ripple   = float(param["reject_ripple"]) # float, deg
+    bandwidth       = float(param["bandwidth"])     # float, deg
+    is_dual_band    = int(param["is_dual_band"])  # bool
+    use_lsq         = int(param["use_lsq"])       # bool
+    separation      = float(param["separation"])    # float, Hz
+
+    phase_type = int(param["phase_type"])+1 # Choice, 1-Linear (refocused), 2-MinPhase, 3-MaxPhase 
+    
+    bandwidth_convention = int(extra['pulse_bandwidth_type']) # Choice, 0-HalfHeight, 1-Min, 2-Max     
+    resolution           = int(extra['calc_resolution']) # int
+    n_zero_pad           = int(extra["zero_padding"])    # int
+
+    print 'tip angleee = '+str(tip_angle)
+    print 'tip angle == 180', (tip_angle == 180)
+    is_single_band = 1 - is_dual_band     # need this so default can be 0 choice
+    use_remez      = 1 - use_lsq        # need this so default can be 0 choice
+
+    # Pulse angle category (90, 180, shallow tip)
+    # - Tip angles are currently limited as shown below. 
+    # - Kim's paper has shown that we can use tip angles outside of this range, 
+    #   but we haven't written the code yet.
+    if not (tip_angle == 90) and not (tip_angle == 180) and not ((tip_angle &gt; 0) and (tip_angle &lt;=30)):
+        # FIXME bjs Implement handling of non-standard tip angles, a la Kim's paper
+        error_msg =  "The tip angle must be 90, 180 or &lt;= 30. .."
+        raise TransformRunException(error_msg, 1)
+
+    tip_angle = tip_angle * np.pi/180.0     # convert deg to radians 
+
+    dwell_time = (1000 * duration) / (time_steps)     # in usec
+    
+    if is_single_band: separation = 0.0
+
+    # Check for excessive bandwidth
+    if is_single_band == True:
+        mplttbw = bandwidth
+    else:        
+        mplttbw = separation/2 + bandwidth
+
+    if (0.8 * mplttbw) &gt; (1000.0 / dwell_time) :
+        error_msg = 'Error: Excessive pulse bandwidth'
+        raise TransformRunException(error_msg, 1)
+
+
+
+# DID CODE INSPECTION - THIS CALL DOES NOT SEEM TO AFFECT
+# THE OUTCOME OF slr_pulse.py
+#
+#    mpltran = 0
+#    mpltran = TB.transition_band(time_steps, resolution, dwell_time, duration, tip_angle, 
+#                                 pass_ripple, reject_ripple, phase_type, bandwidth, is_single_band, 
+#                                 separation, n_zero_pad, bandwidth_convention)
+
+
+    # Pulse Setup, starting with initial length (for z-padding)
+    if n_zero_pad &gt; 0:
+        # Reduced for z-padding
+        nofp = time_steps - 2 * n_zero_pad
+    else:
+        nofp = time_steps
+
+    if phase_type == 1:
+        # Refocused or Linear pulse
+
+        mplfr, mplmag, mplwts, mplcrrctf = linear_setup(nofp, dwell_time, tip_angle, pass_ripple, \
+                                                        reject_ripple, bandwidth, is_single_band, \
+                                                        separation, bandwidth_convention)
+
+    else: 
+        # Max or min phase
+
+        mplfr, mplmag, mplwts, mplcrrctf = max_min_setup(nofp, dwell_time, tip_angle, pass_ripple, \
+                                                         reject_ripple, bandwidth, is_single_band, \
+                                                         separation, bandwidth_convention) 
+
+    # ... test for monotonicity and for values between zero and one.
+    #
+    # Specific Bandwidth Tests - per Jerry Matson
+    error_msg = ''
+    if bandwidth_convention == 0: 
+        # default bandwidth convention (width at mid height)
+        if is_single_band == True:
+            if mplfr[1] &lt; 0.0:
+                error_msg = 'Bandwidth Error: Increase Bandwidth or Increase Time for Pulse'
+            if mplfr[2] &gt; 1.0:
+                error_msg = 'Bandwidth Error: Decrease Bandwidth or Increase Time for Pulse'
+        else:    # if dual band
+            if mplfr[1] &lt; 0.0:
+                error_msg = 'Bandwidth Error: Decrease Bandwidth or Increase Time for Pulse'
+            if mplfr[4] &gt; 1.0:
+                error_msg = 'Bandwidth Error: Decrease Bandwidth or Increase Time for Pulse'
+          
+    elif bandwidth_convention == 1:  
+        # specroscopic bandwidth convention (width at base of pulse)
+        # :FIXME: implement this ... and the one just below it.
+        raise NotImplementedError('Oops, forgot this case')        
+    else:
+        # filter bandwidth convention (width at top of pulse)
+        raise NotImplementedError('Oops, forgot this case')   
+
+    if error_msg:
+        raise TransformRunException(error_msg, 1)
+
+    # General Check
+    xold = 0.0
+    for x in mplfr:
+        if x &lt; xold or x &gt; 1.0:
+            error_msg = 'Values in fr need to be monotonic increasing, and between 0 and 1'
+            raise TransformRunException(error_msg, 1)
+        else:
+            xold = x        
+
+    # Calculate the expansion factor
+    expansion_factor = 1/(2*mplfr[2])
+    if not is_single_band:
+        expansion_factor = 1/(2*mplfr[4])       # Dual band pulse
+
+    # Guarantee that expansion_factor &gt;= 1 
+    if expansion_factor &lt; 1.0:
+        expansion_factor = 1.0
+
+
+    # Calculate polynomials
+    #
+    # Note: The reason min_max_filter gets passed the "is_single_band" flag and 
+    # the linear_filter does not is that min_max_filter does some pre-calculation
+    # adjustments to try to reduce or eliminate the dc offset in the reject band or
+    # region. This step is not done in the linear filter case.
+
+    if phase_type == 1:    # Linear pulse
+        # mplfr  - pass and stop
+        # mplmag - magnetization
+        # mplwts - weights        
+        
+        mpgbb, mpgaa, mplw = linear_filter(mplfr, mplmag, mplwts, nofp,
+                                           use_remez, resolution)
+    else:
+        mpgbb, mpgaa, mplw = max_min_filter(mplfr, mplmag, mplwts, nofp,
+                                             use_remez, resolution, is_single_band)
+
+    # Calculatel b1:
+    #  
+    #  mmgaa and mmgbb - returned from linear_filter or max_min_filter above.
+    mpgb1 = inverse_slr(nofp, dwell_time, mpgaa, mpgbb)
+
+    # mplcrrctf returned from setup routines above.
+    if mplcrrctf != 0:
+        mpgb1 = mplcrrctf * mpgb1
+
+    # Add zero padding if asked for:
+    if n_zero_pad &gt; 0:
+        mpgb1 = np.hstack([np.zeros(n_zero_pad), mpgb1, np.zeros(n_zero_pad)])
+
+    # Reverse for max phase pulse
+    if phase_type == 2:
+        mpgb1 = mpgb1[::-1]  # Max phase pulse 
+
+    waveform = mpgb1
+
+    temparr = []
+    pulse_time = duration/1000.0
+    for ix in range(time_steps):
+        temparr.append(ix*pulse_time/(time_steps))    
+
+    waveform_xaxis = temparr
+
+    rf_y = np.array(waveform)
+    rf_x = np.array(waveform_xaxis)
+    
+    
+    rf_waveform = np.array(rf_y)
+    rf_xaxis    = np.array(rf_x)
+    gradient    = None
+    grad_xaxis  = None
+
+
+    return rf_waveform, rf_xaxis, gradient, grad_xaxis, None
+    
+
+
+def linear_setup(nlength, dwell, tip_angle, pass_ripple, reject_ripple, bandwidth, 
+                 is_single_band, separation, bandwidth_convention):
+
+    '''
+    Setup script for linear (or refocused) rf pulses. 
+
+    Input values: 
+       nlength - number of points.
+       dwell - dwell time in microseconds
+       tip_angle - in radians        
+       pass_ripple - bandpass ripple
+       reject_ripple - bandreject ripple
+       bandwidth - in kHz        
+       is_single_band - band type; single or dual.        
+       separation - in kHz
+       bandwidth_convention
+    
+    May raise (or throw) PulseFuncException
+    
+    For detailed information on algorithms, see:
+    K.J. Lee, 'General parameter relations for the Shinnar-Le Roux pulse design algorithm',
+    J. Magnetic Resonance, 186, pp 272-258, 2007, 
+    and:
+    J. Pauly, P. Le Roux, D. Nishimura, A. Macovski, 
+    'Parmater Relations for the Shinnar-Le Roux Selective Excitation Pulse Design Algorithm',
+    IEEE Transactions on Medical Imaging, Vol. 10, No. 1, pp 53-65, March 1991.
+    '''
+                
+    # Adapted from Matlab: MPLRB1C.M
+
+    if not (pass_ripple &gt; 0 and reject_ripple &gt; 0):
+        error_msg = 'Error: passband and reject band ripple must both be greater than zero'
+        raise TransformRunException(error_msg, 1)
+
+    # Set desired pass_ripple (bandpass) and reject_ripple (bandreject); 
+    sigm1=pass_ripple/100 
+    sigm2=reject_ripple/100
+
+    # Initialize corrctf for later correction if needed
+    corrctf = 0
+
+    # Set local variable names
+    na = nlength
+    ang = tip_angle
+
+    if is_single_band == True:
+        bw = bandwidth        
+    else:           
+        # Dual band pulse
+        # Get narrowest band.
+        bw = separation
+        if bandwidth &lt; separation: 
+            bw = bandwidth
+        
+    # pulse length (ms)
+    ms = dwell*(na)/1000      
+       
+    # Time-bandwidth product
+    tb = ms*bw
+        
+    # D(l), wts, and transb calculated using Lee
+    sigi = sigm1
+    sigo = sigm2
+    phi = ang
+
+    is180 = False
+    # See if angle is either 180 or 90.
+    if abs(tip_angle - np.pi) &lt; epsilon:                 
+        # SE pulse
+        sigm1 = (1/(2*sigi))*(4*(1-sigi/2) - 4*math.sqrt(1-sigi))
+        sigm2 = (1+sigm1)*math.sqrt(sigo) 
+        is180 = True
+        
+    elif abs(tip_angle - np.pi/2.0) &lt; epsilon:             
+        # 90 pulse
+        n = 0
+        f = 0.1
+        
+        # sigm1 calc
+        while abs(f) &gt; 0.00001 and n &lt; 100:
+            sigin = abs( (2*math.sqrt(1 - math.pow((1+sigm1),2) * math.pow(math.sin(phi/2),2)) \
+                                         *(1+sigm1)*math.sin(phi/2)-math.sin(phi))/math.sin(phi) )
+            f = (sigi-sigin)/(2*sigi)
+            sigm1 = abs(sigm1*(1 + f))
+            n = n+1
+        
+        # sigm2 calc
+        n = 0
+        f = 0.1
+        while abs(f) &gt; 0.00001 and n &lt; 100:
+            sigin = abs(2*math.sqrt(1 - math.pow(sigm2,2) * math.pow(math.sin(phi/2),2))\
+                                                           *sigm2*math.sin(phi/2)/math.sin(phi))
+            f = (sigo-sigin)/(2*sigo)
+            sigm2 = abs(sigm2*(1 + f))
+            n = n+1
+
+    # Re-adjust sigmas for dual band pulses
+    if not is_single_band:             
+        sigm1 = 0.5*sigm1
+        sigm2 = 2*sigm2
+
+    # Calculate transition band (only approximate for dual band pulses)
+    l1 = math.log10(sigm1)
+    l2 = math.log10(sigm2)
+    a1 = 5.309e-3
+    a2 = 7.114e-2
+    a3 = -4.761e-1
+    a4 = -2.66e-3
+    a5 = -5.941e-1
+    a6 = -4.278e-1
+
+    d = (a1 * pow(l1,2) + a2*l1 + a3)*l2 + (a4 * pow(l1,2) + a5*l1 + a6)
+
+    wt1 = 1
+    wt2 = sigm1/sigm2
+    wid = d/tb
+    transb = wid*bw
+    nq = na/(2*ms)
+    magn = math.sin(ang/2)
+        
+    # SE pulse        
+    if is180:        
+        if (magn + sigm1) &gt; 1:    
+            # B1 pulse needs correction
+            magn = 1-sigm1
+            corrctf = magn/(1-sigm1)
+        
+
+    # Calculate the bands (fp and fs)
+    if is_single_band:
+        if bandwidth_convention == 0:             
+            # Usual convention (FWHM)
+            fp = (bandwidth/2 - transb/2)/nq
+            fs = (bandwidth/2 + transb/2)/nq
+        elif bandwidth_convention == 1:            
+            # Minimum
+            fp = (bandwidth/2 - transb)/nq
+            fs = (bandwidth/2) / nq
+        elif bandwidth_convention == 2:            
+            # Maximum
+            fp = (bandwidth/2) / nq
+            fs = (bandwidth/2 + transb)/nq
+
+        fr = [0, fp, fs, 1]
+        mag = [magn, magn, 0, 0]
+        wts = [wt1, wt2]
+        
+    else:         
+        
+        # Dual band pulse
+        if bandwidth_convention == 0:
+            fp = (separation/2 - transb/2)/nq
+            fs = (separation/2 + transb/2)/nq
+        elif bandwidth_convention == 1:
+            fp = (separation/2 - transb)/nq
+            fs = (separation/2) / nq
+        elif bandwidth_convention == 2:
+            fp = (separation/2) / nq
+            fs = (separation/2 + transb)/nq        
+                
+        if bandwidth_convention == 0 :
+            fss = fs+(bandwidth-transb)/nq
+            fpp = fss+(transb)/nq
+        elif bandwidth_convention == 1:
+            fss = fs+(separation/nq)
+            fpp = fss+(transb)/nq
+        elif bandwidth_convention == 2:
+            fss = fp+(bandwidth-transb)/nq
+            fpp = fss+(transb)/nq
+
+        fr = [0, fp, fs, fss, fpp, 1]
+        mag = [0, 0, magn, magn, 0, 0]
+        wts = [wt2, wt1, wt2]
+    
+    
+    rval = (fr, mag, wts, corrctf)
+    
+    return rval
+
+
+def max_min_setup(nlength, dwell, tip_angle, pass_ripple, reject_ripple, bandwidth, 
+                  is_single_band, separation, bandwidth_convention):
+    '''
+    Setup script for RF pulse for max &amp; min phase pulses
+    
+    '''
+    if not (pass_ripple &gt; 0 and reject_ripple &gt; 0):
+        error_msg = 'Error: passband and reject band ripple must both be greater than zero'
+        raise TransformRunException(error_msg, 1)    
+
+    # Bandpass ripple (%) 
+    sigm1 = pass_ripple/100.0 
+    
+    # Bandreject ripple (%)
+    sigm2 = reject_ripple/100.0
+
+    # Initialize corrctf for later correction if needed
+    corrctf = 0
+
+    # Set local variable names
+    na = nlength  
+    ang = tip_angle
+        
+    if is_single_band == True:
+        bw = bandwidth
+    else:
+        bw = separation
+        # Get narrowest band for dual band pulses 
+        if bandwidth &lt; separation:
+            bw = bandwidth
+
+    # pulse length (ms)
+    ms = dwell*(na)/1000.0
+        
+    # Time-bandwidth product
+    tb = ms*bw            
+        
+    # D(l), wts, and transb calculated
+
+    is180 = False
+    if abs(tip_angle - np.pi) &lt; epsilon:            
+        # 180 pulse
+        sigm1 = sigm1/8.0 
+        sigm2 = math.sqrt(sigm2/2.0)
+        is180 = True
+    elif abs(tip_angle - np.pi/2.0) &lt; epsilon:            
+        # 90 pulse
+        sigm1 = sigm1/2.0 
+        sigm2 = math.sqrt(sigm2)
+
+    # add'l fudges (JM). 
+    # Notes, from conversaton with JM on 04/19/11: Apparently this
+    # fudge (and the 0.3 "fudge" 21 lines down) is here to reduce,
+    # or zero out, the dc offset in the rejection band.
+    # Per JM, these "fudges" should be calculate dynamically and 
+    # not statically to have the best effect. 
+    sigm1 = 2.0*sigm1 
+    sigm2 = (sigm2**2.0)/2.0 
+
+    # Re-adjust sigmas for dual band pulses
+    if not is_single_band:             
+        # Dual band pulse
+        sigm1 = 0.5*sigm1 
+        sigm2 = 2.0*sigm2        
+
+    # Calculate transition band (only approximate for dual band pulses)
+    l1 = math.log10(sigm1) 
+    l2 = math.log10(sigm2)
+    a1 = 5.309e-3 
+    a2 = 7.114e-2 
+    a3 = -4.761e-1
+    a4 = -2.66e-3 
+    a5 = -5.941e-1 
+    a6 = -4.278e-1
+
+    # Note: 0.3 is fudge for min/max phase filters
+    d = 0.3*( a1*pow(l1,2) + a2*l1 + a3 )*l2 + ( a4*pow(l1,2) + a5*l1 + a6 )
+
+    wt1 = 1.0
+    wt2 = sigm1/sigm2
+    wid = d/tb 
+    transb = float(wid)*bw 
+    nq = na/(2.0*ms)
+    magn = math.pow(math.sin(ang/2.0), 2.0) 
+        
+    if is180:         
+        # SE pulse
+        if (magn + sigm1) &gt; 1.0:    
+            # B1 pulse needs correction
+            magn = 1.0-sigm1 
+            corrctf = magn/(1.0-sigm1)
+
+
+    if is_single_band:
+
+        # Calculate the bands (fp and fs)
+        if bandwidth_convention == 0:                     
+            # Usual convention
+            fp = (bandwidth/2.0 - transb/2.0)/nq  
+            fs = (bandwidth/2.0 + transb/2.0)/nq
+        elif bandwidth_convention == 1:                    
+            # Minimum
+            fp = (bandwidth/2.0 - transb)/nq 
+            fs = (bandwidth/2.0)/nq
+        elif bandwidth_convention == 2:                    
+            # Maximum
+            fp = (bandwidth/2.0)/nq  
+            fs = (bandwidth/2.0 + transb)/nq
+
+        fr = [0.0, fp, fs, 1.0]
+        mag = [magn, magn, 0.0, 0.0]
+        wts = [wt1, wt2]
+        
+    else:
+        
+        # Calculate the bands (fp and fs)
+        if bandwidth_convention == 0:                     
+            # Usual conven.
+            fp = (separation/2.0 - transb/2.0)/nq  
+            fs = (separation/2.0 + transb/2.0)/nq
+        elif bandwidth_convention == 1:                    
+            # Minimum
+            fp = (separation/2.0 - transb)/nq 
+            fs = (separation/2.0)/nq
+        elif bandwidth_convention == 2:                    
+            # Maximum
+            fp = (separation/2.0)/nq  
+            fs = (separation/2.0 + transb)/nq        
+        
+        if bandwidth_convention == 0:
+            fss = fs + (bandwidth-transb)/nq  
+            fpp = fss + (transb)/nq
+        elif bandwidth_convention == 1:
+            fss = fs + (separation/nq) 
+            fpp = fss + (transb)/nq
+        elif bandwidth_convention == 2: 
+            fss = fp + (bandwidth-transb)/nq  
+            fpp = fss + (transb)/nq
+
+        fr = [0.0, fp, fs, fss, fpp, 1.0]
+        mag = [0.0, 0.0, magn, magn, 0.0, 0.0]
+        wts = [wt2, wt1, wt2]
+
+    rval = (fr, mag, wts, corrctf)
+    
+    return rval
+
+
+def linear_filter(fr, mag, wts, na, use_remez, mmgresol):
+    """
+    Function to create a (linear phase) digital filter
+    
+    Parameters [fp fs], mag, [wt1, wt2], and na from pulse setup
+    Returns h (b-polynomial (evaluated around the unit circle), 
+    a (a-polynomial evaluated around the unit circle), and w (freq)
+    
+    """
+    # fr - pass and stop
+    # mag - magnetization
+    # wts - weights
+    
+    f = np.array(fr)
+    m = np.array(mag)
+    wt = np.array(wts)    
+
+    # Check for filter function wanted
+    if use_remez:
+        # FYI: The matlab documentation for the remez() function
+        # is now included as part of "firpm()", the parks Mclellan function.
+        #
+        # remez() - 
+        # Calculate the filter-coefficients for the finite impulse response
+        # (FIR) filter whose transfer function minimizes the maximum error
+        # between the desired gain and the realized gain in the specified bands
+        # using the remez exchange algorithm.
+        #
+        # b = sps.remez(na-1, f, m, wt)
+        # default sampling frequency is 1 Hz.  
+        # Put in 2 Hz in order for this to work.        
+        #
+        b = sps.remez(na, f, m[::2], wt, 2)
+    else:        
+        # Group f values into pairs.
+        fx = f/2.0
+        i = 0
+        fin = []
+        for fi in fx:
+            if i%2 == 0:
+                fi_0 = fi
+            else:
+                fin.append( (fi_0, fi) )
+            i += 1
+                
+        # Also, take every other value out of m
+        min_ = m[0::2]
+               
+        # NOTE: RESULTS (without weights) were NOT IN AGREEMENT 
+        # WITH MATPULSE.
+        #
+        # ::FIXME:: Compare results with Matpulse to be sure
+        # we are doing the weights correctly.
+        # It looks good by visual inspection.
+        #
+        # b = firls(na-1, fin, m, wt)
+        # Changed from na-1 to na, as we did in remez, so that it will 
+        # work with an odd number of time steps / time points.
+        if na%2 == 0:
+            error_msg = 'An odd number of time steps is required for least squares filtering.'
+            raise TransformRunException(error_msg, 1)
+                
+        b = firls(na, fin, min_, wt)         
+
+
+    whole = 1
+    
+    (wr, hr) = sps.freqz(b, 1, mmgresol, whole) 
+    h = hr.copy()
+    w = wr.copy()
+    
+    # Next calculate the A(z)
+    at2 = (1 - ( (np.real(h))**2 + (np.imag(h))**2) ) 
+
+    #x = np.sqrt(at2) 
+    # Need to use this version of sqrt because it will
+    # work with negative numbers.
+    # After fixing the remez calculation above this may no longer
+    # be necessary, but probably won't hurt...
+    x = np.lib.scimath.sqrt(at2)
+    
+    # (Filter from RCEPS.M)
+    n = x.size
+    xhat = np.real(sp.fftpack.ifft(np.log(x)))
+    
+    # Not sure if epsilon is required, but will guarantee 
+    # that we get the expected result: One of n is odd, else zero.
+    odd = np.fix( n%2 + epsilon )
+    
+    aa = (n+odd)/2 - 1
+    bb = (n-odd)/2 - 1
+    wm = np.vstack( [1, 2*np.ones((aa,1)), 1, np.zeros((bb,1))] )
+ 
+    yhat = np.zeros(np.size(x), dtype=np.complex)
+
+    yhat[:] = np.real(np.transpose(wm) * xhat)
+    
+    gg = sp.fft(yhat)
+    theta = np.imag(gg)
+    
+    y = x * np.exp(1j*theta)
+    
+    a = y 
+    
+    return (h,a,w)
+
+
+def max_min_filter(frz, magz, wtz, na, use_remez, mmgresol, is_single_band):
+    '''
+    Function to create the (min/max phase) digital filter
+    
+    Parameters [fp fs], mag, [wt1, wt2], and na from pulse setup.
+    Returns h (b-polynomial), a (a-polynomial), and w (freq)
+    
+    '''
+    fr  = np.array(frz)
+    mag = np.array(magz)
+    wts = np.array(wtz)         
+    
+    # A pre-calculation will be done first to determine the dc offset and then 
+    # correct for it in the real, full length calculation, so the reject band
+    # is closer to zero. 
+    
+    # 2011.04.06 
+    # Jerry believes he got this idea from Pauly and
+    # his collaborators in a private conversation.
+    
+    nb = 2*na-1
+    
+    # First determine bias on shorter length pulse   
+    frnn = 0 
+    nn = na
+
+    # determine pulse length
+    while frnn &lt; 0.6:        
+        if is_single_band:     
+            frnn = fr[2]*nb/nn      # Single band
+        else:    
+            frnn = fr[3]*nb/nn      # Dual band
+        nn = nn/2
+
+    # Suggested initial pulse length
+    nn = 4*nn-1        
+
+    # Don't let nn be too small
+    nn = int(math.ceil(nn))
+    if nn &lt; 63:
+        nn = 63
+
+    if is_single_band:
+
+        nbdnn = float(nb)/nn
+        frn = np.hstack([ fr[0], fr[1]*nbdnn, fr[2]*nbdnn, fr[3] ])
+        
+        fs = frn[2] 
+
+        # check that fs less than 0.82
+        if fs &gt; 0.82:
+            error_msg = 'Error: Try a larger number of steps'
+            raise TransformRunException(error_msg, 1)
+
+
+        # Check for filter function wanted
+        if use_remez:        
+            # b-poly coefficients
+            bp = sps.remez(nn, frn, mag[::2], wts, 2)
+        else:            
+            # Group f values into pairs.
+            fx = frn/2.0
+            i = 0
+            fin = []
+            for fi in fx:
+                if i%2 == 0:
+                    fi_0 = fi
+                else:
+                    fin.append( (fi_0, fi) )
+                i += 1
+                    
+            # Also, Take every other value out of m
+            min_ = mag[0::2]            
+            
+            bp = firls(nn, fin, min_, wts)
+
+        # evaluated on unit/2 circle
+        wp,hp = sps.freqz(bp, 1, mmgresol)
+        
+        local_resol = len(wp)
+        
+        selct = int(np.ceil( 1.2*fs*local_resol ) )
+
+        # partt = [zeros(1,selct) ones(1,mmgresol-selct)]' ;
+        # The conjugation method (') does not seem to be needed here since 
+        # the arrays are all reals, and the subsequent array multiplication 
+        # works without any problem.
+        partt = np.hstack( [np.zeros((1, selct)), np.ones((1, local_resol-selct))] )
+
+        bias = 0.93 * np.max(np.ravel((np.abs(hp))*partt))
+
+        # Set bias for calc
+        magn = mag + np.hstack([0.0, 0.0, bias, bias])
+
+    else:     
+        # Dual band pulse
+        nbdnn = float(nb)/nn
+        frn = np.hstack( [0.0, fr[1]*nbdnn, fr[2]*nbdnn, fr[3]*nbdnn, 1.1*fr[3]*nbdnn, 1.0] )
+
+        fs = frn[4] 
+
+        # check that fs is less than 0.82
+        if fs &gt; 0.82:
+            error_msg = 'Error: Try a larger number of steps'
+            raise TransformRunException(error_msg, 1)
+
+        # Check for filter function wanted
+        if use_remez:
+            # b-poly coefficients
+            bp = sps.remez(nn, frn, mag[::2], wts, 2)
+        else:
+            # Group f values into pairs.
+            fx = frn/2.0
+            i = 0
+            fin = []
+            for fi in fx:
+                if i%2 == 0:
+                    fi_0 = fi
+                else:
+                    fin.append( (fi_0, fi) )
+                i += 1
+                    
+            # Also, Take every other value out of m
+            min_ = mag[0::2]                   
+            
+            #bp = firls(nn-1,frn,mag,wts)
+            bp = firls(nn, fin, min_, wts)
+
+        # evaluated on unit/2 circle
+        wp,hp = sps.freqz(bp, 1, mmgresol)
+        
+        local_resol = len(wp)
+        
+        fs = frn[1]
+        
+        selct = int( math.ceil(0.8 * fs * local_resol)  )
+        
+        partt = np.hstack([np.ones( (1,selct) ), np.zeros( (1, local_resol-selct) )])
+        
+        # Changed from .9 to .02 (7/15/05) (JM)
+        bias = 0.02 * np.max(np.ravel(np.abs(hp) * partt))
+
+        # Set bias for calc
+        magn = mag + np.hstack([bias, bias, 0.0, 0.0, 4*bias, 4*bias])
+
+
+    # Next the B(z) (h,w) (evaluated on the unit circle)
+
+    # Check for filter function wanted
+    #
+    # FIXME: The calls to remez (and firls below) are using
+    # nb, and not na. Why? nb = 2*na-1 so if na=16, nb=31    
+    if use_remez:
+        b = sps.remez(nb, fr, magn[::2], wts, 2)
+    else:
+        # Group f values into pairs.
+        fx = fr/2.0
+        i = 0
+        fin = []
+        for fi in fx:
+            if i%2 == 0:
+                fi_0 = fi
+            else:
+                fin.append( (fi_0, fi) )
+            i += 1
+                
+        # Also, Take every other value out of m
+        min_ = magn[0::2]    
+    
+        b = firls(nb, fin, min_, wts)
+
+    whole = 1
+    wr, hr = sps.freqz(b, 1, mmgresol, whole)
+
+    w = wr.copy()
+    hr = np.lib.scimath.sqrt(np.abs(hr))
+    x = np.abs(hr)
+    n = x.size
+    xhat = np.real(sp.fftpack.ifft(np.log(x))) 
+    
+    odd = int(np.fix( n % 2 ))    
+    
+    aa = (n+odd)/2 - 1
+    bb = (n-odd)/2 - 1
+    wm = np.vstack([1.0, 2*np.ones((aa,1)), 1.0, np.zeros((bb,1))])
+    
+    yhat = np.zeros(x.size) 
+    wmxf = wm.transpose() * xhat    
+
+    yhat[:] = np.real(wmxf)
+    theta = np.imag(sp.fft(yhat))
+    
+    y = x * (np.exp(1j*theta))
+    h = y.copy()
+
+    
+    # Next the A(z)
+    at2 = (1 - (np.real(h)**2 + np.imag(h)**2) )
+    x = np.sqrt(at2)
+
+    # (Filter from RCEPS.M)
+    n = x.size
+    xhat = np.real(sp.fftpack.ifft(np.log(x)))
+    odd = int(np.fix(n % 2))
+    
+    aa = (n+odd)/2 - 1
+    bb = (n-odd)/2 - 1
+    wm = np.vstack([1, 2*np.ones((aa,1)), 1, np.zeros((bb,1))])
+    
+    yhat = np.zeros( x.size, dtype=np.complex)
+
+    yhat[:] = np.real(wm.transpose() * xhat)
+    theta = np.imag(sp.fft(yhat))
+    
+    y = x * np.exp(1j*theta)
+    a = y.copy()
+    
+    return (h,a,w)
+    
+
+def firls(N,f,D,wts=None):
+    """
+    Least-squares FIR filter routine.
+    
+    N -- filter length, must be odd
+    f -- list of tuples of band edges
+         Units of band edges are Hz with 0.5 Hz == Nyquist
+         and assumed 1 Hz sampling frequency
+    D -- list of desired responses, one per band
+    wts -- list of weights for each of the bands
+    
+    May raise (or throw) PulseFuncException
+    
+    """
+    if wts == None:
+        wts = [1.0 for d in D]
+        
+    assert len(D) == len(f), "must have one desired response per band"
+
+    h = np.zeros(N)    
+    
+    if N % 2:    
+        L = (N-1)//2
+        k = np.arange(L+1)
+        k.shape = (1, L+1)
+        j = k.T
+    
+        R = 0
+        r = 0
+        for i, (f0, f1) in enumerate(f):
+            R += wts[i]*np.pi*(f1*np.sinc(2*(j-k)*f1) - f0*np.sinc(2*(j-k)*f0) + \
+                               f1*np.sinc(2*(j+k)*f1) - f0*np.sinc(2*(j+k)*f0))
+    
+            r += wts[i]*D[i]*2*np.pi*(f1*np.sinc(2*j*f1) - f0*np.sinc(2*j*f0))
+    
+        a = np.dot(np.linalg.inv(R), r)
+        a.shape = (-1,)
+
+        h[:L] = a[:0:-1]/2.
+        h[L] = a[0]
+        h[L+1:] = a[1:]/2.
+    else:
+        # FIXME: Can we make this work for an even number of points?
+        # It looks plausible that doing so should be possible.
+        # L = N//2
+  
+        error_msg = 'Error: Increase (or decrease) the number of points by one'
+        raise TransformRunException(error_msg, 1)
+
+    return h    
+
+
+def inverse_slr(na, mpldtmu, mpgaa, mpgbb):
+    '''
+    Perform the inverse SLR transformation. 
+    Gives b1 for a set of a &amp; b polynomials. 
+       
+    See also:
+    J. Pauly, P. Le Roux, D. Nishimura, A. Macovski, 
+    'Parmater Relations for the Shinnar-Le Roux Selective Excitation Pulse Design Algorithm',
+    IEEE Transactions on Medical Imaging, Vol. 10, No. 1, pp 53-65, March 1991.
+    '''
+       
+    # Adapted from Matlab, MPLPMB1F.M
+       
+    # Define local constants (mtesla)
+    
+    # GAMMA1H - Gamma for protons (kHz/mT)
+    const = (GAMMA1H/2) * (mpldtmu/1000.0) * 2.0 * np.pi
+    a = mpgaa
+    b = mpgbb 
+
+    # Generate coefficients bc and ac 
+
+    bc = sp.fftpack.ifft(b) 
+    ac = sp.fftpack.ifft(a)
+ 
+    # Preserve orig bc and ac (as 'aa' and 'bb')
+    bb = bc.copy() 
+    aa = ac.copy()
+
+    # Inverse SLR Transform
+
+    # idx = na
+    # changed to na-1 to adapt to zero based indexing.
+    idx = na-1
+    
+    etheta = np.zeros(na, dtype=complex)
+    b1 = np.zeros(na, dtype=complex)
+    c  = np.zeros(na, dtype=complex)
+    s  = np.zeros(na, dtype=complex)
+
+    while idx &gt; -1:  # &gt;= 0
+    
+        #etheta(idx) = bc(1)/ac(1)/(i*abs(bc(1)/ac(1)))
+        # DCT 02/27/09 - convert to bc(0), etc.
+        etheta[idx] = ( bc[0]/ac[0] ) / (1j * np.abs(bc[0]/ac[0]))
+
+        b1[idx] = (1/const) * (etheta[idx]) * np.arctan( np.abs(bc[0]/ac[0]) )
+                       
+        c[idx] = np.cos( const * np.abs(b1[idx]) )
+        s[idx] = 1j * etheta[idx] * np.sin(const * np.abs(b1[idx]))
+
+        acu = np.delete(ac, 0)
+        acl = np.delete(ac, idx)        
+        bcu = np.delete(bc, 0)
+        bcl = np.delete(bc, idx)
+        
+        qc = c[idx]        
+        qs = s[idx]
+        
+        ac =  qc*acl + (qs.conj())*bcl    
+        bc = -qs*acu + qc*bcu
+      
+        idx = idx-1
+
+    # b1 = -np.imag(b1) is bad! It converts the complex array to a real array.
+    # Doing as shown below preserves the values as complex numbers.
+    for ii in range(len(b1)):
+        b1[ii] = -np.imag(b1[ii])
+    
+    return b1
+    
+    
+</algorithm_code>
+			</transform_kernel>
+			<transform_parameter version="1.0.0">
+				<variable>time_steps</variable>
+				<type>(Long)</type>
+				<value>251</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>duration</variable>
+				<type>(Double)</type>
+				<value>8.032</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>tip_angle</variable>
+				<type>(Double)</type>
+				<value>90.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>bandwidth</variable>
+				<type>(Double)</type>
+				<value>1.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>separation</variable>
+				<type>(Double)</type>
+				<value>1.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>is_dual_band</variable>
+				<type>(Choice)</type>
+				<value>0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>phase_type</variable>
+				<type>(Choice)</type>
+				<value>0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>use_lsq</variable>
+				<type>(Choice)</type>
+				<value>1</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>pass_ripple</variable>
+				<type>(Double)</type>
+				<value>1.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>reject_ripple</variable>
+				<type>(Double)</type>
+				<value>1.0</value>
+			</transform_parameter>
+			<result version="1.0.0">
+				<created>2015-12-21T14:02:38</created>
+				<rf_waveform data_type="complex128" encoding="xdr zlib base64">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</rf_waveform>
+				<rf_xaxis data_type="float64" encoding="xdr zlib base64">eNotk3tYzXccx9MekyLRXGoRVpoQCSHrnRVC6SLd75fTOd1P535PI00zt5Z5NNXcb4/atEWEHuqJNCtKmrnkOuSWJyaZ8T7/nOec8zvf7+fzfr9eRkYfXzCq6ymtfLwOFny3cpSILW4HYSw/272qzO8UPsVEfj8l0jnMPeZ3TOPv06+3FjYecMcMPuc6tFD774QyzOHzbp6BSQ4/98dX/B9kFr4rRgvhwf/Pb0m2Pu0jwNc8x/PRQvMrpiPhxfMW9rc37qpvwCKe6z3mk57+q9VYzPOXzLr10MZzMpbyHh+/09ddjK7Bl/ctE5a2LK5ZDz/e6+9xsrPcfSz8eX+A79So6uLXCOAcgWHb2+reNCOQ8ywXmAc0h+/Hcs4VlK07f+3oKgRxvhX6xwsejIpCMOcMLog82a2YiRDOG7Klcc67VnOEcu7QnW5HzGbcQxjnDys/4DRi8ymEc4/wE9Z7xz3/ERHcJ6Jh7fgpAWJEcq/Iy6+LZ5cvRhT3i7olGuE15AtEc8/orisb/NJ7EcN9Y954m4Y3XkIs9479pqPWZXgrYrl/nKmlYfZZT8Qxh7gNS+e5Sw8jjnnEj8h97WVng3jmEl987LfFLfmIZz4J459L/HJfIoE5JexznLZiehwSmFfi1LjH4TcvIJG5JVZu3R+7cS4SmV+S25/JAo/dSGKOSbUD7VKfDoOAeQq8PW6KS/QQMFdBk3K7YtkjJDPf5KDyCG1fKJKZc/LV+6NyD52BkHkL42wv50c5Q8jchfdCNn0/6CeImL8ofb3f5uMDIWIPohf1g7amypDCPlJUfQ0l1reQwl5SjWbl7Tznh1T2k5qX4blfVY1U9pQ2aLdR+cQvkca+0jZdO1F5pRBp7C3dari6Ot8I6ewvvcTX9bRrGtLZY4b9qu66u+3IYJ8ZB45XNBYtQAZ7zXTuzmheUIFM9ptZNXlS20tbZLLnLNsPDyCLfWfF+zY/29eLLPaetUtUIV1ZgSz2n3V/9fqeMCHE5EA8qSxD7TwGYvIgzjjh89bkEsTkQlzRPslwowBi8iHufmlqXOWBbHKSPdvi/xORTV6yNZPrTZIPIZvcZNd47ypAArLJj6Rf4irzkVaQkCOJV078hq6LkJAnyZri+ZZ1eZCQK8m5Ktui7fMgIV/SwS19VrIXkJIzqf+Tv4p990JK3qSFZtW29jGQkjtpm8PWsrefQUr+ZNaeSrtL5yEjh7KomOA9B3MhI4+yUs1Mx1WukJFLWecWy0MRXZCTT/mEX55Pc9kJOTmVi5ou/moWDjl5lR/85/DMTgvIya386afrqo7VQ0F+FS7j09w2aaEgxwq5+5KaFBcoyLPiaPjE+fMfQEGuFb3yAWesSqAk30psvLvwWTCU5Fz5/qGGBjMoybvybMMOn9JaKMm9yuTOyj+USqjIv8qnX2ygvxNU9EC1frT7ZYfbUNEHVfOc0SHvtkFFL9TDg95cbQuAmn6oQ7OuRh0eADU9UW/7rupGXg3U9EX9994tCdESaOiNZtwZ2d1ZjtDQH03ijSDR4OvQ0CPNnt7pD+8UQUOfNA9HDX2PILT0Suvk8uTZD8bQ0i+t2K9JmnYUWnqmPZJ6sMcrE1r6pu1ZU6C2sYeO3unm7hD1vuiAjv7pdCe9Dec3QUcPdac6HIx3LIKOPuo/xNwHPb3ULxp22yTwCPT0U7/WqbbAMQV6eqq/sKTM3Hgc9PTVYCEwbGhvhYHeGpbnRltWrIOB/hrew1z0rScM9NjQfuxzq9jXMNDnHPOU3iabUOTQ65yprx4NyXdBDv3OCcjr8O82R85Hz/8DmkiSgg==</rf_xaxis>
+			</result>
+		</transform>
+	</pulse_design>
+	<pulse_design id="14d42654-a4f1-40f1-a61f-0a13c889a798" version="1.0.0">
+		<name>Example - Warnking BASSI 180</name>
+		<created>2015-12-21T14:04:10</created>
+		<creator>bjs</creator>
+		<comment>Test case for an inversion pulse ~180 degree, setting is 178 to make the math work.  </comment>
+		<calc_resolution>5000</calc_resolution>
+		<pulse_bandwidth_type>half_height</pulse_bandwidth_type>
+		<machine_specs version="1.0.0">
+			<machine_type>Whole Body MRI</machine_type>
+			<field_strength>3.0</field_strength>
+			<max_b1_field>22.0</max_b1_field>
+			<zero_padding>0</zero_padding>
+			<min_dwell_time>1.0</min_dwell_time>
+			<dwell_time_increment>0.2</dwell_time_increment>
+			<gradient_raster_time>10.0</gradient_raster_time>
+			<gradient_slew_rate>200.0</gradient_slew_rate>
+			<gradient_maximum>24.0</gradient_maximum>
+		</machine_specs>
+		<transform version="1.0.0">
+			<transform_kernel id="1278ab4f-bcd9-48fd-aff8-6d97e3062181" version="1.0.0">
+				<type>Create Transform</type>
+				<name>BASSI Warnking Paper</name>
+				<menu_label>BASSI - Warnking</menu_label>
+				<created>2015-11-03T17:06:18</created>
+				<creator>Brian J Soher</creator>
+				<comment>Derived from Warnking paper MRM 52:1190-1199 (2004)
+
+Note. this code was rewritten to be all in one function (ie. no separate
+aBt or bBt functs so as to make port to C/C++ easier
+
+vref [uT] = reference voltage for scaling, default for Siemens 1ms hard 180 pulse = 11.7uT
+
+    Pulse Shape Parameters and Variables and Their Units and Definitions
+    ----------------------------------------------------------------------------------------------
+    Variable        Units       Description                             Definition
+    ----------------------------------------------------------------------------------------------
+    a, a0, aB       rad         Amplitude parameter                     Eqs. [1] and [2]
+    alpha             deg         Effective flip angle                    alpha = acos(1-2Pe)
+    AM                rad/s       RF amplitude modulation function        Eq. [1]
+    b, b0, bB       rad         Bandwidth parameter                     Eqs. [1] and [2], b = pi*mu
+    beta              rad         Truncation factor of driving function   g(+/-Tp/2)=+/-2*beta
+    c                     1           Normalized off-resonance                Eqs. [3] and [5]
+    f0                   1           Maximal relative bandwidth increase     Eq. [15]
+    FM                rad/s       RF frequency modulation function        Eq. [2]
+    g                   rad         HS driving function                     Eqs. [1] and [2]
+    gdot             rad/s       Derivative of the driving function
+    gamma       rad/s*T     Gyromagnetic ratio                      2.675222exp8 rad/s*T
+    G                  T/m         Slice-select gradient                   Eq. [18]
+    kappa             1           BASSI amplitude scaling parameter       Eqs. [14] and [15]
+    L                     1           relative RF energy, as function of Pc   Eq. 9
+    mu                  1           Bandwidth parameter, notation from (14) mu = beta/pi
+    Pe                   1           Population inversion                    Pe=(1-cos(alpha))/2
+    Tp                   s           Pulse duration
+    x0                  m           Center of inversion / saturation band
+    deltax            m           Width of inversion / saturation slab
+
+    The population Pe inversion corresponds to an effective flip angle (i.e., the 
+    flip angle of a plane rotation that would produce the same longitudinal 
+    magnetization), of alpha = arccos(1-2Pe).
+
+
+    Pulse parameters, as well as peak B1, peak gradient amplitude (Gmax) and width of the frequency 
+    sweep (BW), for the pulses compared in the simulations and phantom experiments
+    -----------------------------------------------------------------------------------------------
+    Pulse                      Tp      alpha       beta    b0      f0      Peak B1     Gmax       BW
+                                 (ms)     (deg)       (rad)                          (uT)       mT/m)     (kHz)
+    -----------------------------------------------------------------------------------------------
+    HS                         8.1        90          5.3     157     1       23.0         4.9         20.8
+    FOCI                     8.1        90          5.3     157     3.2    23.0        15.7        66.7
+    BASSI(kappa=2)   8.1        90          5.3     168     3       23.1        15.7        66.7
+    VERSE-HS              8.1        90          5.3     503              22.8        19.0        81.0
+
+    HS                          10.24   170         5.3     37.7     1       22.9        0.9         4.0
+    FOCI                      10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(kappa=2)    10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(kappa=1.6)10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(GOIA)         10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    VERSE-HS              10.24   175         5.3     251               23.0        23.6        100.5
+
+Imported 03 November, 2015 17:05:11
+
+</comment>
+				<hide_file1>true</hide_file1>
+				<hide_file2>true</hide_file2>
+				<hide_time_steps>false</hide_time_steps>
+				<hide_duration>false</hide_duration>
+				<hide_tip_angle>false</hide_tip_angle>
+				<hide_bandwidth>true</hide_bandwidth>
+				<file1_label />
+				<file2_label />
+				<tip_angle>90.0</tip_angle>
+				<time_steps>1024</time_steps>
+				<duration>2.048</duration>
+				<bandwidth>1.0</bandwidth>
+				<transform_kernel_control version="1.0.0">
+					<name>Time Steps [int]</name>
+					<type>Long</type>
+					<default>1024</default>
+					<variable>time_steps</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Duration [msec]</name>
+					<type>Double</type>
+					<default>2.048</default>
+					<variable>duration</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Tip Angle [deg]</name>
+					<type>Double</type>
+					<default>90.0</default>
+					<variable>tip_angle</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Truncation Factor [beta]</name>
+					<type>Double</type>
+					<default>5.3</default>
+					<variable>trunc_factor</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Bandwidth Factor [b0]</name>
+					<type>Double</type>
+					<default>15.0</default>
+					<variable>bw_factor</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Max Relative Bandwidth [f0]</name>
+					<type>Double</type>
+					<default>3.0</default>
+					<variable>max_relative_bw</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Amplitude Scale [kappa]</name>
+					<type>Double</type>
+					<default>2.0</default>
+					<variable>ampl_scale</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Slab Width [meters]</name>
+					<type>Double</type>
+					<default>0.04</default>
+					<variable>slab_width</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Slab Center [meters]</name>
+					<type>Double</type>
+					<default>0.0</default>
+					<variable>slab_center</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Bandwidth [Hz}</name>
+					<type>Output</type>
+					<default>0.0</default>
+					<variable>bw_calc</variable>
+				</transform_kernel_control>
+				<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+GAMMA1H = 42.576    
+PI = np.pi
+
+
+
+def run(trans_desc):
+    """
+    Stub Summary
+    ------------------
+    This is a template that you can use as a starting point to develop 
+    algorithm code for both Create and Modify types of Transforms. 
+    
+    It has the same format needed for cut/paste insertion directly into 
+    the Transform Editor. 
+    
+    It is also set up so you can call it directly from the command line. 
+    The code in the   __name__ == '__main__'  section will create the
+    'trans_desc' dictionary based on default values you provide, and 
+    the resultant rf waveform, gradient and time axis will be used to 
+    run a bloch simulation to create a frequency profile for display. 
+    
+    Create or Modify Transform Information
+    ---------------------------------------------
+    Listed below are the input parameters and extra parameters being passed
+    into this script.
+
+    time_steps      - int, the number of data points in the output waveform
+    duration        - float, total time of pulse, in msec
+    
+    resolution      - int, the number of points used in calculating the 
+                        frequency domain computations.
+    bandwidth_convention    - int, choice
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -------------------------------
+
+    Derived from Warnking paper MRM 52:1190-1199 (2004)
+
+    Note. this code was rewritten to be all in one function (ie. no separate
+    aBt or bBt functs so as to make port to C/C++ easier
+
+    vref [uT] = reference voltage for scaling, default for Siemens 1ms hard 180 pulse = 11.7uT
+
+    Pulse Shape Parameters and Variables and Their Units and Definitions
+    ----------------------------------------------------------------------------------------------
+    Variable        Units       Description                             Definition
+    ----------------------------------------------------------------------------------------------
+    a, a0, aB       rad         Amplitude parameter                     Eqs. [1] and [2]
+    alpha           deg         Effective flip angle                    alpha = acos(1-2Pe)
+    AM              rad/s       RF amplitude modulation function        Eq. [1]
+    b, b0, bB       rad         Bandwidth parameter                     Eqs. [1] and [2], b = pi*mu
+    beta            rad         Truncation factor of driving function   g(+/-Tp/2)=+/-2*beta
+    c               1           Normalized off-resonance                Eqs. [3] and [5]
+    f0              1           Maximal relative bandwidth increase     Eq. [15]
+    FM              rad/s       RF frequency modulation function        Eq. [2]
+    g               rad         HS driving function                     Eqs. [1] and [2]
+    gdot            rad/s       Derivative of the driving function
+    gamma           rad/s*T     Gyromagnetic ratio                      2.675222exp8 rad/s*T
+    G               T/m         Slice-select gradient                   Eq. [18]
+    kappa           1           BASSI amplitude scaling parameter       Eqs. [14] and [15]
+    L               1           relative RF energy, as function of Pc   Eq. 9
+    mu              1           Bandwidth parameter, notation from (14) mu = beta/pi
+    Pe              1           Population inversion                    Pe=(1-cos(alpha))/2
+    Tp              s           Pulse duration
+    x0              m           Center of inversion / saturation band
+    deltax          m           Width of inversion / saturation slab
+
+    The population Pe inversion corresponds to an effective flip angle (i.e., the 
+    flip angle of a plane rotation that would produce the same longitudinal 
+    magnetization), of alpha = arccos(1-2Pe).
+
+
+    Pulse parameters, as well as peak B1, peak gradient amplitude (Gmax) and width of the frequency 
+    sweep (BW), for the pulses compared in the simulations and phantom experiments
+    -----------------------------------------------------------------------------------------------
+    Pulse               Tp      alpha       beta    b0      f0      Peak B1     Gmax       BW
+                       (ms)     (deg)       (rad)                    (uT)       mT/m)     (kHz)
+    -----------------------------------------------------------------------------------------------
+    HS                  8.1     90          5.3     157     1       23.0        4.9         20.8
+    FOCI                8.1     90          5.3     157     3.2     23.0        15.7        66.7
+    BASSI(kappa=2)      8.1     90          5.3     168     3       23.1        15.7        66.7
+    VERSE-HS            8.1     90          5.3     503             22.8        19.0        81.0
+
+    HS                  10.24   170         5.3     37.7    1       22.9        0.9         4.0
+    FOCI                10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(kappa=2)      10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(kappa=1.6)    10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    BASSI(GOIA)         10.24   175         6.3     22.8    22      23.0        14.7        62.7
+    VERSE-HS            10.24   175         5.3     251             23.0        23.6        100.5
+
+    """
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters 
+    #
+    # - Add or Modify the values below as needed
+
+    time_steps      = int(param["time_steps"])          # int
+    duration        = float(param["duration"])          # float, msec
+    flip_angle      = float(param['tip_angle'])
+    trunc_factor    = float(param['trunc_factor'])
+    bw_factor       = float(param['bw_factor'])
+    max_relative_bw = float(param['max_relative_bw'])
+    slab_width      = float(param['slab_width'])        # float, in meters
+    slab_center     = float(param['slab_center'])       # float, in meters
+    ampl_scale      = float(param['ampl_scale'])        # float, 2 or 1.6
+    
+    dwell_time      = (1000 * duration) / (time_steps)     # in usec
+    
+    # these extra items may be used in making waveform or profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution']) # int
+
+    # Use TransformRunException to check parameter ranges and alert users
+    # - an example is shown below
+    # - when your code returns with this exception, it fails 'gracefully'
+    # - no result is changed by this exception 
+    # - an error dialog shows the message passed back
+    # - can be used *anywhere* in code to fail and pass info back to the user
+
+    if time_steps &lt; 1:
+        error_msg =  "The number of time steps in the pulse must be &gt; 0"
+        raise TransformRunException(error_msg, 1)
+
+
+    #--------------------------------------------------------------------------
+    # transform algorithm code starts here
+
+    npts   = time_steps         #1024       # 8100 with dwell 0.000001
+    dwell  = dwell_time * 1e-6  #0.000002
+    Tp     = npts * dwell
+    alpha  = flip_angle         #90.0
+    beta   = trunc_factor       #5.3
+    b0     = bw_factor          #15.0  #168.0
+    f0     = max_relative_bw    #3.0
+    deltax = slab_width         #0.04
+    x0     = slab_center        #0.0
+    kappa  = ampl_scale         #2.0
+
+    # Output Units: Tesla, Hz, T/m, deg
+    amt,  fmt,  g,  phit  = pulse_bassi_warnking(npts, dwell, alpha, beta, b0, f0, kappa=kappa, deltax=deltax, x0=x0)
+
+    amt = amt * 1000.0      # convert T to mT
+    g   = g   * 1000.0      # convert T/m to mT/m
+    
+    rf_waveform = amt * np.exp(1j*phit)    
+    rf_xaxis    = np.arange(time_steps) * dwell
+    
+    gradient    = g 
+    grad_xaxis  = np.arange(time_steps) * dwell
+    
+    # end transform algorithm
+    #--------------------------------------------------------------------------
+
+    #--------------------------------------------------------------------------
+    # fill an output dictionary, or leave as None
+
+    outputs = {}
+
+    bw = (g[0] * 0.1) * 4358.0 * (deltax*100)    # (mT/m-&gt;G/cm)  Hz/G  cm 
+    outputs['bw_calc'] = bw
+    
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_waveform)
+    rf_x = np.array(rf_xaxis)
+    gr_y = gradient
+    gr_x = grad_xaxis
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+    
+    
+
+def pulse_bassi_warnking(npts, dwell, alpha, beta, b0, f0, 
+                         vref=11.7, b1ref=11.7, kappa=2.0, 
+                         x0=0.0, deltax=0.02):
+    r"""
+
+    See comments above for description of this pulse algorithm
+    
+    """
+    gamma = 267522200.       # 2.675222 x 10^8 rad/s*T
+
+    Tp = npts * dwell
+    t  = np.arange(npts) * dwell
+    t  = t - (Tp/2.0)
+
+    Pe = 0.5*(1-np.cos(alpha*PI/180.0))      # from comment above
+    
+    # Equation 9
+    L = (1.0/(2*PI))*np.log(1.0/(np.sqrt(1-Pe)))
+
+    # Equation 15,  bB(t) = bBt
+    bBt = np.power(np.power((np.power(np.cosh(2*beta*t/Tp),kappa)*(b0-(PI*L)) + (PI*L)),-2) + np.power(f0*b0,-2), -0.5)
+    bB0 = np.power(np.power((np.power(np.cosh(2*beta*0/Tp),kappa)*(b0-(PI*L)) + (PI*L)),-2) + np.power(f0*b0,-2), -0.5)
+    
+    # Equation 14
+    aBt = np.power((bBt-PI*L)/(b0-PI*L),1.0/kappa) * np.sqrt(b0*b0 - 4*np.power(np.arccosh(np.cosh(b0/2)*np.sqrt(1-Pe)),2))
+    aB0 = np.power((bB0-PI*L)/(b0-PI*L),1.0/kappa) * np.sqrt(b0*b0 - 4*np.power(np.arccosh(np.cosh(b0/2)*np.sqrt(1-Pe)),2))
+    
+    # Equation 16
+    #
+    # Acc'd to paper, if we plug in vref and b1ref output is in Volts
+    # For now, we set vref=b1ref thus removing that term from the equation
+    # and it returns in T (I think)
+    
+    amt = (vref/b1ref)*(2*aB0*beta/(PI*gamma*Tp)) * (aBt.copy()/aB0)*(1.0/np.cosh(2*beta*t/Tp)) # for sech()
+        
+    # Equation 18
+    #
+    # Acc'd to paper this returns in Tesla/meter
+    
+    g = bBt.copy()*4*beta /(PI*gamma*deltax*Tp)
+    
+    # Equation 17
+    # 
+    # first we create the function, then integrate under it for each point
+    fmt  = ((2*bBt.copy()*beta)/(PI*Tp))*((-2*x0/deltax) + np.tanh(2*beta*t/Tp))
+    phit = np.cumsum(fmt*dwell)
+    phit = phit % (PI*2)
+    
+    return amt, fmt, g, phit
+
+
+
+def b_acosh(x):
+    return np.log(x + np.sqrt(np.power(x,2) - 1))
+
+
+_PI     = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348;
+_TWO_PI = 6.2831853071795864769252867665590057683943387987502116419498891846156328125724179972560696;
+
+# Floating-point modulo
+# The result (the remainder) has same sign as the divisor.
+# Similar to matlab's mod(); Not similar to fmod() -   Mod(-3,4)= 1   fmod(-3,4)= -3
+def Mod(x,y):
+
+    if 0.0 == y:
+        return x
+
+    m = x - y * np.floor(x/y)
+
+    # handle boundary cases resulted from floating-point cut off:
+    if y &gt; 0:                   # modulo range: [0..y)
+        if m &gt;= y:              # Mod(-1e-16             , 360.    ): m= 360.
+            return 0
+        if m &lt;0:
+            if (y+m) == y:
+                return 0        # just in case...
+            else:
+                return y+m      # Mod(106.81415022205296 , _TWO_PI ): m= -1.421e-14 
+    else:                       # modulo range: (y..0]
+        if m &lt;= y:              # Mod(1e-16              , -360.   ): m= -360.
+            return 0
+        if m &gt; 0:
+            if (y+m) == y:
+                return 0    # just in case...
+            else:
+                return y+m  # Mod(-106.81415022205296, -_TWO_PI): m= 1.421e-14 
+    return m
+
+
+# wrap [rad] angle to [-PI..PI)
+def WrapPosNegPI(fAng):
+    return Mod(fAng + _PI, _TWO_PI) - _PI
+
+# wrap [rad] angle to [0..TWO_PI)
+def WrapTwoPI(fAng):
+    return Mod(fAng, _TWO_PI)
+
+# wrap [deg] angle to [-180..180)
+def WrapPosNeg180(fAng):
+    return Mod(fAng + 180.0, 360.0) - 180.0
+
+# wrap [deg] angle to [0..360)
+def Wrap360(fAng):
+    return Mod(fAng ,360.0)
+
+
+    </algorithm_code>
+			</transform_kernel>
+			<transform_parameter version="1.0.0">
+				<variable>time_steps</variable>
+				<type>(Long)</type>
+				<value>1024</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>duration</variable>
+				<type>(Double)</type>
+				<value>6.144</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>tip_angle</variable>
+				<type>(Double)</type>
+				<value>178.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>trunc_factor</variable>
+				<type>(Double)</type>
+				<value>4.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>bw_factor</variable>
+				<type>(Double)</type>
+				<value>15.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>max_relative_bw</variable>
+				<type>(Double)</type>
+				<value>9.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>ampl_scale</variable>
+				<type>(Double)</type>
+				<value>2.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>slab_width</variable>
+				<type>(Double)</type>
+				<value>0.04</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>slab_center</variable>
+				<type>(Double)</type>
+				<value>0.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>bw_calc</variable>
+				<type>(Output)</type>
+				<value>18227.9499506</value>
+			</transform_parameter>
+			<result version="1.0.0">
+				<created>2015-12-21T14:04:36</created>
+				<rf_waveform data_type="complex128" encoding="xdr zlib base64">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</rf_waveform>
+				<rf_xaxis data_type="float64" encoding="xdr zlib base64">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</rf_xaxis>
+				<gradient data_type="float64" encoding="xdr zlib base64">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</gradient>
+				<grad_xaxis data_type="float64" encoding="xdr zlib base64">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</grad_xaxis>
+			</result>
+		</transform>
+	</pulse_design>
+</vespa_export>

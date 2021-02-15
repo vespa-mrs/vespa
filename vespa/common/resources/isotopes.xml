@@ -1,0 +1,24 @@
+<vespa_export version="1.0.0">
+	<!-- Don't be fooled! This is not a real Vespa export file;
+	     it was built by hand.
+	     The isotopes are sorted by (number, letter) after they've been
+ 	     read from this file so they don't need to be ordered here, but 
+         it's certainly easier to read when they're in order.
+	-->
+	<timestamp>2010-05-05T15:14:56</timestamp>
+	<comment>This is the master file for populating the database.</comment>
+    <isotope>1H</isotope>
+    <isotope>2H</isotope>
+    <isotope>3H</isotope>
+    <isotope>6LI</isotope>
+    <isotope>7LI</isotope>
+    <isotope>10B</isotope>
+    <isotope>11B</isotope>
+    <isotope>13C</isotope>
+    <isotope>14N</isotope>
+    <isotope>15N</isotope>
+    <isotope>17O</isotope>
+    <isotope>19F</isotope>
+    <isotope>29SI</isotope>
+    <isotope>31P</isotope>
+</vespa_export>
