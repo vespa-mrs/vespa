@@ -1,11 +1,9 @@
 # vespa
 Python tools for Magnetic Resonance Spectroscopy - Pulses, Simulation and Analysis
 
-Contact: Brian J. Soher, bsoher@briansoher.com
-
-Licence: BSD, specifically a "three-clause" BSD license
-
-For the most up-to-date information regarding installation, usage, technical details, and the complete list of developers see Github Pages: http://github.com/vespa-mrs/vespa/
+- Contact: Brian J. Soher, vespa@briansoher.com
+- Licence: BSD, specifically a "three-clause" BSD license
+- For install, usage, and technical information see Github Pages: http://github.com/vespa-mrs/vespa/
 
 ## Description
 
