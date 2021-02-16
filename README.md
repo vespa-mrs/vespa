@@ -1,5 +1,5 @@
 # vespa
-Python tools for Magnetic Resonance Spectroscopy - Pulses, Simulation and Analysis
+Python tools for Magnetic Resonance Spectroscopy - RF Pulses, Spectral Simulation and Data Analysis
 
 - Contact: Brian J. Soher, vespa@briansoher.com
 - Licence: BSD, specifically a "three-clause" BSD license
