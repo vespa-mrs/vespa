@@ -1,5 +1,5 @@
 # vespa
-Python tools for Magnetic Resonance Spectroscopy - Pulses, Simulation and Analysis
+Versatile Simulation Pulses and Analysis - Python tools for Magnetic Resonance Spectroscopy
 
 - Contact: Brian J. Soher, vespa@briansoher.com
 - Licence: BSD, specifically a "three-clause" BSD license
@@ -7,16 +7,16 @@ Python tools for Magnetic Resonance Spectroscopy - Pulses, Simulation and Analys
 
 ## Description
 
-Vespa stands for Versatile Simulation, Pulses, and Analysis. It is an integrated, open source, open development platform that contains four magnetic resonance spectroscopy (MRS) software applications, written in Python, called: 
+Vespa is an integrated, open source, open development platform that contains four magnetic resonance spectroscopy (MRS) software applications, written in Python, called: 
 	
-1. Pulse      - RF pulse design
-2. Simulation - spectral simulation and prototyping
-3. Priorset   - application for creating 'fake' MRS data sets 
-4. Analysis   - spectral data processing and analysis
-	
-The Vespa project addresses previous software limitations, of non-standard data access, closed source and multiple language software that complicates algorithm extension, and a lack of integration between programs by porting all the code to Python, and using a shared database design, with high-quality documentation. 
+1. Pulse      - for RF pulse design
+2. Simulation - allows spectral simulation and prototyping
+3. Priorset   - is an application for creating 'fake' MRS data sets 
+4. Analysis   - interactive spectral data processing and analysis
 
 These applications can be run separately, but can also communicate via a shared database of objects/results. Integration allows one application to use the output from another as input. For example, Simulation can make use of an RF pulse designed in Pulse to create a more realistic MR simulation.
+
+The Vespa project addresses previous software limitations such as: non-standard data access, closed source and multiple language software (that complicate algorithm extension), and a lack of integration between programs. 
 
 ## Background
 
