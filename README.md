@@ -1,9 +1,15 @@
-# vespa
-Versatile Simulation Pulses and Analysis - Python tools for Magnetic Resonance Spectroscopy
+# Vespa
+
+**Versatile Simulation Pulses and Analysis** - Python tools for Magnetic Resonance Spectroscopy
 
 - Contact: Brian J. Soher, vespa@briansoher.com
+- Bug Reports: vespa.bugs@gmail.com 
 - Licence: BSD, specifically a "three-clause" BSD license
-- For install, usage, and technical information see Github Pages: http://github.com/vespa-mrs/vespa/
+- Vespa can be installed via **PyPI** (see the Vespa-Suite package). 
+- This repository is primarity for contributing towards development.
+- For more Installation, User Manuals, and Technical Information see Github Pages: 
+  
+  https://vespa-mrs.github.io/vespa.io/
 
 ## Description
 
@@ -11,7 +17,7 @@ Vespa is an integrated, open source, open development platform that contains fou
 	
 1. Pulse      - for RF pulse design
 2. Simulation - allows spectral simulation and prototyping
-3. Priorset   - is an application for creating 'fake' MRS data sets 
+3. DataSim    - an application for creating 'fake' MRS data sets 
 4. Analysis   - interactive spectral data processing and analysis
 
 These applications can be run separately, but can also communicate via a shared database of objects/results. Integration allows one application to use the output from another as input. For example, Simulation can make use of an RF pulse designed in Pulse to create a more realistic MR simulation.
@@ -30,4 +36,4 @@ Thanks to the NIH (grant number 1R01EB008387-01A1) for funding the maintenance a
 
 ## Compatibility
 
-Vespa has been tested and is certified to run on the following systems: Windows, Macintosh OSX, and Linux. However, it should run on any system that supports python and wxpython.
+Vespa has been tested and is certified to run on the following systems: Windows, Macintosh OSX, and Linux. However, it should run on any system that supports Python and wxpython. As of version 1.0.0, Vespa now runs under Python 3.7 and later.

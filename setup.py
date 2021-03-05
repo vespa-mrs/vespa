@@ -11,26 +11,28 @@ NAME = "Vespa-Suite"
 
 DESCRIPTION = """Vespa is a suite of inter-connnected applications for magnetic resonance spectroscopy simulation and data analysis."""
 
-LONG_DESCRIPTION = """Vespa stands for Versatile Simulation, Pulses, and Analysis. The Vespa
-package migrates three previously developed magnetic resonance spectroscopy (MRS) software tools
-into an integrated, open source, open development platform. The applications are called Pulse,
-Simulation and Analysis and allow users to design RF pulses, create spectral simulations and
-perform spectral data processing and analysis.  A (newer) fourth application called Priorset
-creates simulated spectroscopy data sets.
+LONG_DESCRIPTION = """Vespa stands for "Versatile Simulation, Pulses and Analysis". The Vespa 
+package is an integrated, open-source, platform for magnetic resonance spectroscopy (MRS) 
+research and data analysis. Applications in the Vespa package include:
+
+Simulation - for spectral simulation (using the PyGAMMA/GAMMA library)
+Pulse - for RF pulse design and analysis
+DataSim - used to create ‘fake' MRS data sets from Simulation results
+Analysis - spectral data processing and analysis
 
 The Vespa project addresses previous software limitations, including: non-standard data access,
 closed source multiple language software that complicate algorithm extension and comparison,
 lack of integration between programs for sharing prior information, and incomplete or missing
 documentation and educational content.
 
-These applications can be run separately but can communicate among themselves via a shared
+These applications can be run separately but communicate among themselves via a shared
 database of objects/results.  One example of inter-application sharing might be that
 Simulation would make use of an RF pulse designed in Pulse application to create a more
 realistic MR simulation."""
 
 MAINTAINER = "Dr. Brian J. Soher"
 MAINTAINER_EMAIL = "bsoher@briansoher.com"
-URL = "http://scion.duhs.duke.edu/vespa/"
+URL = "https://github.com/vespa-mrs/vespa/"
 # http://pypi.python.org/pypi?:action=list_classifiers
 CLASSIFIERS = [ "Development Status :: 5 - Production/Stable",
                 "Intended Audience :: Science/Research",

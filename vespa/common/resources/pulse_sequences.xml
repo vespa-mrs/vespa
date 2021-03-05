@@ -1173,15 +1173,22 @@ def run(sim_desc):
     return (ppm, area, phase)
 </binning_code>
 	</pulse_sequence>
-	<pulse_sequence id="dba6b2ff-8288-4c67-ab14-887a8034ae62" version="1.0.0">
-		<name>STEAM Ideal version 2</name>
-		<created>2016-03-21T12:17:07</created>
+	<pulse_sequence id="68ca6a47-d983-4819-859e-42d43cf6bf07" version="1.0.0">
+		<name>STEAM Ideal version 4</name>
+		<created>2021-03-03T20:39:02</created>
 		<creator>Brian Soher</creator>
 		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
 A timing diagram for this pulse sequence can be found in the Appendix of the Simulation User Manual.
-
 Cloned 21 March, 2016 12:17:07 from 3b7a118a-b00e-4d74-ad67-f0df82284128 (STEAM Ideal)
+Cloned 03 March, 2021 8:39:02 PM from dba6b2ff-8288-4c67-ab14-887a8034ae62 (STEAM Ideal version 2)
+
+The original and version 2 both did not work right for varying TM period.
+The original version did not work right because all three 90 pulses were inside the 'crusher'/dephase loop.
+Version 2 did not work right because the pg.zero_mqc() call zeroed all but 0th order coherences.
+
+This version 4 code still zeros the 2nd order coherences, but leaves the 0th and 1st order alone. It also
+performs the 'crusher'/dephase operation properly on only the 2nd and 3rd 90 pulses.  
 </comment>
 		<loop_label>TE [ms]</loop_label>
 		<loop_label>TM [ms]</loop_label>
@@ -1247,13 +1254,20 @@ def run(sim_desc):
 
         # second 90 pulse
         sigma_mult[i] = pg.Ixpuls(spin_system, sigma_mult[i], obs_iso, 90.0)
+        
         # this function removes all coherences still in transverse plane
-        # this removes all stimulated echos from first and second 90 pulse
-        pg.zero_mqc(spin_system, sigma_mult[i], 0, -1 )
+        # this removes all 2nd order stimulated echos from first and second 90 pulse
+        pg.zero_mqc(spin_system, sigma_mult[i], 2, 0 )
+        
+        # this line evolves signals for TM period
+        sigma_mult[i] = pg.evolve(sigma_mult[i], Udelay2)
+
         # third 90 pulse
         sigma_mult[i] = pg.Ixpuls(spin_system, sigma_mult[i], obs_iso, 90.0)
+        
         # undo rotation around z-axis
         sigma_mult[i] = pg.evolve( sigma_mult[i], riz )
+        
         # scale results based on the number of phase angles
         sigma_mult[i] *= 1.0/float(len(dephase_ang))
         
