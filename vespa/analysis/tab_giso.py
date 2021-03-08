@@ -41,7 +41,7 @@ from vespa.analysis.dialog_user_defined_prior import DialogUserDefinedPrior
 
 # _PYWAVELETS_EXPLANATION_URL is the URL at which we explain PyWavelets
 # availability (which is slightly complicated).
-_PYWAVELETS_EXPLANATION_URL = "http://scion.duhs.duke.edu/vespa/analysis/wiki/PyWavelets"
+_PYWAVELETS_EXPLANATION_URL = "https://vespa-mrs.github.io/vespa.io/development/applications/dev_analysis/technical/PyWavelets.html?highlight=PyWavelets"
 
 # _PYWAVELETS_UNAVAILABLE_MSG is what the user sees when PyWavelets isn't
 # installed and he tries to use the baseline wavelet filter.
@@ -1511,7 +1511,6 @@ class TabGiso(tab_base.Tab, giso.PanelGisoUI):
             # Build the image as a PNG.
             # FIXME PS - matplotlib's PNG support seems shaky under OS X so we 
             # use SVG instead. 
-            # ref: http://scion.duhs.duke.edu/vespa/project/ticket/25
             # SVG works OK (all recent browsers support it, except IE < 9), 
             # but it's not ideal. Safari's rendering and resizing for SVGs is
             # not nearly as optimized as it is for PNGs. Plus it would be 

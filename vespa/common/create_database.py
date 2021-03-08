@@ -14,7 +14,7 @@ import vespa.common.constants as constants
 import vespa.common.util.db as util_db
 import vespa.common.util.import_ as util_import
 import vespa.common.util.misc as util_misc
-import vespa.common.rfp_machine_settings as rfp_machine_settings
+#import vespa.common.rfp_machine_settings as rfp_machine_settings
 import vespa.common.rfp_machine_specs as rfp_machine_specs
 
 # _ISOTOPE_REGEX matches isotope strings that are already in our preferred 
@@ -128,6 +128,9 @@ def create_database(target_filename, logger):
     importer = util_import.ExperimentImporter(filename, db)
     importer.go(False)
 
+#   As of version 0.8.6 Pulse replaced RFPulse and did PulseProject conversions
+#   As of version 1.0.0 (Py3 and refactor) there is no support for PulseProject conversion
+#
 #    logger.info("Importing machine settings...")
 #    filename = os.path.join(resources_path, "machine_settings_templates.xml")
 #    _insert_machine_settings_templates(db, filename)

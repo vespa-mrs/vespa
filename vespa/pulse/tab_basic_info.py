@@ -159,7 +159,8 @@ class TabBasicInfo(basic_info.PanelBasicInfo):
     def accept_gui_data(self, metadata_only=False):
         """ 
         See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
+        
         """
         # When metadata_only is True, only the fields that don't alter sync
         # status (currently name & comments) are copied from the GUI.
@@ -217,7 +218,8 @@ class TabBasicInfo(basic_info.PanelBasicInfo):
 
     def get_cooked_gui_data(self):
         """ See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
+        
         """
         d = self.get_raw_gui_data()
         
@@ -240,7 +242,7 @@ class TabBasicInfo(basic_info.PanelBasicInfo):
             
     def get_raw_gui_data(self):
         """ See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         """
         d = { }
         
@@ -265,7 +267,7 @@ class TabBasicInfo(basic_info.PanelBasicInfo):
 
     def run(self):
         """ See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         """
         self._last_run = self.get_raw_gui_data()
         
@@ -297,7 +299,7 @@ class TabBasicInfo(basic_info.PanelBasicInfo):
 
     def validate_gui(self, validate_for_save=False):
         """ See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         
         validate_gui() implicitly validates the GUI to see if it can be
         run. This validate_gui() has an extra feature which is that is can 

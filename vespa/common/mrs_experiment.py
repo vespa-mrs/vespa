@@ -43,7 +43,7 @@ class Experiment(object):
     each simulation. Contained in here is the description of the object
     and the ability to clone, inflate and deflate the object. 
     """
-    # See http://scion.duhs.duke.edu/vespa/project/wiki/ViffVersionHistory
+    # See https://vespa-mrs.github.io/vespa.io/development/project_dev/technical/ViffVersionHistory.html?highlight=viff%20version
     # for an explanation of the different XML versions this code supports.
     XML_VERSION = "1.1.0"
 
@@ -310,7 +310,7 @@ class Experiment(object):
             
             pulse_sequence_element = source.find("pulse_sequence")
             # Explicit test for None necessary here. See:
-            # http://scion.duhs.duke.edu/vespa/project/ticket/35
+            
             if pulse_sequence_element is not None:
                 self.pulse_sequence = \
                     mrs_pulse_sequence.PulseSequence(pulse_sequence_element)

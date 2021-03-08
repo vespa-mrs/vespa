@@ -1,4 +1,4 @@
-# Python modules
+﻿# Python modules
 
 
 # 3rd party modules
@@ -13,11 +13,11 @@ DESCRIPTION = """Vespa is a suite of inter-connnected applications for magnetic 
 
 LONG_DESCRIPTION = """Vespa stands for "Versatile Simulation, Pulses and Analysis". The Vespa 
 package is an integrated, open-source, platform for magnetic resonance spectroscopy (MRS) 
-research and data analysis. Applications in the Vespa package include:
+research and data analysis. Applications in the Vespa package include: 
 
 Simulation - for spectral simulation (using the PyGAMMA/GAMMA library)
 Pulse - for RF pulse design and analysis
-DataSim - used to create �fake' MRS data sets from Simulation results
+DataSim - used to create ‘fake' MRS data sets from Simulation results 
 Analysis - spectral data processing and analysis
 
 The Vespa project addresses previous software limitations, including: non-standard data access,

@@ -43,7 +43,7 @@ Twix <= VB19 - Single RAID measurements per twix file
 
 Enjoy,
 Brian Soher and Philip Semanchuk on behalf of the Vespa project
-http://scion.duhs.duke.edu/vespa/
+https://github.com/vespa-mrs/vespa
 
 ==============================
  NEWS
@@ -931,10 +931,8 @@ def _collapse_complexes(data):
        [complex(a, b), complex(c, d), complex(e, f)]
 
     The returned list is a new list; the original is unchanged.
-    """
-    # The original source of this code is:
-    # http://scion.duhs.duke.edu/vespa/project/browser/trunk/common/util/io_.py
 
+    """
     # This code was chosen for speed and efficiency. It creates an iterator
     # over the original list which gets called by izip. (izip() is the same
     # as the builtin zip() except that it returns elements one by one instead

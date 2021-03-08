@@ -271,13 +271,12 @@ class DialogPulseSequenceEditor(pulse_sequence_editor.MyDialog):
 
                 self.pulse_sequence.pulse_projects.append(pulse_design)
 
+                checkbox, label = self.add_pulse_row(pulse_design)
+
                 sizer = self.DesignPulseSizer
                 # sizer is a GridSizer, thus we add a row to it and fill in the
                 # columns with widgets to describe a user pulses
                 sizer.SetRows(len(self.design_pulse_controls) + 1)
-
-                checkbox, label = self.add_pulse_row(pulse_design)
-
                 sizer.Add(checkbox, 0, wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 5)
                 sizer.Add(label,    1, wx.LEFT|wx.ALIGN_CENTER_VERTICAL, 5)
 
@@ -711,10 +710,8 @@ class DialogPulseSequenceEditor(pulse_sequence_editor.MyDialog):
         self.DesignParameterSizer = self.InfoLabelParametersPlaceholder.GetContainingSizer()
         self.InfoLabelParametersPlaceholder.Destroy()
 
-        # a persistent reference to this sizer to add/remove controls
-        self.DesignPulseSizer = self.InfoLabelPulsesPlaceholder.GetContainingSizer()
-        self.InfoLabelPulsesPlaceholder.Destroy()
-
+        # we changed wxGlade file pulse_sequence_editor.wxg to just declare an empty 0x2 row/col
+        # FlexGrid sizer with the name self.DesignPulseSizer stored as an attribute.
 
         # I force this to a minimum size so that it is at least wide enough
         # to be useable. The size I chose is arbitrary.

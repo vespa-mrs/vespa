@@ -265,7 +265,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
     def on_run(self, event):
         """ 
         See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         """
         self._inner_notebook.run(self)
 
@@ -422,7 +422,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
 
     def accept_gui_data(self):
         """ See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         """
         d = self.get_cooked_gui_data(return_list=True)
         self.transform.parameters = d
@@ -431,7 +431,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
     def get_raw_gui_data(self, return_list=False):
         """ 
         See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         """
 
         kernel = self.transform.transform_kernel
@@ -471,7 +471,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
     def get_cooked_gui_data(self, return_list=False):
         """ 
         See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         """
         raws = self.get_raw_gui_data(return_list=return_list)
        
@@ -517,7 +517,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
     def validate_gui(self):
         """ 
         See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         """
         msg = ""
 
@@ -1062,7 +1062,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
 
     def update_sync_status(self):
         """ See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         """
         # Subclasses may override this
         pass
@@ -1071,7 +1071,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
     def run(self):
         """ 
         See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         
         """
         # All is well, time to Run Algorithm and Bloch simulation ---------
@@ -1429,13 +1429,11 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
                 ymin = min([min(y0),min(y1)])
                 ymax = max([max(y0),max(y1)])
                 if xmin == xmax:
-                    # Workaround for ticket #24:
-                    # http://scion.duhs.duke.edu/vespa/project/ticket/24
+                    # Workaround 
                     xmax += np.finfo(type(xmax)).eps
                 axes.set_xlim([xmin,xmax])
                 if ymin == ymax:
-                    # Workaround for ticket #24:
-                    # http://scion.duhs.duke.edu/vespa/project/ticket/24
+                    # Workaround 
                     ymax += np.finfo(type(ymax)).eps
                 axes.set_ylim([ymin,ymax])
                 axes.ignore_existing_data_limits = True

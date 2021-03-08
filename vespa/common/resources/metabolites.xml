@@ -2,7 +2,7 @@
 	<!-- 
 This XML file is in Vespa Interchange File Format (VIFF). You can download
 applications that read and write VIFF files and learn more about VIFF here:
-http://scion.duhs.duke.edu/vespa/
+https://github.com/vespa-mrs/vespa/tree/main/vespa
  -->
 	<timestamp>2011-03-17T10:50:58</timestamp>
 	<comment>This is the master file for populating the database.</comment>

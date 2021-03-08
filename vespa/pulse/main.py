@@ -14,10 +14,11 @@ import wx.lib.agw.aui as aui        # NB. wx.aui version throws odd wxWidgets ex
 
 
 # Our modules
+
 # We import vespa.common.wx_gravy.plot_panel here even though we don't use it
 # in this module. It needs to be the first Vespa import to avoid matplotlib 
 # sensitivity to import order. 
-# See http://scion.duhs.duke.edu/vespa/project/ticket/26
+
 import vespa.common.wx_gravy.plot_panel
 import vespa.pulse.util_db as util_db
 import vespa.pulse.util_menu as util_menu
@@ -321,10 +322,10 @@ class Main(wx.Frame):
         wx_util.display_file(path)
 
     def on_pulse_help_online(self, event):
-        webbrowser.open("http://scion.duhs.duke.edu/vespa/pulse", 1)
+        webbrowser.open("https://vespa-mrs.github.io/vespa.io/user_manuals/pulse_user_manual.html", 1)
 
     def on_vespa_help_online(self, event):
-        webbrowser.open("http://scion.duhs.duke.edu/vespa", 1)
+        webbrowser.open("https://vespa-mrs.github.io/vespa.io/", 1)
 
     def on_about(self, event):
         bit = str(8 * struct.calcsize('P')) + '-bit Python'
@@ -332,7 +333,7 @@ class Main(wx.Frame):
         info.SetVersion(util_misc.get_vespa_version())
         info.SetCopyright("Copyright 2010, Brian J. Soher. All rights reserved.")
         info.SetDescription("Pulse is an advanced toolkit for generating RF pulses for MR simulations. Running on "+bit)
-        info.SetWebSite("http://scion.duhs.duke.edu/vespa/")
+        info.SetWebSite("https://github.com/vespa-mrs/vespa")
         wx_adv.AboutBox(info)
 
 

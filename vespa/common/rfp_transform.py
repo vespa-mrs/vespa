@@ -232,7 +232,7 @@ class Transform(object):
             # Quacks like an ElementTree.Element
 
             # Explicit test for None necessary below for objects. See:
-            # http://scion.duhs.duke.edu/vespa/project/ticket/35
+            
             # http://docs.python.org/release/2.6.6/library/xml.etree.elementtree.html#the-element-interface
             
             item = source.find("transform_kernel")

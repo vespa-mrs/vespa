@@ -137,6 +137,7 @@ def _get_menu_data(main):
                     ("View to PDF", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIds.VIEW_TO_PDF)  )))
     help = (
                 ("&User Manual",          main.on_user_manual),
+                ("&DataSim Help Online",  main.on_datasim_help_online),
                 ("&Vespa Help Online",    main.on_vespa_help_online),
                 ("&About", main.on_about, wx.ITEM_NORMAL, wx.ID_ABOUT),
            )

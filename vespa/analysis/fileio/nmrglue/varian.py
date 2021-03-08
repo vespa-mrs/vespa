@@ -1735,7 +1735,7 @@ def find_shape(pdic):
     # NMR experiments has indirect dimension shapes (R|I) are stored in
     # ni,ni2,ni3 with the phase arrays stored as phase,phase2,phase3
 
-    # Thanks to the VeSPA project (http://scion.duhs.duke.edu/vespa/) for
+    # Thanks to the VeSPA project (https://github.com/vespa-mrs/vespa) for
     # information on imaging experiments
 
     try:

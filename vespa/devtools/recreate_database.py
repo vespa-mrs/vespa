@@ -38,6 +38,19 @@ filename instead of the default Vespa database file.
 
 """
 
+msg = \
+"""This tool is semi-deprecated until further notice as it was created for 
+use in Vespa versions < 0.5.0 and did not include functionality for dealing
+with either PulseProjecs (version < 0.6.0) or PulseDesigns (version > 0.6.0)
+
+Returning without executing ... Sorry!
+"""
+
+print(msg)
+return
+
+# bjs - 2021-03-07, temp fix to keep people from using this
+
 parser = optparse.OptionParser(usage=INSTRUCTIONS)
 parser.add_option("-r", "--restore", action="store_true", dest="restore")
 

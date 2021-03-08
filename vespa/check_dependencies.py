@@ -191,7 +191,7 @@ def report_dependencies(to_stdout=True):
 
         report.append('')
         report.append("One can find information about satisfying these dependencies here:")
-        report.append("http://scion.duhs.duke.edu/vespa/project")
+        report.append("https://vespa-mrs.github.io/vespa.io/")
     else:
         report.append('')
         report.append("Good news -- all of Vespa's dependencies are installed!")

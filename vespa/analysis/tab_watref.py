@@ -378,7 +378,6 @@ class TabWatref(tab_base.Tab, watref.PanelWatrefUI):
             # Build the image as a PNG.
             # FIXME PS - matplotlib's PNG support seems shaky under OS X so we 
             # use SVG instead. 
-            # ref: http://scion.duhs.duke.edu/vespa/project/ticket/25
             # SVG works OK (all recent browsers support it, except IE < 9), 
             # but it's not ideal. Safari's rendering and resizing for SVGs is
             # not nearly as optimized as it is for PNGs. Plus it would be 

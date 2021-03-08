@@ -537,7 +537,7 @@ zero_line_top = False
 #
 # See vespa/analysis/src/fileio/template.py for more information on how to write 
 # a class that can read you custom format. You can also see template.py online:
-# http://scion.duhs.duke.edu/vespa/project/browser/trunk/analysis/src/fileio/template.py
+# https://github.com/vespa-mrs/vespa/tree/main/vespa/analysis/fileio 
 #
 # There should be one menu item for each file format, and one section in this
 # file for each menu item you want to add.

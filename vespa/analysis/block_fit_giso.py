@@ -779,8 +779,7 @@ class BlockFitGiso(block_fit_identity.BlockFitIdentity):
 
             if not self.behave_as_preset:
 
-                # Explicit tests for None necessary in the code below. See:
-                # http://scion.duhs.duke.edu/vespa/project/ticket/35
+                # Explicit tests for None necessary in the code below. 
                 temp = source.find("fit_results")
                 if temp is not None:
                     self.fit_results = util_xml.element_to_numpy_array(temp)

@@ -36,9 +36,8 @@ def _write_lines(filename, lines):
     
     The strings in the list of lines are converted to Unicode before
     writing if they're not Unicode already. If any of the non-Unicode
-    strings contain non-ASCII, the conversion will fail. For details,
-    see the following:
-    http://scion.duhs.duke.edu/vespa/project/wiki/ThePerilsOfStr
+    strings contain non-ASCII, the conversion will fail. 
+    
     """
     # Note that all_lines will be a Unicode string after this join() 
     # because anything returned from wx will be Unicode, and any 
@@ -396,7 +395,7 @@ class DialogThirdPartyExport(third_party_export.MyDialog):
     def get_cooked_gui_data(self):
         """ 
         See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         """
         d = self.get_raw_gui_data()
         
@@ -418,7 +417,7 @@ class DialogThirdPartyExport(third_party_export.MyDialog):
     def get_raw_gui_data(self):
         """ 
         See documentation here:
-        http://scion.duhs.duke.edu/vespa/rfpulse/wiki/CommonTabFeatures
+        https://vespa-mrs.github.io/vespa.io/development/applications/dev_pulse/technical/CommonTabFeatures.html
         """
         d = { }
 
@@ -523,7 +522,7 @@ class DialogThirdPartyExport(third_party_export.MyDialog):
         all_lines = [ ]
         if include_annotation:
             all_lines.append('# Exported from Vespa-Pulse')
-            all_lines.append('# For more information, visit http://scion.duhs.duke.edu/vespa/')
+            all_lines.append('# For more information, visit https://github.com/vespa-mrs/vespa/tree/main/vespa')
             all_lines.append('# Export Timestamp: ' + util_time.now(util_time.ISO_TIMESTAMP_FORMAT))
             all_lines.append('# Pulse Name: ' + self.pulse.name)
             all_lines.append('# Design UUID: ' + self.pulse_design_id)

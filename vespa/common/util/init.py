@@ -59,7 +59,6 @@ def init_app(app_name):
 
     # When running under Windows w/pythonw.exe, we have to expicitly send
     # stdout and stderr to the bit bucket.
-    # See http://scion.duhs.duke.edu/vespa/project/ticket/44
     # Code below adapted from http://bugs.python.org/issue706263#msg97442
     if (util_misc.get_platform() == "windows") and \
        ("pythonw" in sys.executable.lower()):
@@ -76,7 +75,6 @@ def init_app(app_name):
         # checks for such a directory and, if it finds one, copies it to the
         # new, preferred location. It also cleans up the old one if it is
         # not in use.
-        # ref: http://scion.duhs.duke.edu/vespa/project/ticket/39
         roaming_dir = util_misc.get_windows_special_folder_path(util_misc.WindowsSpecialFolderIds.CSIDL_APPDATA)
         # Normally hardcoding strings is a bad idea, but here it is
         # appropriate. All versions of Vespa that used the roaming dir
@@ -192,9 +190,8 @@ def init_app(app_name):
     # The database name is in vespa.ini
     config = util_config.VespaConfig()
 
-    # Here we deal with the [debug] section of vespa.ini. See here --
-    # http://scion.duhs.duke.edu/vespa/project/wiki/IniFiles
-
+    # Here we deal with the [debug] section of vespa.ini.
+    
     # We set our custom exception hook as early as possible. Note that it
     # depends on the directory for log files and the existence of vespa.ini,
     # so we can't set the exception hook before those exist.

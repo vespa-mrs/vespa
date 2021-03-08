@@ -247,9 +247,11 @@ class Main(wx.Frame):
         path = os.path.join(path, "docs", "datasim_user_manual.pdf")
         wx_util.display_file(path)
 
+    def on_datasim_help_online(self, event):
+        webbrowser.open("https://vespa-mrs.github.io/vespa.io/user_manuals/datasim_user_manual.html", 1)
 
     def on_vespa_help_online(self, event):
-        webbrowser.open("http://scion.duhs.duke.edu/vespa", 1)
+        webbrowser.open("https://vespa-mrs.github.io/vespa.io/", 1)
 
 
     def on_about(self, event):
@@ -258,7 +260,7 @@ class Main(wx.Frame):
         info.SetVersion(util_misc.get_vespa_version())
         info.SetCopyright("Copyright 2012, Brian J Soher. All rights reserved.")
         info.SetDescription("DataSim creates simulated data sets from Vespa-Simulation Experiments. Running on "+bit)
-        info.SetWebSite("http://scion.duhs.duke.edu/vespa/")
+        info.SetWebSite("https://github.com/vespa-mrs/vespa")
         wx_adv.AboutBox(info)
 
 

@@ -455,7 +455,7 @@ class TabPulseDesign(vespa_notebooks.VespaAuiNotebook):
     def run(self, calling_tab=None):
         # Set the focus to the run button if possible. This is a fix for 
         # RFPulse bug 19:
-        # http://scion.duhs.duke.edu/vespa/rfpulse/ticket/19
+        
         run_button = _find_run_button(self.active_tab)
         if run_button:
             run_button.SetFocus()

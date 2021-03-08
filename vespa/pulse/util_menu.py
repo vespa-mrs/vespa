@@ -18,7 +18,6 @@ class ViewIds(common_menu.IdContainer):
 
     XAXIS_SHOW = common_menu.IdContainer.PLACEHOLDER
     # FIXME PS - temporarily disabling PPM/kHz 
-    # ref: http://scion.duhs.duke.edu/vespa/rfpulse/ticket/10
     # XAXIS_PPM = common_menu.IdContainer.PLACEHOLDER
     # XAXIS_KILOHERTZ = common_menu.IdContainer.PLACEHOLDER
 
@@ -153,7 +152,6 @@ def _get_menu_data(main):
                     ("Create", (
                         
                         # FIXME PS - temporarily disabling PPM/kHz 
-                        # ref: http://scion.duhs.duke.edu/vespa/rfpulse/ticket/10
                          common_menu.SEPARATOR,
                         # ("[mm]", main.on_menu_view_option, wx.ITEM_RADIO, ViewIds.XAXIS_PPM),
                         # ("[kHz]", main.on_menu_view_option, wx.ITEM_RADIO, ViewIds.XAXIS_KILOHERTZ)
@@ -167,7 +165,6 @@ def _get_menu_data(main):
             ("X-Axis", (
                 ("Show", main.on_menu_view_option, wx.ITEM_CHECK, ViewIds.XAXIS_SHOW),
                 # FIXME PS - temporarily disabling PPM/kHz 
-                # ref: http://scion.duhs.duke.edu/vespa/rfpulse/ticket/10
                 # common_menu.SEPARATOR,
                 # ("[mm]", main.on_menu_view_option, wx.ITEM_RADIO, ViewIds.XAXIS_PPM),
                 # ("[kHz]", main.on_menu_view_option, wx.ITEM_RADIO, ViewIds.XAXIS_KILOHERTZ)

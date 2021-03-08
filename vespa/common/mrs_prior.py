@@ -177,7 +177,7 @@ class Prior(object):
         
         '''
         # This function could possibly benefit from some results caching. 
-        # See: http://scion.duhs.duke.edu/vespa/analysis/ticket/32
+        
         
         # calculate ppm start/end if not provided
         if ppm_start is None:

@@ -203,8 +203,7 @@ class DatabaseUpgrader(db_module.Database):
         # self._insert_machine_settings_templates(filename)
         #
         # # PS This code used to work but now causes a problem. It will only be
-        # # invoked for very old databases; see here:
-        # # http://scion.duhs.duke.edu/vespa/project/ticket/41
+        # # invoked for very old databases; 
         # # We'll never use this code again and ordinarily I prefer to delete
         # # dead code, but in this case I'll leave it here as sample code.
         # # logger.info("Importing pulse projects...")

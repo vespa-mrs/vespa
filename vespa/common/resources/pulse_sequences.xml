@@ -2,15 +2,15 @@
 	<!--
 This XML file is in Vespa Interchange File Format (VIFF). You can download
 applications that read and write VIFF files and learn more about VIFF here:
-http://scion.duhs.duke.edu/vespa/
+https://github.com/vespa-mrs/vespa/tree/main/vespa
 
-It was created with Vespa version 0.2.6.
+It was created with Vespa version 1.0.0 (bjs tweaks).
 -->
-	<timestamp>2011-10-25T17:54:24</timestamp>
+	<timestamp>2021-03-07T20:42:24</timestamp>
 	<comment>This is the master file for populating the database.</comment>
-	<pulse_sequence id="70457753-4a19-400c-8394-5edfd103a109" version="1.0.0">
+	<pulse_sequence id="70457753-4a19-400c-8394-5edfd1bjs100" version="1.0.0">
 		<name>CP-PRESS with Variable R-groups</name>
-		<created>2011-10-21T20:51:46</created>
+		<created>2021-03-07T20:51:46</created>
 		<creator>Brian Soher</creator>
 		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
@@ -320,13 +320,13 @@ def run(sim_desc):
     #       garbage collected, our copy of the results in not affected
     sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
 </sequence_code>
-		<binning_code>import pygamma
+		<binning_code>import pygamma as pg
 import numpy as np
 
 def run(sim_desc):
-    area   = pygamma.DoubleVector(0)
-    ppm    = pygamma.DoubleVector(0)
-    phase  = pygamma.DoubleVector(0)
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
     field  = sim_desc.field             # freq in MHz
     nspins = sim_desc.nspins
     tolppm = sim_desc.blend_tolerance_ppm
@@ -338,19 +338,14 @@ def run(sim_desc):
     obs_iso = sim_desc.observe_isotope
     nlines  = sim_desc.mx.size()
 
-    # need the quantum number of the observe isotope
-    tmp = pygamma.Isotope(obs_iso)
-    obs_qn = tmp.qn()
-
-    # The original scaling factor fails when a heteronuclear spin system. We 
-    # have found empirically that scaling needs to be a product of the spin 
-    # quantum number of the non-observe nuclei minus the observe nuclei  
-    # quantum number. It also depends on the number of non-observe nuclei.
-    # So ... we get the factor calculated below, 'qnscale', with which we 
-    # modify each line returned from the transition table.
-    qnscale = 1.0
-    for i in range(nspins):
-        qnscale *= 2*sys.qn(i)+1
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
     qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
 
     freqs = []
@@ -359,7 +354,7 @@ def run(sim_desc):
     outp  = []
     nbin  = 0
     found = False
-    
+
     PI = 3.14159265358979323846
     RAD2DEG = 180.0/PI
 
@@ -369,12 +364,12 @@ def run(sim_desc):
 
     for i in range(nlines):
         freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-    
+
     for i in range(nlines):
         freq = freqs[i]
-        if (freq > ppmlo) and (freq &#60; ppmhi):
+        if (freq &gt; ppmlo) and (freq &lt; ppmhi):
             val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
             tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
 
         if nbin == 0:
@@ -384,20 +379,20 @@ def run(sim_desc):
             nbin += 1
         else:
             for k in range(nbin):
-                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
-                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                if (freq &gt;= outf[k]-tolppm) and (freq &lt;= outf[k]+tolppm):
+                    if (tmpp &gt;= outp[k]-tolpha) and (tmpp &lt;= outp[k]+tolpha):
                         ampsum   =  outa[k]+tmpa
                         outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
                         outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
                         outa[k] +=  tmpa;
-                        found = True 
+                        found = True
             if not found:
                 outf.append(freq)
                 outa.append(tmpa)
                 outp.append(tmpp)
                 nbin += 1
             found = False
-    
+
     ppm.resize(nbin)
     area.resize(nbin)
     phase.resize(nbin)
@@ -410,9 +405,9 @@ def run(sim_desc):
     return (ppm, area, phase)
 </binning_code>
 	</pulse_sequence>
-	<pulse_sequence id="a5e5606d-5527-4ac6-b063-8894d5fb412a" version="1.0.0">
+	<pulse_sequence id="a5e5606d-5527-4ac6-b063-8894d5bjs100" version="1.0.0">
 		<name>JPRESS Ideal</name>
-		<created>2011-10-21T20:50:28</created>
+		<created>2021-03-07T20:50:28</created>
 		<creator>Brian Soher</creator>
 		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
@@ -471,13 +466,13 @@ def run(sim_desc):
     #       we return from this function and the ACQ variable gets
     #       garbage collected, our copy of the results in not affected
     sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))</sequence_code>
-		<binning_code>import pygamma
+		<binning_code>import pygamma as pg
 import numpy as np
 
 def run(sim_desc):
-    area   = pygamma.DoubleVector(0)
-    ppm    = pygamma.DoubleVector(0)
-    phase  = pygamma.DoubleVector(0)
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
     field  = sim_desc.field             # freq in MHz
     nspins = sim_desc.nspins
     tolppm = sim_desc.blend_tolerance_ppm
@@ -489,19 +484,14 @@ def run(sim_desc):
     obs_iso = sim_desc.observe_isotope
     nlines  = sim_desc.mx.size()
 
-    # need the quantum number of the observe isotope
-    tmp = pygamma.Isotope(obs_iso)
-    obs_qn = tmp.qn()
-
-    # The original scaling factor fails when a heteronuclear spin system. We 
-    # have found empirically that scaling needs to be a product of the spin 
-    # quantum number of the non-observe nuclei minus the observe nuclei  
-    # quantum number. It also depends on the number of non-observe nuclei.
-    # So ... we get the factor calculated below, 'qnscale', with which we 
-    # modify each line returned from the transition table.
-    qnscale = 1.0
-    for i in range(nspins):
-        qnscale *= 2*sys.qn(i)+1
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
     qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
 
     freqs = []
@@ -510,7 +500,7 @@ def run(sim_desc):
     outp  = []
     nbin  = 0
     found = False
-    
+
     PI = 3.14159265358979323846
     RAD2DEG = 180.0/PI
 
@@ -520,12 +510,12 @@ def run(sim_desc):
 
     for i in range(nlines):
         freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-    
+
     for i in range(nlines):
         freq = freqs[i]
-        if (freq > ppmlo) and (freq &#60; ppmhi):
+        if (freq &gt; ppmlo) and (freq &lt; ppmhi):
             val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
             tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
 
         if nbin == 0:
@@ -535,20 +525,20 @@ def run(sim_desc):
             nbin += 1
         else:
             for k in range(nbin):
-                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
-                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                if (freq &gt;= outf[k]-tolppm) and (freq &lt;= outf[k]+tolppm):
+                    if (tmpp &gt;= outp[k]-tolpha) and (tmpp &lt;= outp[k]+tolpha):
                         ampsum   =  outa[k]+tmpa
                         outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
                         outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
                         outa[k] +=  tmpa;
-                        found = True 
+                        found = True
             if not found:
                 outf.append(freq)
                 outa.append(tmpa)
                 outp.append(tmpp)
                 nbin += 1
             found = False
-    
+
     ppm.resize(nbin)
     area.resize(nbin)
     phase.resize(nbin)
@@ -561,9 +551,9 @@ def run(sim_desc):
     return (ppm, area, phase)
 </binning_code>
 	</pulse_sequence>
-	<pulse_sequence id="28e07f4b-5d37-43e0-828d-4e7a733fd542" version="1.0.0">
+	<pulse_sequence id="28e07f4b-5d37-43e0-828d-4e7a73bjs100" version="1.0.0">
 		<name>One-Pulse</name>
-		<created>2011-10-21T20:39:42</created>
+		<created>2021-03-07T20:39:42</created>
 		<creator>Brian Soher</creator>
 		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
@@ -602,13 +592,13 @@ def run(sim_desc):
     #       garbage collected, our copy of the results in not affected
     sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
 </sequence_code>
-		<binning_code>import pygamma
+		<binning_code>import pygamma as pg
 import numpy as np
 
 def run(sim_desc):
-    area   = pygamma.DoubleVector(0)
-    ppm    = pygamma.DoubleVector(0)
-    phase  = pygamma.DoubleVector(0)
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
     field  = sim_desc.field             # freq in MHz
     nspins = sim_desc.nspins
     tolppm = sim_desc.blend_tolerance_ppm
@@ -620,19 +610,14 @@ def run(sim_desc):
     obs_iso = sim_desc.observe_isotope
     nlines  = sim_desc.mx.size()
 
-    # need the quantum number of the observe isotope
-    tmp = pygamma.Isotope(obs_iso)
-    obs_qn = tmp.qn()
-
-    # The original scaling factor fails when a heteronuclear spin system. We 
-    # have found empirically that scaling needs to be a product of the spin 
-    # quantum number of the non-observe nuclei minus the observe nuclei  
-    # quantum number. It also depends on the number of non-observe nuclei.
-    # So ... we get the factor calculated below, 'qnscale', with which we 
-    # modify each line returned from the transition table.
-    qnscale = 1.0
-    for i in range(nspins):
-        qnscale *= 2*sys.qn(i)+1
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
     qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
 
     freqs = []
@@ -641,7 +626,7 @@ def run(sim_desc):
     outp  = []
     nbin  = 0
     found = False
-    
+
     PI = 3.14159265358979323846
     RAD2DEG = 180.0/PI
 
@@ -651,12 +636,12 @@ def run(sim_desc):
 
     for i in range(nlines):
         freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-    
+
     for i in range(nlines):
         freq = freqs[i]
-        if (freq > ppmlo) and (freq &#60; ppmhi):
+        if (freq &gt; ppmlo) and (freq &lt; ppmhi):
             val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
             tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
 
         if nbin == 0:
@@ -666,20 +651,20 @@ def run(sim_desc):
             nbin += 1
         else:
             for k in range(nbin):
-                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
-                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                if (freq &gt;= outf[k]-tolppm) and (freq &lt;= outf[k]+tolppm):
+                    if (tmpp &gt;= outp[k]-tolpha) and (tmpp &lt;= outp[k]+tolpha):
                         ampsum   =  outa[k]+tmpa
                         outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
                         outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
                         outa[k] +=  tmpa;
-                        found = True 
+                        found = True
             if not found:
                 outf.append(freq)
                 outa.append(tmpa)
                 outp.append(tmpp)
                 nbin += 1
             found = False
-    
+
     ppm.resize(nbin)
     area.resize(nbin)
     phase.resize(nbin)
@@ -692,9 +677,9 @@ def run(sim_desc):
     return (ppm, area, phase)
 </binning_code>
 	</pulse_sequence>
-	<pulse_sequence id="97f8fa7c-33bf-4277-be78-49ce5c5ea1a2" version="1.0.0">
+	<pulse_sequence id="97f8fa7c-33bf-4277-be78-49ce5cbjs100" version="1.0.0">
 		<name>One-Pulse No Binning</name>
-		<created>2011-10-21T20:49:29</created>
+		<created>2021-03-07T20:49:29</created>
 		<creator>Brian Soher</creator>
 		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
@@ -715,7 +700,7 @@ def run(sim_desc):
     # of the Simulation User Manual.
     #------------------------------------------------------------------------
     spin_system = sim_desc.spin_system
-
+    
     # the isotope string used to sort/select the metabolites of interest is passed 
     # in the sim_desc object so the user can tailor other object within their 
     # code to be nuclei specific, such as the observe operator or pulses
@@ -736,8 +721,17 @@ def run(sim_desc):
 
     # Calculate results
     mx_indices = mx.Sort(0, -1, 0)
-    normal = 0.5 * 2**(sim_desc.nspins - 1)
-
+    
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = spin_system.qnStates().size()
+    normal = qnscale / (2.0 * (2.0*obs_qn+1))
+    
     ppms = []
     areas = []
     phases = []
@@ -768,9 +762,9 @@ def run(sim_desc):
     raise NotImplementedError
 </binning_code>
 	</pulse_sequence>
-	<pulse_sequence id="43be13ae-de9a-40a1-9a2d-c872d8c8b8b2" version="1.0.0">
+	<pulse_sequence id="43be13ae-de9a-40a1-9a2d-c872d8bjs100" version="1.0.0">
 		<name>PRESS Ideal</name>
-		<created>2011-10-21T20:44:20</created>
+		<created>2021-03-07T20:44:20</created>
 		<creator>Brian Soher</creator>
 		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
@@ -826,13 +820,13 @@ def run(sim_desc):
     #       garbage collected, our copy of the results in not affected
     sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
 </sequence_code>
-		<binning_code>import pygamma
+		<binning_code>import pygamma as pg
 import numpy as np
 
 def run(sim_desc):
-    area   = pygamma.DoubleVector(0)
-    ppm    = pygamma.DoubleVector(0)
-    phase  = pygamma.DoubleVector(0)
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
     field  = sim_desc.field             # freq in MHz
     nspins = sim_desc.nspins
     tolppm = sim_desc.blend_tolerance_ppm
@@ -844,19 +838,14 @@ def run(sim_desc):
     obs_iso = sim_desc.observe_isotope
     nlines  = sim_desc.mx.size()
 
-    # need the quantum number of the observe isotope
-    tmp = pygamma.Isotope(obs_iso)
-    obs_qn = tmp.qn()
-
-    # The original scaling factor fails when a heteronuclear spin system. We 
-    # have found empirically that scaling needs to be a product of the spin 
-    # quantum number of the non-observe nuclei minus the observe nuclei  
-    # quantum number. It also depends on the number of non-observe nuclei.
-    # So ... we get the factor calculated below, 'qnscale', with which we 
-    # modify each line returned from the transition table.
-    qnscale = 1.0
-    for i in range(nspins):
-        qnscale *= 2*sys.qn(i)+1
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
     qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
 
     freqs = []
@@ -865,7 +854,7 @@ def run(sim_desc):
     outp  = []
     nbin  = 0
     found = False
-    
+
     PI = 3.14159265358979323846
     RAD2DEG = 180.0/PI
 
@@ -875,12 +864,12 @@ def run(sim_desc):
 
     for i in range(nlines):
         freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-    
+
     for i in range(nlines):
         freq = freqs[i]
-        if (freq > ppmlo) and (freq &#60; ppmhi):
+        if (freq &gt; ppmlo) and (freq &lt; ppmhi):
             val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
             tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
 
         if nbin == 0:
@@ -890,20 +879,20 @@ def run(sim_desc):
             nbin += 1
         else:
             for k in range(nbin):
-                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
-                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                if (freq &gt;= outf[k]-tolppm) and (freq &lt;= outf[k]+tolppm):
+                    if (tmpp &gt;= outp[k]-tolpha) and (tmpp &lt;= outp[k]+tolpha):
                         ampsum   =  outa[k]+tmpa
                         outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
                         outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
                         outa[k] +=  tmpa;
-                        found = True 
+                        found = True
             if not found:
                 outf.append(freq)
                 outa.append(tmpa)
                 outp.append(tmpp)
                 nbin += 1
             found = False
-    
+
     ppm.resize(nbin)
     area.resize(nbin)
     phase.resize(nbin)
@@ -916,9 +905,9 @@ def run(sim_desc):
     return (ppm, area, phase)
 </binning_code>
 	</pulse_sequence>
-	<pulse_sequence id="e96ac81d-79b8-486b-88d4-5539d8cefda8" version="1.0.0">
-		<name>PRESS with RFPulse Pulses</name>
-		<created>2011-10-21T20:06:51</created>
+	<pulse_sequence id="35384de1-b914-456a-8cda-4c610afd3552" version="1.0.0">
+		<name>PRESS with real 180 pulses from Pulse</name>
+		<created>2021-03-07T16:54:33</created>
 		<creator>Brian Soher</creator>
 		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
@@ -931,17 +920,20 @@ The "pulses" attribute is a list of "real" RF pulses that were copied from RFPul
 As shown in the sequence code, this waveform can be converted for the field strength and gyromagnetic ratio required and turned into a PyGAMMA PulWaveform and from there inserted into a PulComposite that can be used in the pulse sequence.
 
 The formal definition of the MinimalistPulse class is in vespa/public/minimalist_pulse.py which you can view online here:
-http://scion.duhs.duke.edu/vespa/project/browser/trunk/public/minimalist_pulse.py
+https://github.com/vespa-mrs/vespa/tree/main/vespa/public/minimalist_pulse.py
 </comment>
 		<loop_label>TE1 [ms]</loop_label>
 		<loop_label>TE2 [ms]</loop_label>
-		<pulse_project id="1a68f0d8-d7cb-4f17-ba11-c1b3b51644d6" version="1.0.0">
+		<pulse_design id="51312b68-7e98-4d45-b19a-586b056e4027" version="1.0.0">
 			<name>Example - Adiabatic 180 for Simulation real pulse test</name>
-			<created>2011-10-21T20:08:45</created>
-			<creator>bjs</creator>
-			<comment>This is a generic adiabatic 180 degree inversion pulse created in RFPulse with a duration of 8ms and a bandwidth of approximately 2kHz. This is not an optimized pulse, just a demonstration.
+			<created>2021-03-07T13:32:57</created>
+			<creator>Brian J Soher</creator>
+			<comment>This is a generic adiabatic 180 degree inversion pulse created in RFPulse with a duration of 8ms and a bandwidth of approximately 2kHz (+/- 1kHz). This is not an optimized pulse, just a demonstration.
 </comment>
-			<machine_settings version="1.0.0">
+			<calc_resolution>5000</calc_resolution>
+			<pulse_bandwidth_type>half_height</pulse_bandwidth_type>
+			<gyromagnetic_nuclei>1H</gyromagnetic_nuclei>
+			<machine_specs version="1.0.0">
 				<machine_type>Whole Body MRI</machine_type>
 				<field_strength>3.0</field_strength>
 				<max_b1_field>22.0</max_b1_field>
@@ -951,32 +943,398 @@ http://scion.duhs.duke.edu/vespa/project/browser/trunk/public/minimalist_pulse.p
 				<gradient_raster_time>10.0</gradient_raster_time>
 				<gradient_slew_rate>200.0</gradient_slew_rate>
 				<gradient_maximum>24.0</gradient_maximum>
-			</machine_settings>
-			<master_parameters version="1.0.0">
-				<calc_resolution>5000</calc_resolution>
-				<pulse_bandwidth_convention>half_height</pulse_bandwidth_convention>
-			</master_parameters>
-			<transformation version="1.0.0">
-				<type>create_hyperbolic_secant</type>
-				<parameters version="1.0.0">
-					<total_rotation>1080.0</total_rotation>
-					<time_points>250</time_points>
-					<dwell_time>32.0</dwell_time>
-					<quality_cycles>16.0</quality_cycles>
-					<power_n>1</power_n>
-					<sharpness_mu>8.0</sharpness_mu>
-					<filter_application>0.0</filter_application>
-					<filter_type>no_selection</filter_type>
-				</parameters>
+			</machine_specs>
+			<transform version="1.0.0">
+				<transform_kernel id="4aa72529-5f0d-41b8-8762-0bf9870bd789" version="1.0.0">
+					<type>Create Transform</type>
+					<name>Matpulse Hyperbolic Secant</name>
+					<menu_label>Matpulse - Hyperbolic Secant</menu_label>
+					<created>2016-09-23T16:39:23</created>
+					<creator>bjs</creator>
+					<comment>Cloned 31 August, 2015 21:22:44 from 987d6443-f6e2-4d74-a729-0550653702c8 (Hypebolic Secant - Matpulse)
+Cloned 18 November, 2015 17:05:26 from 8cad1526-ff81-43c6-a708-f4fd8f5cd63a (Hypebolic Secant - Matpulse)
+Cloned 23 September, 2016 16:39:23 from d6b9efe0-1d85-43f4-871c-3b06aa637ec6 (Matpulse Hyperbolic Secant)
+Modified 7 March, 2001 for version 1.0.0 release
+    original name:       Matpulse Hyperbolic Secant multinuc
+    original menu label: Matpulse Hyperbolic Secant multinuc
+</comment>
+					<hide_file1>true</hide_file1>
+					<hide_file2>true</hide_file2>
+					<hide_time_steps>false</hide_time_steps>
+					<hide_duration>false</hide_duration>
+					<hide_tip_angle>true</hide_tip_angle>
+					<hide_bandwidth>true</hide_bandwidth>
+					<file1_label />
+					<file2_label />
+					<tip_angle>90.0</tip_angle>
+					<time_steps>250</time_steps>
+					<duration>8.0</duration>
+					<bandwidth>1.0</bandwidth>
+					<deprecated>false</deprecated>
+					<transform_kernel_control version="1.0.0">
+						<name>Time Steps [int]</name>
+						<type>Long</type>
+						<default>250</default>
+						<variable>time_steps</variable>
+					</transform_kernel_control>
+					<transform_kernel_control version="1.0.0">
+						<name>Duration [msec]</name>
+						<type>Double</type>
+						<default>8.0</default>
+						<variable>duration</variable>
+					</transform_kernel_control>
+					<transform_kernel_control version="1.0.0">
+						<name>Total Rotation [deg]</name>
+						<type>Double</type>
+						<default>1440</default>
+						<variable>total_rotation</variable>
+					</transform_kernel_control>
+					<transform_kernel_control version="1.0.0">
+						<name>Cycles</name>
+						<type>Double</type>
+						<default>6.0</default>
+						<variable>quality_cycles</variable>
+					</transform_kernel_control>
+					<transform_kernel_control version="1.0.0">
+						<name>Power(n)</name>
+						<type>Long</type>
+						<default>1</default>
+						<variable>power_n</variable>
+					</transform_kernel_control>
+					<transform_kernel_control version="1.0.0">
+						<name>Sharpness(mu)</name>
+						<type>Double</type>
+						<default>4.0</default>
+						<variable>sharpness_mu</variable>
+					</transform_kernel_control>
+					<transform_kernel_control version="1.0.0">
+						<name>Filter Type</name>
+						<type>Choice</type>
+						<default>None,Cosine,Hamming</default>
+						<variable>filter_type</variable>
+					</transform_kernel_control>
+					<transform_kernel_control version="1.0.0">
+						<name>Filter Application [%]</name>
+						<type>Double</type>
+						<default>0.0</default>
+						<variable>filter_application</variable>
+					</transform_kernel_control>
+					<transform_kernel_control version="1.0.0">
+						<name>Dwell Time [usec]</name>
+						<type>Output</type>
+						<default>None</default>
+						<variable>out_dwell_time</variable>
+					</transform_kernel_control>
+					<transform_kernel_control version="1.0.0">
+						<name>Bandwidth [kHz]</name>
+						<type>Output</type>
+						<default>None</default>
+						<variable>out_bandwidth</variable>
+					</transform_kernel_control>
+					<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+import scipy.integrate as integrate
+import scipy.stats.distributions as distributions
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+# GAMMA1H = 42.576    
+
+
+
+def run(trans_desc):
+    """
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - the number of data points in the output waveform
+    dwell_time      - the spacing between points in microseconds.
+    
+    resolution      - the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -----------------------------
+
+    pulse_type - HYPERBOLIC_SECANT
+    time_steps - Number of points
+    quality_cycles - Number of cycles before truncating pulse.
+    filter_type - ApodizationFilterType: 0-None, 1-Cosine, 2-Hamming
+    filter_percent - How much to apply the filter (0.0 to 100.0)
+    total_rotation - Total rotation angle in degrees (used for hyperbolic-secant).
+    power_n - Power of hyperbolic secant function.
+    sharpness_mu - Parameter that defines sharpness of function.
+    dwell_time - The dwell time in microseconds.
+
+    """
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters if needed
+
+    time_steps          = int(param["time_steps"])          # int
+    duration            = float(param["duration"])          # float, msec
+    total_rotation      = float(param["total_rotation"])    # float, degrees
+    quality_cycles      = float(param["quality_cycles"])    # float
+    power_n             = int(param["power_n"])             # int
+    sharpness_mu        = float(param["sharpness_mu"])      # float
+    filter_application  = float(param["filter_application"]) # float, %
+    # Choice, 0-None, 1-Cosine, 2-Hamming
+    filter_type         = int(param["filter_type"])         # int
+    
+    dwell_time          = (1000 * duration) / (time_steps)  # in usec
+    dwell               = dwell_time / 1000000.0            # in sec
+    
+    # these extra items are used in making profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution']) # int
+    gamma                = float(extra['gamma'])         # float MHz/T -&gt; 2pi * 100 -&gt; Hz/gauss
+
+
+    #--------------------------------------------------------------------------
+    # pulse creation code starts here
+
+#     rf_y = analytic_pulse.hyperbolic_secant(time_points, cycles,
+#                                 filter_type, filter_application, 
+#                                 total_rotation, n, mu, dwell_time)
+#
+#     def hyperbolic_secant(nop, cycles, filter_type, filter_percent, angle, n, mu, dwell_time):
+#         return analytic_pulse(pulse_type,nop,cycles,filter_type,filter_percent,angle,n,mu,dwell_time)
+#    
+#     def analytic_pulse(pulse_type, nop, cycles, filter_type, filter_percent, \
+#                                        angle, n=1, mu=1, dwell_time=100):
+    
+    pulse_type = 3  #pf_constants.AnalyticType.HYPERBOLIC_SECANT:
+    nop = time_steps
+    cycles = quality_cycles
+    angle = total_rotation
+    n = power_n
+    mu = sharpness_mu
+    filter_percent = filter_application
+    
+    # Set local values
+    
+    g = np.ones(nop)
+    y = g.copy()
+    z = g.copy()
+    
+    # Determine whether nop even or odd (even = 1 or 0)
+    if nop%2 == 0:
+        even_flag = 1  
+    else:
+        even_flag = 0 
+    
+    # Generate symmetric sequence
+    # starts at 0 for odd, at +1/2 for even
+    if even_flag == 1:          
+        # even_flag, starts at 1/2
+        # matlab code; x = (1:nop/2) - 1/2
+        x = np.arange(nop/2) + 1/2
+    else:
+        # odd, starts at 0
+        # matlab code; x = (1:(nop+1)/2) -1
+        x = np.arange((nop+1)/2)
+
+    # HS pulse
+    # sech(beta*t), where tmax = 1; so beta = cycles/2
+    if n == 1:
+        y = pow( math.pi*distributions.hypsecant.pdf(x*cycles/nop), complex(1, mu) ) 
+    else:
+        sqrtn = math.sqrt(n)
+        s = (cycles/(sqrtn*nop))*x
+        y = math.pi*distributions.hypsecant.pdf(s**n) 
+    
+        wfunct = lambda q: math.pi*distributions.hypsecant.pdf(q**n)**2
+        
+        w = np.zeros(len(s))
+           
+        for k in range(len(s)): 
+            integral = integrate.quad(wfunct, 0, s[k])
+            w[k] = integral[0]
+            w[k] *= -mu*2.0*math.pi
+             
+        dphi = s[1]*w
+        phi = dphi.cumsum(axis=0)
+        
+        y = y * np.exp(complex(0,1)*phi)
+    
+    # Note that beta, when n = 1, is cycles/2;
+    # Gives width = mu*beta/pi = cycles*mu/pi
+    
+    if even_flag == 1:
+        y = np.hstack([y[::-1], y]) 
+    else:
+        z = y.copy() 
+        z = np.delete(z,0)
+        y = np.hstack([z[::-1], y])
+        
+    # Check for apodization (Filter funct = g)
+    # Then use apodization
+    if not filter_type:
+        z = y        
+    else:
+        z = filter_pulse(y, x, filter_type, filter_percent)
+
+    z = scale_pulse(z, dwell_time, angle, pulse_type, gamma)    
+
+    rf_waveform = z
+    rf_xaxis = np.arange(time_steps) * dwell    # in sec
+    
+    gradient = None
+    grad_xaxis = None
+    
+    #--------------------------------------------------------------------------
+    # fill and output dictionary, if needed
+
+    bandwidth = dwell_bandwidth_interconvert(dwell_time, sharpness_mu, quality_cycles, time_steps)
+    outputs = {}
+    outputs['out_bandwidth'] = bandwidth
+    outputs['out_dwell_time'] = dwell_time
+
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_waveform)
+    rf_x = np.array(rf_xaxis)
+    gr_y = gradient
+    gr_x = grad_xaxis
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+    
+    
+def scale_pulse(b1, dwell_time, angle, pulse_type, gamma):  
+
+    # Scale b1 to requested angle.
+    multiplier = 1000*(angle/360.0)
+    if pulse_type == 3:  #pf_constants.AnalyticType.HYPERBOLIC_SECANT:
+        sfact = np.sum(np.abs(b1))
+    else:
+        sfact = np.sum(b1)
+    nfact = multiplier/(gamma * dwell_time * sfact) 
+    return nfact*b1 
+
+
+def filter_pulse(b1, xvals, filter_type, filter_percent):
+    
+    length = len(b1)
+    if length%2 == 0:
+        even_flag = 1  
+    else:
+        even_flag = 0     
+    
+    # seq to ~ pi/2 **    
+    maxx = np.amax(xvals)
+    f = (xvals*math.pi/maxx/2.0)*(filter_percent/100.0)
+
+    # Cosine apodization
+    if filter_type == 1:  #pf_constants.ApodizationFilterType.COSINE:   
+        g = np.cos(f) 
+    # Hamming apodization
+    elif filter_type == 2:  #pf_constants.ApodizationFilterType.HAMMING:              
+        g = 0.5*(1 - np.cos(math.pi+2*f)) 
+    else:
+        g = np.ones(len(f))
+
+    if even_flag == 1:
+        g = np.hstack([g[::-1], g]) 
+    else:     
+        h = g.copy() 
+        h = np.delete(h,0)
+        g = np.hstack([h[::-1], g]) 
+
+    z = g*b1
+    
+    return z 
+
+
+def dwell_bandwidth_interconvert(dtb, sharpness_mu, cycles, time_points):        
+    # Note: dwell_time in microseconds and bandwidth in kHz.
+    multiplier = sharpness_mu/math.pi
+    return multiplier * cycles * 1000 / (time_points * dtb)  </algorithm_code>
+				</transform_kernel>
+				<transform_parameter version="1.0.0">
+					<variable>time_steps</variable>
+					<type>(Long)</type>
+					<value>250</value>
+				</transform_parameter>
+				<transform_parameter version="1.0.0">
+					<variable>duration</variable>
+					<type>(Double)</type>
+					<value>8.0</value>
+				</transform_parameter>
+				<transform_parameter version="1.0.0">
+					<variable>total_rotation</variable>
+					<type>(Double)</type>
+					<value>1080.0</value>
+				</transform_parameter>
+				<transform_parameter version="1.0.0">
+					<variable>quality_cycles</variable>
+					<type>(Double)</type>
+					<value>6.0</value>
+				</transform_parameter>
+				<transform_parameter version="1.0.0">
+					<variable>power_n</variable>
+					<type>(Long)</type>
+					<value>1</value>
+				</transform_parameter>
+				<transform_parameter version="1.0.0">
+					<variable>sharpness_mu</variable>
+					<type>(Double)</type>
+					<value>8.0</value>
+				</transform_parameter>
+				<transform_parameter version="1.0.0">
+					<variable>filter_type</variable>
+					<type>(Choice)</type>
+					<value>0</value>
+				</transform_parameter>
+				<transform_parameter version="1.0.0">
+					<variable>filter_application</variable>
+					<type>(Double)</type>
+					<value>0.0</value>
+				</transform_parameter>
+				<transform_parameter version="1.0.0">
+					<variable>out_dwell_time</variable>
+					<type>(Output)</type>
+					<value>32.0</value>
+				</transform_parameter>
+				<transform_parameter version="1.0.0">
+					<variable>out_bandwidth</variable>
+					<type>(Output)</type>
+					<value>1.909859317102744</value>
+				</transform_parameter>
 				<result version="1.0.0">
-					<created>2011-10-21T20:13:29</created>
-					<rf_pulse version="1.0.0">
-						<waveform data_type="complex128" encoding="xdr zlib base64">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</waveform>
-						<waveform_x_axis data_type="float64" encoding="xdr zlib base64">eNotk3lUzXkYxsMx0yTJdDJqMk1ONLIkkYiempJQWiTt+3a7dd19X9IkS4OEOh2dZBtLjCzNZF8GnWgaU5PILttYInKyhDnOPPefe+69v/v9vu/zfD5mZv+/YHa+t7ru2SpY893OVSaxvheJ7/nZ+U3d8s7sbozh9+Pj3WN8kn7HRP4+6dbl9U01wGQ+N3Xoev270Vswjc97+0dkuGwZiJn8HxTWIQtHCODL//u1ZtmfDs7EjzzH/2mg1RWL4QjgeYEDR/XvamjEbJ4b9N2A3oFLdZjD8+d63n3i4D8e83hPcOjpWx5mNxHC++ZnV7fOOVGCUN4b5nuys9bHCWG8PzzELeFo5TuEc46ImKr28+9bEMF5FmRahbfE1mAB54qUGi7eOFyISM630Phs1r/DExDFOaOK40/2qDyxiPMuKm+a9unyEERz7uht3ocGTX6IGM4fU1szYdi6U4jlHrHH7Xc6vaxAHPeJa1w5cny4FPHcK77tbaVX7TwkcL+Eu4JhAUOckcg9E7uulITm9SGJ+ya9D7KIbWpDMvdO/unaGQ/bdiRz/xQLG5PXOX+kMIeUknkzfOS1SGEeqcMK3gY4OyCVuaRWHvltTusKpDKftJEvZaEFr5HGnNJ2uU5cOCkFacwr3S3lWeydZqQzt/S6it3Ja6cjnflleP+dlem7AxnMMePMV87CFzbIZJ6ZQb53JJvykclcM5vVVar5T5HFfLMia+P0H6ORxZyzOh4NL9h7DtnMOzvFsW15gjuymXv2w0Wlqy2rIGD+grw1oeuOWUDAHgSvGiwrhErksI8czcfGTfadyGEvQjPPom0XQiFkP8Iikf9uzTEI2VOu5S9mtWN+QC77yi29cbzuygbksrc8O1vt0eX9kMf+8jaFTD09NQ957FE0qrDn/IMOiNinqObY/qayQIjY62L3HlHLrINYzH4X148b2/7aEYvZs9jx8wOBELNvcWpIS/euPojZu3i7YL98yQGI2b/40dI1vTHZkJADydjNIq27IyTkQSI6HvzBvA0SciHZf3Ws6XYxJORD0vPaon+9H6TkROpl/flESMmLVDeuwTzrV0jJjfRE0PZipENKfmT90gutvrGHjBzJAvJTS7ouQUaeZMsq/WzOF0FGrmQX6h3LqmZCRr7kg1s/2ileQU7O5GHPr1eG7IKcvMnXDzrqOCoJcnInb3ep2PzBFnLyp7D3Vzv/0wQFOVQkJEXt2FMABXlUVOumuBZ6QUEuFZ3lNnvjuqAkn8rRB15O9NgGJTlVCpovHRwUByV5Ve55vG9K51Aoya3yxRer6o80QEV+VR4jc71LDVCRY5XSZ+6JHA+oyLPqcOwYP7/HUJFrVZ/yy7N21VCTbzXWPgjsjoKanKsL9p5tbLSEmryrzzVuDa7+A2pyrzG/v+QvtQYa8q8J7pccEeYGDT3QrBnh0+ZyHxr6oGmZNmLRp43Q0AutbeT7jvYIaOmHNlrckbDPHFp6ot34c/3tohPQ0hftzZ3laYly6OiNzums4oGnK3T0R5d+O1Iw+A509Ei3o2/Sk/vl0NEn3ZPhQ0XHQ6CnV/oJHs+7NwyAnn7pJaHN8tzD0NMz/SHhnt4AMfT0Td+7rFjrMBoGemeYvlXQ9+o6DPTPYDgZZLpYCgM9NJy65tJ/axAM9NH4OWbtJxjppXH21/fMI+pgpJ/GlRPOFLsKYaSnxj/nbrbq7wQjfTVZZ5pKrrbDRG9NCwoSbfavhon+msqqZpStCICJHpuuHvnWLvkdTPQ53yqnr9khGvn0Ot/tzdMhyz2QT7/zw4uuhfVY/QdexI5M</waveform_x_axis>
-					</rf_pulse>
+					<created>2021-03-07T13:33:51</created>
+					<rf_waveform data_type="complex128" encoding="npy zlib base64">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</rf_waveform>
+					<rf_xaxis data_type="float64" encoding="npy zlib base64">eNqdk/k31Wkcx9FpxkjSOCpGoaEbKVtKabwZkuRmyb5frutey3X3fZGRTKZJMjpOprQv6kSTGSUqpzjKmIaRtCqtU2nT0SKNZj5/wXx/ued+l+f5PO/367VldTQzPN7QQGagZrAzxRkixlI7xjKON8PFjsHJF0lELH5qvoid+el+ECtXnDl+X8xlCTLH/8/18HJzcXKx09r978vEgK6NTxtqRtoM8N+vOaLumgvFzlb03w7PuYMlDW8c6L4Tfkv1jXdPmk/P3YDazorLtzzovYXYNeedpmLqYnp/CSbuYmRGBvjQd9+AOzOaaS4Ffe8HTuhZ66wef1rnW0w3uWIW9CSA1gtER/uQkePEIFp3BdTrJo5MmBVM66+ES4DN4zuLQmifVbhp4HnrbFgo7cdEWcvKnhruato3DPa+dYOn/cJp/3C8rW5KdmVG0BwR6H7f1rc9PpLmiURtQneEGWcNzbUGRSduXNSKomi+KCTPeLT8qS6a5oyBl3z4dFJpDM0bC7PLH5d0bo2luePwYOGk4z574mj+eJzZMm1BbV08nSMBVS/tD1g3J9B5EiGKmD97Q0cinSsJIXXe1W97k+h8yfh6SuA03p1kOmcKRvPCyq4MpdB5U9HbmWAS/D6Vzp2GPkvP1mvfpdH50xBw3ltvYcKiHFiok/guW1XGojxYsHEIfFs4LZ1ySUdJz8pfT1anUz7peF0YJn45O4NyygDLI9rN+WAG5ZWBrtsJT1mubMqNjaWb0w5VNbApPzb2+XGy/vTJpBwzYfE8x+GL1kzKkwP9DuFtv2AO5crBk9Xy7YouDuWbhbgxTWJdVBblnIVzRwpnPLyaRXlz4Z5c0mvL4lLuXPxs+mN57AMu5c+DyaktYZvyeNQDD7KcKtP2VzzqIxuD1js6xpTZ1Es2wi7sKV5kkEP95KBJeSiAX5xDPeVgrlOdwT7TXOorFxVXGppvlOdSb7kwLGlSWVrlUX95yFt8djFzRx71mIf++23DRY586pOPoMrO+lO1fOqVj2PLu/nD7vnUbz5sX/fNc2nMp57z8e9jWwH1LcDowRfdzHQB9S7AsbWSet5eAfUvADd+ZNO6hwLiQIhZ7ir+znlC4kGIXuMPoc18IXEhROmAfl5/vZD4EMK/0cjk9bCQOBHh02rm3iLiRYQjWcbtLmoRcSMCG6V7g1tExI8I1tPNitiGYuJIjEtDZekFgWLiSYziNgv/6vVi4kqMZdsrbRsviIkvMV5JrcZ6JkuIMwkOMquvPwuXEG8SpDraNk2qkBB3Elh+2FnF6JMQfxJc/MtBEWAtJQ6lKDy8PyY1WUo8SuFd5OylrpESl1IMJR6x2DooJT5l2OPp9vLYHBlxKkPCpF8udfFkxKsMUwe9jv59WEbcytB+snHjZ89lxK8c2nKf3NmecuJYDs/slhBfmZx4luORv79Twgk5cS1HjdW5z2WjcuJbgZgXQfc3Q0GcK2Da0TH+qoJ4V6C1JnR3x3kFca+AQvHH2nvGSuJfCdfwyDTDUCV5oMQ9Rq/vzE1K8kGJbR9jZy7pVpIXSkT0XX0fZakiP1T4/GjyVUGcijxRoaV4oPGHbSryRQVJSsbWAzdV5I0azovuS8/Zq8kfNQYm86IG2GrySI3Ke489RverySc1mM38qTMeq8krDSb89OKZ5wIN+aXBiVxJV5hQQ55pkB84cjjnuIZ808DRRlW6fkRD3mlx/dUob/dSLfmnRflFffBprZY81CJ4txHj2hkt+ajFmOpT0DryUofjkcZ3v1yhIz91yHEubV2wQUee6mBvZLYz5Hcd+apDX3+ZnmOuJ2/12FhvkVK4Rk/+6hHwfeU40nryWI93aVZfnezXk896xNl0jWabFZDXBfAsmfLkjWsB+V0As+Hwa8URBfgH15mphQ==</rf_xaxis>
 				</result>
-			</transformation>
-		</pulse_project>
+			</transform>
+		</pulse_design>
 		<sequence_code>import pygamma as pg
 import numpy as np
 import math
@@ -1083,13 +1441,13 @@ def run(sim_desc):
     
     sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
 </sequence_code>
-		<binning_code>import pygamma
+		<binning_code>import pygamma as pg
 import numpy as np
 
 def run(sim_desc):
-    area   = pygamma.DoubleVector(0)
-    ppm    = pygamma.DoubleVector(0)
-    phase  = pygamma.DoubleVector(0)
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
     field  = sim_desc.field             # freq in MHz
     nspins = sim_desc.nspins
     tolppm = sim_desc.blend_tolerance_ppm
@@ -1101,19 +1459,14 @@ def run(sim_desc):
     obs_iso = sim_desc.observe_isotope
     nlines  = sim_desc.mx.size()
 
-    # need the quantum number of the observe isotope
-    tmp = pygamma.Isotope(obs_iso)
-    obs_qn = tmp.qn()
-
-    # The original scaling factor fails when a heteronuclear spin system. We 
-    # have found empirically that scaling needs to be a product of the spin 
-    # quantum number of the non-observe nuclei minus the observe nuclei  
-    # quantum number. It also depends on the number of non-observe nuclei.
-    # So ... we get the factor calculated below, 'qnscale', with which we 
-    # modify each line returned from the transition table.
-    qnscale = 1.0
-    for i in range(nspins):
-        qnscale *= 2*sys.qn(i)+1
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
     qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
 
     freqs = []
@@ -1122,7 +1475,7 @@ def run(sim_desc):
     outp  = []
     nbin  = 0
     found = False
-    
+
     PI = 3.14159265358979323846
     RAD2DEG = 180.0/PI
 
@@ -1132,12 +1485,12 @@ def run(sim_desc):
 
     for i in range(nlines):
         freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-    
+
     for i in range(nlines):
         freq = freqs[i]
-        if (freq > ppmlo) and (freq &#60; ppmhi):
+        if (freq &gt; ppmlo) and (freq &lt; ppmhi):
             val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
             tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
 
         if nbin == 0:
@@ -1147,20 +1500,20 @@ def run(sim_desc):
             nbin += 1
         else:
             for k in range(nbin):
-                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
-                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                if (freq &gt;= outf[k]-tolppm) and (freq &lt;= outf[k]+tolppm):
+                    if (tmpp &gt;= outp[k]-tolpha) and (tmpp &lt;= outp[k]+tolpha):
                         ampsum   =  outa[k]+tmpa
                         outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
                         outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
                         outa[k] +=  tmpa;
-                        found = True 
+                        found = True
             if not found:
                 outf.append(freq)
                 outa.append(tmpa)
                 outp.append(tmpp)
                 nbin += 1
             found = False
-    
+
     ppm.resize(nbin)
     area.resize(nbin)
     phase.resize(nbin)
@@ -1171,24 +1524,19 @@ def run(sim_desc):
         phase[i] = -1.0*outp[i]
 
     return (ppm, area, phase)
-</binning_code>
+        </binning_code>
 	</pulse_sequence>
-	<pulse_sequence id="68ca6a47-d983-4819-859e-42d43cf6bf07" version="1.0.0">
-		<name>STEAM Ideal version 4</name>
+	<pulse_sequence id="68ca6a47-d983-4819-859e-42d43cbjs100" version="1.0.0">
+		<name>STEAM Ideal</name>
 		<created>2021-03-03T20:39:02</created>
 		<creator>Brian Soher</creator>
 		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
 A timing diagram for this pulse sequence can be found in the Appendix of the Simulation User Manual.
-Cloned 21 March, 2016 12:17:07 from 3b7a118a-b00e-4d74-ad67-f0df82284128 (STEAM Ideal)
-Cloned 03 March, 2021 8:39:02 PM from dba6b2ff-8288-4c67-ab14-887a8034ae62 (STEAM Ideal version 2)
 
-The original and version 2 both did not work right for varying TM period.
-The original version did not work right because all three 90 pulses were inside the 'crusher'/dephase loop.
-Version 2 did not work right because the pg.zero_mqc() call zeroed all but 0th order coherences.
-
-This version 4 code still zeros the 2nd order coherences, but leaves the 0th and 1st order alone. It also
-performs the 'crusher'/dephase operation properly on only the 2nd and 3rd 90 pulses.  
+Fixes to previous versions. This version still zeros the 2nd order coherences with zero_mqc(), but 
+leaves the 0th and 1st order alone. It also performs the 'crusher'/dephase operation properly on 
+only the 2nd and 3rd 90 pulses.  
 </comment>
 		<loop_label>TE [ms]</loop_label>
 		<loop_label>TM [ms]</loop_label>
@@ -1287,13 +1635,13 @@ def run(sim_desc):
     #       garbage collected, our copy of the results in not affected
     sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
 </sequence_code>
-		<binning_code>import pygamma
+		<binning_code>import pygamma as pg
 import numpy as np
 
 def run(sim_desc):
-    area   = pygamma.DoubleVector(0)
-    ppm    = pygamma.DoubleVector(0)
-    phase  = pygamma.DoubleVector(0)
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
     field  = sim_desc.field             # freq in MHz
     nspins = sim_desc.nspins
     tolppm = sim_desc.blend_tolerance_ppm
@@ -1305,19 +1653,14 @@ def run(sim_desc):
     obs_iso = sim_desc.observe_isotope
     nlines  = sim_desc.mx.size()
 
-    # need the quantum number of the observe isotope
-    tmp = pygamma.Isotope(obs_iso)
-    obs_qn = tmp.qn()
-
-    # The original scaling factor fails when a heteronuclear spin system. We 
-    # have found empirically that scaling needs to be a product of the spin 
-    # quantum number of the non-observe nuclei minus the observe nuclei  
-    # quantum number. It also depends on the number of non-observe nuclei.
-    # So ... we get the factor calculated below, 'qnscale', with which we 
-    # modify each line returned from the transition table.
-    qnscale = 1.0
-    for i in range(nspins):
-        qnscale *= 2*sys.qn(i)+1
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
     qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
 
     freqs = []
@@ -1326,7 +1669,7 @@ def run(sim_desc):
     outp  = []
     nbin  = 0
     found = False
-    
+
     PI = 3.14159265358979323846
     RAD2DEG = 180.0/PI
 
@@ -1336,12 +1679,12 @@ def run(sim_desc):
 
     for i in range(nlines):
         freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-    
+
     for i in range(nlines):
         freq = freqs[i]
         if (freq &gt; ppmlo) and (freq &lt; ppmhi):
             val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
             tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
 
         if nbin == 0:
@@ -1357,14 +1700,14 @@ def run(sim_desc):
                         outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
                         outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
                         outa[k] +=  tmpa;
-                        found = True 
+                        found = True
             if not found:
                 outf.append(freq)
                 outa.append(tmpa)
                 outp.append(tmpp)
                 nbin += 1
             found = False
-    
+
     ppm.resize(nbin)
     area.resize(nbin)
     phase.resize(nbin)
@@ -1377,9 +1720,9 @@ def run(sim_desc):
     return (ppm, area, phase)
 </binning_code>
 	</pulse_sequence>
-	<pulse_sequence id="69888594-2ff1-4e63-b86c-735480da38f6" version="1.0.0">
+	<pulse_sequence id="69888594-2ff1-4e63-b86c-735480bjs100" version="1.0.0">
 		<name>Spin-Echo</name>
-		<created>2011-10-21T20:47:37</created>
+		<created>2021-03-07T20:47:37</created>
 		<creator>Brian Soher</creator>
 		<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
@@ -1430,13 +1773,13 @@ def run(sim_desc):
     #       garbage collected, our copy of the results in not affected
     sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
 </sequence_code>
-		<binning_code>import pygamma
+		<binning_code>import pygamma as pg
 import numpy as np
 
 def run(sim_desc):
-    area   = pygamma.DoubleVector(0)
-    ppm    = pygamma.DoubleVector(0)
-    phase  = pygamma.DoubleVector(0)
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
     field  = sim_desc.field             # freq in MHz
     nspins = sim_desc.nspins
     tolppm = sim_desc.blend_tolerance_ppm
@@ -1448,19 +1791,14 @@ def run(sim_desc):
     obs_iso = sim_desc.observe_isotope
     nlines  = sim_desc.mx.size()
 
-    # need the quantum number of the observe isotope
-    tmp = pygamma.Isotope(obs_iso)
-    obs_qn = tmp.qn()
-
-    # The original scaling factor fails when a heteronuclear spin system. We 
-    # have found empirically that scaling needs to be a product of the spin 
-    # quantum number of the non-observe nuclei minus the observe nuclei  
-    # quantum number. It also depends on the number of non-observe nuclei.
-    # So ... we get the factor calculated below, 'qnscale', with which we 
-    # modify each line returned from the transition table.
-    qnscale = 1.0
-    for i in range(nspins):
-        qnscale *= 2*sys.qn(i)+1
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
     qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
 
     freqs = []
@@ -1469,7 +1807,7 @@ def run(sim_desc):
     outp  = []
     nbin  = 0
     found = False
-    
+
     PI = 3.14159265358979323846
     RAD2DEG = 180.0/PI
 
@@ -1479,12 +1817,12 @@ def run(sim_desc):
 
     for i in range(nlines):
         freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-    
+
     for i in range(nlines):
         freq = freqs[i]
-        if (freq > ppmlo) and (freq &#60; ppmhi):
+        if (freq &gt; ppmlo) and (freq &lt; ppmhi):
             val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
             tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
 
         if nbin == 0:
@@ -1494,20 +1832,20 @@ def run(sim_desc):
             nbin += 1
         else:
             for k in range(nbin):
-                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
-                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                if (freq &gt;= outf[k]-tolppm) and (freq &lt;= outf[k]+tolppm):
+                    if (tmpp &gt;= outp[k]-tolpha) and (tmpp &lt;= outp[k]+tolpha):
                         ampsum   =  outa[k]+tmpa
                         outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
                         outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
                         outa[k] +=  tmpa;
-                        found = True 
+                        found = True
             if not found:
                 outf.append(freq)
                 outa.append(tmpa)
                 outp.append(tmpp)
                 nbin += 1
             found = False
-    
+
     ppm.resize(nbin)
     area.resize(nbin)
     phase.resize(nbin)

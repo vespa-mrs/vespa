@@ -17,7 +17,7 @@ import vespa.common.util.misc as util_misc
 STANDARD_COMMENT = """
 This XML file is in Vespa Interchange File Format (VIFF). You can download
 applications that read and write VIFF files and learn more about VIFF here:
-http://scion.duhs.duke.edu/vespa/
+https://github.com/vespa-mrs/vespa/tree/main/vespa
 
 It was created with Vespa version %s.
 """ % util_misc.get_vespa_version()

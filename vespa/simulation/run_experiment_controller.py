@@ -360,9 +360,9 @@ def _build_sim_descs(experiment, metabolites):
     """
     # In Py2 we guaranteed not to pass Unicode strings to the pulse seq
     # code, so every string had to be UTF-8 encoded. Rationale here:
-    # http://scion.duhs.duke.edu/vespa/gamma/wiki/PyGammaAndPythonStrings
+    # https://vespa-mrs.github.io/vespa.io/development/project_dev/technical/ThePerilsOfStr.html?highlight=perils
     # A bit more info here:
-    # http://scion.duhs.duke.edu/vespa/project/wiki/ThePerilsOfStr
+    # https://vespa-mrs.github.io/vespa.io/development/project_dev/technical/ThePerilsOfStr.html?highlight=perils
     #
     # With Py3, SWIG seems to take care of this issue semi-automagically
     # because PyGAMMA was not working with the original code that did a

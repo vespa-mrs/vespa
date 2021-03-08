@@ -155,8 +155,7 @@ class Importer(object):
     def is_primary(self):
         """True if this Importer is dealing with objects that are 
         children of the XML root, False otherwise."""
-        # Explicit test for None required here. See:
-        # http://scion.duhs.duke.edu/vespa/project/ticket/35
+        # Explicit test for None required here. 
         return (self.root is not None) and \
                (self.root.tag == constants.Export.ROOT_ELEMENT_NAME)
 
@@ -275,6 +274,21 @@ class MetaboliteImporter(Importer):
 
 
 # class PulseProjectImporter(Importer):
+#     """
+#     As of version 0.8.6 the Pulse application replaced RFPulse in Vespa. 
+# 
+#     Initial Fix - When we import PulseProjects or PulseSequences that contain a 
+#     PulseProject, we convert them into PulseDesigns. For the most part, we import 
+#     the PulseProject as usual, then convert and insert as a PulseDesign.
+# 
+#     Fix as of Vespa 1.0.0 - this version did the switch to Py3 and a lot of 
+#     refactor and simplification. As a result, Vespa no longer supports PulseProject
+#     conversion *internally*. This allowed us to remove a bunch of deprecated file.
+#     If needed, we can create a standalone rususitaton script to do the convert. But
+#     for now, out it goes.  I'll leave this here to document, bjs 2021-03-07
+# 
+#     """
+# 
 #     def __init__(self, source, db):
 #         Importer.__init__(self, source, db)
 #
@@ -283,11 +297,6 @@ class MetaboliteImporter(Importer):
 #         log = logging.getLogger(util_logging.Log.IMPORT)
 #
 #         for element in self.root.getiterator("pulse_project"):
-#             # As of version 0.8.6 the Pulse application replaced RFPulse in
-#             # Vespa. When we import PulseProjects or PulseSequences that
-#             # contain a PulseProject, we need to convert them into
-#             # PulseDesigns. For the most part, we import the PulseProject
-#             # as usual, then convert and insert as a PulseDesign
 #
 #             self.found_count += 1
 #             id_ = element.get("id")
@@ -401,22 +410,32 @@ class PulseSequenceImporter(Importer):
                 importer.go(add_history_comment)
                 
                 if importer.imported == []:
+
                     # check if any PulseProjects in this import
-                    importer = PulseProjectImporter(element, self.db)
-                    importer.go(add_history_comment)
-                    
-                    if importer.imported != []:
-                        # This has PulseProjects in it. The importer has 
-                        # converted them to PulseDesigns. If they did not 
-                        # exist in the DB, they have been inserted into the 
-                        # pulse_designs table. But the PulseSequence object
-                        # needs to have 'pulse_design' tags in it, not 
-                        # 'pulse_project' tags, so we insert the converted
-                        # objects into the eTree. We don't have to remove the
-                        # 'pulse_project' elements because they are ignored
-                        # from here on.
-                        for pulse_design in importer.imported:
-                            element.append(pulse_design.deflate(Deflate.ETREE))
+                    for bob in element.getiterator("pulse_project"):
+                        seqname = str(bob.findtext('name'))
+                        msg = "An RFPulse PulseProject object was found in this pulse sequence. \n name = %s, id = %s. \nVespa >= 1.0.0. does not support RFPulse-PulseProject conversions. \nThis pulse sequence will not be imported.  Returning. " % (seqname, id_ )
+                        print(msg)
+                        break
+
+#                    # As of version 1.0.0 there is NO support for RFPulse/PulseProject
+#                    # so we just pop up a warning here re. deprecation
+#
+#                    importer = PulseProjectImporter(element, self.db)
+#                    importer.go(add_history_comment)
+#
+#                    if importer.imported != []:
+#                        # This has PulseProjects in it. The importer has
+#                        # converted them to PulseDesigns. If they did not
+#                        # exist in the DB, they have been inserted into the
+#                        # pulse_designs table. But the PulseSequence object
+#                        # needs to have 'pulse_design' tags in it, not
+#                        # 'pulse_project' tags, so we insert the converted
+#                        # objects into the eTree. We don't have to remove the
+#                        # 'pulse_project' elements because they are ignored
+#                        # from here on.
+#                        for pulse_design in importer.imported:
+#                            element.append(pulse_design.deflate(Deflate.ETREE))
 
                 # Mustn't create a name conflict with an existing pulse sequence.
                 pulse_sequence = mrs_pulse_sequence.PulseSequence(element)

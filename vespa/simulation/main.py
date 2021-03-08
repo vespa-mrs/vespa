@@ -264,11 +264,11 @@ class Main(wx.Frame):
 
 
     def on_simulation_help_online(self, event):
-        webbrowser.open("http://scion.duhs.duke.edu/vespa/simulation", 1)
+        webbrowser.open("https://vespa-mrs.github.io/vespa.io/user_manuals/simulation_user_manual.html", 1)
 
 
     def on_vespa_help_online(self, event):
-        webbrowser.open("http://scion.duhs.duke.edu/vespa", 1)
+        webbrowser.open("https://vespa-mrs.github.io/vespa.io/", 1)
 
 
     def on_about(self, event):
@@ -277,7 +277,7 @@ class Main(wx.Frame):
         info.SetVersion(util_misc.get_vespa_version())
         info.SetCopyright("Copyright 2010, Duke University. All rights reserved.")
         info.SetDescription("Simulation is an advanced spectral simulation and analysis environment. Running on "+bit)
-        info.SetWebSite("http://scion.duhs.duke.edu/vespa/")
+        info.SetWebSite("https://github.com/vespa-mrs/vespa")
         wx_adv.AboutBox(info)
 
 

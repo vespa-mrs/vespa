@@ -399,8 +399,7 @@ class TabVisualize(visualize.PanelVisualizeUI):
                 # panel.Layout()
 
         # Deselect everything in the PlotMetabs listbox before resetting its
-        # contents. This is a fix/workaround for simulation ticket 34:
-        # http://scion.duhs.duke.edu/vespa/simulation/ticket/34
+        # contents. This is a fix/workaround 
         i = self.ListPlotMetabolites.GetCount()
         while i:
             i -= 1
@@ -741,7 +740,6 @@ class TabVisualize(visualize.PanelVisualizeUI):
 
         # We use a callback function to provide a progress indicator. However,
         # it only works under Linux/GTK.
-        # See http://scion.duhs.duke.edu/vespa/simulation/ticket/35
         callback = self.build_basis_progress if ("__WXGTK__" in wx.PlatformInfo) else None
 
         self.basis.data = bbf_module.build_basis_functions(self.experiment, dim0, sw, resppm, callback)

@@ -837,7 +837,7 @@ class DialogEditorTransform(editor_transform.MyDialog):
 
         # Set the focus to the run button if possible. This is a fix for 
         # RFPulse bug 19:
-        # http://scion.duhs.duke.edu/vespa/rfpulse/ticket/19
+        
         
         active_tab = self.tab_transform
         

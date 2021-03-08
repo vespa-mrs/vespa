@@ -22,8 +22,7 @@ import numpy as np
 
 
 # If we set the backend unconditionally, we sometimes get an undesirable
-# message. For details, see:
-# http://scion.duhs.duke.edu/vespa/project/ticket/26
+# message. 
 if matplotlib.get_backend() != "WXAgg":
     matplotlib.use('WXAgg')
 
@@ -118,8 +117,7 @@ class ImagePanel(wx.Panel):
         self.img_norm = [None for i in range(naxes)]  
         
         # Under GTK we need to track self's size to avoid a continuous flow
-        # of size events. For details, see:
-        # http://scion.duhs.duke.edu/vespa/project/ticket/28
+        # of size events. 
         self._platform_is_gtk = ("__WXGTK__" in wx.PlatformInfo)
         self._current_size = (-1, -1)
 
@@ -261,8 +259,7 @@ class ImagePanel(wx.Panel):
 
     def _on_size( self, event ):
         if self._platform_is_gtk:
-            # This is a workaround for ticket 28:
-            # http://scion.duhs.duke.edu/vespa/project/ticket/28
+            # This is a workaround 
             current_x, current_y = self._current_size
             new_x, new_y = tuple(event.GetSize())
 

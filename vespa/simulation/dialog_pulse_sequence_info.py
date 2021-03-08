@@ -396,8 +396,8 @@ class DialogPulseSequenceInfo(pulse_sequence_info.MyDialog):
 
         # These text controls have a habit of sometimes assigning themselves
         # a huge width and/or height. Here we ensure that they have a sane size.
-        screen_width = wx.SystemSettings_GetMetric(wx.SYS_SCREEN_X)
-        screen_height = wx.SystemSettings_GetMetric(wx.SYS_SCREEN_Y)
+        screen_width = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_X)
+        screen_height = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_Y)
 
         width = int(screen_width * 0.5)
         height = int(screen_height * 0.5)

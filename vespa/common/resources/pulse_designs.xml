@@ -2,14 +2,14 @@
 	<!--
 This XML file is in Vespa Interchange File Format (VIFF). You can download
 applications that read and write VIFF files and learn more about VIFF here:
-http://scion.duhs.duke.edu/vespa/
+https://github.com/vespa-mrs/vespa/tree/main/vespa
 
 It was created with Vespa version 0.9.3.
 -->
 	<timestamp>2016-09-23T18:44:26</timestamp>
 	<comment />
 	<pulse_design id="719af627-9b07-47e0-b8a1-c79ce45e8a0d" version="1.0.0">
-		<name>Example - BASSI multinuc 1H</name>
+		<name>Example - BASSI 1H</name>
 		<created>2016-09-23T18:36:59</created>
 		<creator>The Vespa Team</creator>
 		<comment />
@@ -30,8 +30,8 @@ It was created with Vespa version 0.9.3.
 		<transform version="1.0.0">
 			<transform_kernel id="7d497d4b-90a5-4dde-a530-027fb0a7b1f8" version="1.0.0">
 				<type>Create Transform</type>
-				<name>BASSI Warnking Paper multinuc</name>
-				<menu_label>BASSI - Warnking multinuc</menu_label>
+				<name>BASSI Warnking Paper</name>
+				<menu_label>BASSI - Warnking</menu_label>
 				<created>2016-09-23T08:53:53</created>
 				<creator>Brian J Soher</creator>
 				<comment>Derived from Warnking paper MRM 52:1190-1199 (2004)
@@ -90,8 +90,10 @@ vref [uT] = reference voltage for scaling, default for Siemens 1ms hard 180 puls
 
 Imported 03 November, 2015 17:05:11
 
-
 Cloned 23 September, 2016 08:53:53 from 1278ab4f-bcd9-48fd-aff8-6d97e3062181 (BASSI Warnking Paper)
+Modified 7 March, 2001 for version 1.0.0 release
+    original name:       BASSI Warnking Paper multinuc
+    original menu label: BASSI - Warnking multinuc
 </comment>
 				<hide_file1>true</hide_file1>
 				<hide_file2>true</hide_file2>
@@ -554,7 +556,7 @@ def Wrap360(fAng):
 		</transform>
 	</pulse_design>
 	<pulse_design id="34857fd1-80a9-4a68-805b-cf846f495849" version="1.0.0">
-		<name>Example - BASSI multinuc 31P</name>
+		<name>Example - BASSI 31P</name>
 		<created>2016-09-23T18:36:59</created>
 		<creator>The Vespa Team</creator>
 		<comment>Example of a BASSI pulse simulated for 31P use</comment>
@@ -575,8 +577,8 @@ def Wrap360(fAng):
 		<transform version="1.0.0">
 			<transform_kernel id="7d497d4b-90a5-4dde-a530-027fb0a7b1f8" version="1.0.0">
 				<type>Create Transform</type>
-				<name>BASSI Warnking Paper multinuc</name>
-				<menu_label>BASSI - Warnking multinuc</menu_label>
+				<name>BASSI Warnking Paper</name>
+				<menu_label>BASSI - Warnking</menu_label>
 				<created>2016-09-23T08:53:53</created>
 				<creator>Brian J Soher</creator>
 				<comment>Derived from Warnking paper MRM 52:1190-1199 (2004)
@@ -635,8 +637,11 @@ vref [uT] = reference voltage for scaling, default for Siemens 1ms hard 180 puls
 
 Imported 03 November, 2015 17:05:11
 
-
 Cloned 23 September, 2016 08:53:53 from 1278ab4f-bcd9-48fd-aff8-6d97e3062181 (BASSI Warnking Paper)
+
+Modified 7 March, 2001 for version 1.0.0 release
+    original name:       BASSI Warnking Paper multinuc
+    original menu label: BASSI - Warnking multinuc
 </comment>
 				<hide_file1>true</hide_file1>
 				<hide_file2>true</hide_file2>
@@ -1120,15 +1125,17 @@ def Wrap360(fAng):
 		<transform version="1.0.0">
 			<transform_kernel id="4aa72529-5f0d-41b8-8762-0bf9870bd789" version="1.0.0">
 				<type>Create Transform</type>
-				<name>Matpulse Hyperbolic Secant multinuc</name>
-				<menu_label>Matpulse - Hyperbolic Secant multinuc</menu_label>
+				<name>Matpulse Hyperbolic Secant</name>
+				<menu_label>Matpulse - Hyperbolic Secant</menu_label>
 				<created>2016-09-23T16:39:23</created>
 				<creator>bjs</creator>
 				<comment>Cloned 31 August, 2015 21:22:44 from 987d6443-f6e2-4d74-a729-0550653702c8 (Hypebolic Secant - Matpulse)
 
 Cloned 18 November, 2015 17:05:26 from 8cad1526-ff81-43c6-a708-f4fd8f5cd63a (Hypebolic Secant - Matpulse)
-
 Cloned 23 September, 2016 16:39:23 from d6b9efe0-1d85-43f4-871c-3b06aa637ec6 (Matpulse Hyperbolic Secant)
+Modified 7 March, 2001 for version 1.0.0 release
+    original name:       Matpulse Hyperbolic Secant multinuc
+    original menu label: Matpulse Hyperbolic Secant multinuc
 </comment>
 				<hide_file1>true</hide_file1>
 				<hide_file2>true</hide_file2>
@@ -1507,7 +1514,7 @@ def dwell_bandwidth_interconvert(dtb, sharpness_mu, cycles, time_points):
 		</transform>
 	</pulse_design>
 	<pulse_design id="a5d731aaa7-de2e-7146-b060-07a00e7be9z9" version="1.0.0">
-		<name>Example - Matpulse SLR v2</name>
+		<name>Example - Matpulse SLR</name>
 		<created>2017-09-21T13:03:16</created>
 		<creator>bjs</creator>
 		<comment>Example of using the Matpulse SLR kernel to design a 90 degree excite pulse</comment>
@@ -1528,16 +1535,18 @@ def dwell_bandwidth_interconvert(dtb, sharpness_mu, cycles, time_points):
 		<transform version="1.0.0">
 			<transform_kernel id="22a8q380-f835-471u-982d-0764b3324b55" version="1.0.0">
 				<type>Create Transform</type>
-				<name>Matpulse SLR multinuc v2</name>
-				<menu_label>Matpulse - SLR multinuc v2</menu_label>
+				<name>Matpulse SLR</name>
+				<menu_label>Matpulse - SLR</menu_label>
 				<created>2017-09-20T18:33:52</created>
 				<creator>bjs</creator>
 				<comment>This version fixes a bug where an index value was calculated as a float.  Newer Numpy versions treat this as an exception, while earlier versions treated it as a deprecation warning.
 
-
 Cloned 23 September, 2016 16:49:37 from ffc9c755-ad1f-4d37-af19-cb5993bb525d (Matpulse SLR)
-
 Cloned 20 September, 2017 18:33:52 from 9f7f9bae-8d38-49ca-8df0-ea71d9deea2c (Matpulse SLR multinuc)
+
+Modified 7 March, 2001 for version 1.0.0 release
+    original name:       Matpulse SLR multinuc v2
+    original menu label: Matpulse SLR multinuc v2
 </comment>
 				<hide_file1>true</hide_file1>
 				<hide_file2>true</hide_file2>
@@ -1613,7 +1622,6 @@ Cloned 20 September, 2017 18:33:52 from 9f7f9bae-8d38-49ca-8df0-ea71d9deea2c (Ma
 					<variable>reject_ripple</variable>
 				</transform_kernel_control>
 				<algorithm_code># Python Modules.
-from __future__ import division
 import copy
 import math
 
@@ -2294,7 +2302,7 @@ def linear_filter(fr, mag, wts, na, use_remez, mmgresol):
     
     # (Filter from RCEPS.M)
     n = x.size
-    xhat = np.real(sp.fftpack.ifft(np.log(x)))
+    xhat = np.real(sp.fft.ifft(np.log(x)))
     
     # Not sure if epsilon is required, but will guarantee 
     # that we get the expected result: One of n is odd, else zero.
@@ -2496,7 +2504,7 @@ def max_min_filter(frz, magz, wtz, na, use_remez, mmgresol, is_single_band):
     hr = np.lib.scimath.sqrt(np.abs(hr))
     x = np.abs(hr)
     n = x.size
-    xhat = np.real(sp.fftpack.ifft(np.log(x))) 
+    xhat = np.real(sp.fft.ifft(np.log(x))) 
     
     odd = int(np.fix( n % 2 ))    
     
@@ -2520,7 +2528,7 @@ def max_min_filter(frz, magz, wtz, na, use_remez, mmgresol, is_single_band):
 
     # (Filter from RCEPS.M)
     n = x.size
-    xhat = np.real(sp.fftpack.ifft(np.log(x)))
+    xhat = np.real(sp.fft.ifft(np.log(x)))
     odd = int(np.fix(n % 2))
     
     aa = int((n+odd)/2 - 1)
@@ -2612,8 +2620,8 @@ def inverse_slr(na, mpldtmu, mpgaa, mpgbb, gamma):
 
     # Generate coefficients bc and ac 
 
-    bc = sp.fftpack.ifft(b) 
-    ac = sp.fftpack.ifft(a)
+    bc = sp.fft.ifft(b) 
+    ac = sp.fft.ifft(a)
  
     # Preserve orig bc and ac (as 'aa' and 'bb')
     bb = bc.copy() 
@@ -2660,6 +2668,8 @@ def inverse_slr(na, mpldtmu, mpgaa, mpgbb, gamma):
         b1[ii] = -np.imag(b1[ii])
     
     return b1
+    
+                
     
     
 </algorithm_code>
@@ -2721,4 +2731,415 @@ def inverse_slr(na, mpldtmu, mpgaa, mpgbb, gamma):
 			</result>
 		</transform>
 	</pulse_design>
+	<pulse_design id="51312b68-7e98-4d45-b19a-586b056e4027" version="1.0.0">
+		<name>Example - Adiabatic 180 for Simulation real pulse test</name>
+		<created>2021-03-07T13:32:57</created>
+		<creator>Brian J Soher</creator>
+		<comment>This is a generic adiabatic 180 degree inversion pulse created in RFPulse with a duration of 8ms and a bandwidth of approximately 2kHz (+/- 1kHz). This is not an optimized pulse, just a demonstration.
+</comment>
+		<calc_resolution>5000</calc_resolution>
+		<pulse_bandwidth_type>half_height</pulse_bandwidth_type>
+		<gyromagnetic_nuclei>1H</gyromagnetic_nuclei>
+		<machine_specs version="1.0.0">
+			<machine_type>Whole Body MRI</machine_type>
+			<field_strength>3.0</field_strength>
+			<max_b1_field>22.0</max_b1_field>
+			<zero_padding>0</zero_padding>
+			<min_dwell_time>1.0</min_dwell_time>
+			<dwell_time_increment>0.2</dwell_time_increment>
+			<gradient_raster_time>10.0</gradient_raster_time>
+			<gradient_slew_rate>200.0</gradient_slew_rate>
+			<gradient_maximum>24.0</gradient_maximum>
+		</machine_specs>
+		<transform version="1.0.0">
+			<transform_kernel id="4aa72529-5f0d-41b8-8762-0bf9870bd789" version="1.0.0">
+				<type>Create Transform</type>
+				<name>Matpulse Hyperbolic Secant</name>
+				<menu_label>Matpulse - Hyperbolic Secant</menu_label>
+				<created>2016-09-23T16:39:23</created>
+				<creator>bjs</creator>
+				<comment>Cloned 31 August, 2015 21:22:44 from 987d6443-f6e2-4d74-a729-0550653702c8 (Hypebolic Secant - Matpulse)
+Cloned 18 November, 2015 17:05:26 from 8cad1526-ff81-43c6-a708-f4fd8f5cd63a (Hypebolic Secant - Matpulse)
+Cloned 23 September, 2016 16:39:23 from d6b9efe0-1d85-43f4-871c-3b06aa637ec6 (Matpulse Hyperbolic Secant)
+Modified 7 March, 2001 for version 1.0.0 release
+    original name:       Matpulse Hyperbolic Secant multinuc
+    original menu label: Matpulse Hyperbolic Secant multinuc
+</comment>
+				<hide_file1>true</hide_file1>
+				<hide_file2>true</hide_file2>
+				<hide_time_steps>false</hide_time_steps>
+				<hide_duration>false</hide_duration>
+				<hide_tip_angle>true</hide_tip_angle>
+				<hide_bandwidth>true</hide_bandwidth>
+				<file1_label />
+				<file2_label />
+				<tip_angle>90.0</tip_angle>
+				<time_steps>250</time_steps>
+				<duration>8.0</duration>
+				<bandwidth>1.0</bandwidth>
+				<deprecated>false</deprecated>
+				<transform_kernel_control version="1.0.0">
+					<name>Time Steps [int]</name>
+					<type>Long</type>
+					<default>250</default>
+					<variable>time_steps</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Duration [msec]</name>
+					<type>Double</type>
+					<default>8.0</default>
+					<variable>duration</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Total Rotation [deg]</name>
+					<type>Double</type>
+					<default>1440</default>
+					<variable>total_rotation</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Cycles</name>
+					<type>Double</type>
+					<default>6.0</default>
+					<variable>quality_cycles</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Power(n)</name>
+					<type>Long</type>
+					<default>1</default>
+					<variable>power_n</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Sharpness(mu)</name>
+					<type>Double</type>
+					<default>4.0</default>
+					<variable>sharpness_mu</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Filter Type</name>
+					<type>Choice</type>
+					<default>None,Cosine,Hamming</default>
+					<variable>filter_type</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Filter Application [%]</name>
+					<type>Double</type>
+					<default>0.0</default>
+					<variable>filter_application</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Dwell Time [usec]</name>
+					<type>Output</type>
+					<default>None</default>
+					<variable>out_dwell_time</variable>
+				</transform_kernel_control>
+				<transform_kernel_control version="1.0.0">
+					<name>Bandwidth [kHz]</name>
+					<type>Output</type>
+					<default>None</default>
+					<variable>out_bandwidth</variable>
+				</transform_kernel_control>
+				<algorithm_code># Python Modules.
+from __future__ import division
+import copy
+import math
+
+# 3rd party stuff
+import numpy as np
+import scipy.integrate as integrate
+import scipy.stats.distributions as distributions
+
+# Local imports
+import vespa.common.rfp_rf_result as rfp_rf_result
+from vespa.common.transform_run_exception import TransformRunException
+
+
+# Gyromagnetic ratio of 1H - the hydrogen nucleus. (units: kHz/mT)
+# GAMMA1H = 42.576    
+
+
+
+def run(trans_desc):
+    """
+    Script for pulse generation. Adjusts some input parameters to be in the 
+    correct units.
+
+    time_steps      - the number of data points in the output waveform
+    dwell_time      - the spacing between points in microseconds.
+    
+    resolution      - the calculation resolution for frequency domain 
+                      computations.
+    bandwidth_convention:
+        0 for "conventional" (default, FWHM)
+        1 for spectroscopy convention (MINIMUM)
+        2 for filter convention (MAXIMUM)
+    
+    slr_pulse returns a tuple of 4 items defined below:
+        rf_waveform  - ndarray, complex, real/imag values of the rf_pulse.
+        rf_xaxis     - ndarray, float, same size as rf_waveform contains 
+                                the corresponding x axis points.
+        gradient     - ndarray, float OR None
+        grad_xaxis   - ndarray, float OR None
+
+    May raise (or throw):
+    
+        TransformRunException - to indicate user calculated failure of 
+                                algorithm or parameters
+
+    Notes
+    -----------------------------
+
+    pulse_type - HYPERBOLIC_SECANT
+    time_steps - Number of points
+    quality_cycles - Number of cycles before truncating pulse.
+    filter_type - ApodizationFilterType: 0-None, 1-Cosine, 2-Hamming
+    filter_percent - How much to apply the filter (0.0 to 100.0)
+    total_rotation - Total rotation angle in degrees (used for hyperbolic-secant).
+    power_n - Power of hyperbolic secant function.
+    sharpness_mu - Parameter that defines sharpness of function.
+    dwell_time - The dwell time in microseconds.
+
+    """
+    param = trans_desc.parameters
+    extra = trans_desc.extra
+
+    #--------------------------------------------------------------------------
+    # unpack and convert parameters if needed
+
+    time_steps          = int(param["time_steps"])          # int
+    duration            = float(param["duration"])          # float, msec
+    total_rotation      = float(param["total_rotation"])    # float, degrees
+    quality_cycles      = float(param["quality_cycles"])    # float
+    power_n             = int(param["power_n"])             # int
+    sharpness_mu        = float(param["sharpness_mu"])      # float
+    filter_application  = float(param["filter_application"]) # float, %
+    # Choice, 0-None, 1-Cosine, 2-Hamming
+    filter_type         = int(param["filter_type"])         # int
+    
+    dwell_time          = (1000 * duration) / (time_steps)  # in usec
+    dwell               = dwell_time / 1000000.0            # in sec
+    
+    # these extra items are used in making profile
+    bandwidth_convention = int(extra['pulse_bandwidth_type'])  # Choice, 0-HalfHeight, 1-Min, 2-Max    
+    resolution           = int(extra['calc_resolution']) # int
+    gamma                = float(extra['gamma'])         # float MHz/T -&gt; 2pi * 100 -&gt; Hz/gauss
+
+
+    #--------------------------------------------------------------------------
+    # pulse creation code starts here
+
+#     rf_y = analytic_pulse.hyperbolic_secant(time_points, cycles,
+#                                 filter_type, filter_application, 
+#                                 total_rotation, n, mu, dwell_time)
+#
+#     def hyperbolic_secant(nop, cycles, filter_type, filter_percent, angle, n, mu, dwell_time):
+#         return analytic_pulse(pulse_type,nop,cycles,filter_type,filter_percent,angle,n,mu,dwell_time)
+#    
+#     def analytic_pulse(pulse_type, nop, cycles, filter_type, filter_percent, \
+#                                        angle, n=1, mu=1, dwell_time=100):
+    
+    pulse_type = 3  #pf_constants.AnalyticType.HYPERBOLIC_SECANT:
+    nop = time_steps
+    cycles = quality_cycles
+    angle = total_rotation
+    n = power_n
+    mu = sharpness_mu
+    filter_percent = filter_application
+    
+    # Set local values
+    
+    g = np.ones(nop)
+    y = g.copy()
+    z = g.copy()
+    
+    # Determine whether nop even or odd (even = 1 or 0)
+    if nop%2 == 0:
+        even_flag = 1  
+    else:
+        even_flag = 0 
+    
+    # Generate symmetric sequence
+    # starts at 0 for odd, at +1/2 for even
+    if even_flag == 1:          
+        # even_flag, starts at 1/2
+        # matlab code; x = (1:nop/2) - 1/2
+        x = np.arange(nop/2) + 1/2
+    else:
+        # odd, starts at 0
+        # matlab code; x = (1:(nop+1)/2) -1
+        x = np.arange((nop+1)/2)
+
+    # HS pulse
+    # sech(beta*t), where tmax = 1; so beta = cycles/2
+    if n == 1:
+        y = pow( math.pi*distributions.hypsecant.pdf(x*cycles/nop), complex(1, mu) ) 
+    else:
+        sqrtn = math.sqrt(n)
+        s = (cycles/(sqrtn*nop))*x
+        y = math.pi*distributions.hypsecant.pdf(s**n) 
+    
+        wfunct = lambda q: math.pi*distributions.hypsecant.pdf(q**n)**2
+        
+        w = np.zeros(len(s))
+           
+        for k in range(len(s)): 
+            integral = integrate.quad(wfunct, 0, s[k])
+            w[k] = integral[0]
+            w[k] *= -mu*2.0*math.pi
+             
+        dphi = s[1]*w
+        phi = dphi.cumsum(axis=0)
+        
+        y = y * np.exp(complex(0,1)*phi)
+    
+    # Note that beta, when n = 1, is cycles/2;
+    # Gives width = mu*beta/pi = cycles*mu/pi
+    
+    if even_flag == 1:
+        y = np.hstack([y[::-1], y]) 
+    else:
+        z = y.copy() 
+        z = np.delete(z,0)
+        y = np.hstack([z[::-1], y])
+        
+    # Check for apodization (Filter funct = g)
+    # Then use apodization
+    if not filter_type:
+        z = y        
+    else:
+        z = filter_pulse(y, x, filter_type, filter_percent)
+
+    z = scale_pulse(z, dwell_time, angle, pulse_type, gamma)    
+
+    rf_waveform = z
+    rf_xaxis = np.arange(time_steps) * dwell    # in sec
+    
+    gradient = None
+    grad_xaxis = None
+    
+    #--------------------------------------------------------------------------
+    # fill and output dictionary, if needed
+
+    bandwidth = dwell_bandwidth_interconvert(dwell_time, sharpness_mu, quality_cycles, time_steps)
+    outputs = {}
+    outputs['out_bandwidth'] = bandwidth
+    outputs['out_dwell_time'] = dwell_time
+
+    #--------------------------------------------------------------------------
+    # ensure you are returning ndarrays or None
+
+    rf_y = np.array(rf_waveform)
+    rf_x = np.array(rf_xaxis)
+    gr_y = gradient
+    gr_x = grad_xaxis
+
+    return rf_y, rf_x, gr_y, gr_x, outputs
+    
+    
+def scale_pulse(b1, dwell_time, angle, pulse_type, gamma):  
+
+    # Scale b1 to requested angle.
+    multiplier = 1000*(angle/360.0)
+    if pulse_type == 3:  #pf_constants.AnalyticType.HYPERBOLIC_SECANT:
+        sfact = np.sum(np.abs(b1))
+    else:
+        sfact = np.sum(b1)
+    nfact = multiplier/(gamma * dwell_time * sfact) 
+    return nfact*b1 
+
+
+def filter_pulse(b1, xvals, filter_type, filter_percent):
+    
+    length = len(b1)
+    if length%2 == 0:
+        even_flag = 1  
+    else:
+        even_flag = 0     
+    
+    # seq to ~ pi/2 **    
+    maxx = np.amax(xvals)
+    f = (xvals*math.pi/maxx/2.0)*(filter_percent/100.0)
+
+    # Cosine apodization
+    if filter_type == 1:  #pf_constants.ApodizationFilterType.COSINE:   
+        g = np.cos(f) 
+    # Hamming apodization
+    elif filter_type == 2:  #pf_constants.ApodizationFilterType.HAMMING:              
+        g = 0.5*(1 - np.cos(math.pi+2*f)) 
+    else:
+        g = np.ones(len(f))
+
+    if even_flag == 1:
+        g = np.hstack([g[::-1], g]) 
+    else:     
+        h = g.copy() 
+        h = np.delete(h,0)
+        g = np.hstack([h[::-1], g]) 
+
+    z = g*b1
+    
+    return z 
+
+
+def dwell_bandwidth_interconvert(dtb, sharpness_mu, cycles, time_points):        
+    # Note: dwell_time in microseconds and bandwidth in kHz.
+    multiplier = sharpness_mu/math.pi
+    return multiplier * cycles * 1000 / (time_points * dtb)  </algorithm_code>
+			</transform_kernel>
+			<transform_parameter version="1.0.0">
+				<variable>time_steps</variable>
+				<type>(Long)</type>
+				<value>250</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>duration</variable>
+				<type>(Double)</type>
+				<value>8.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>total_rotation</variable>
+				<type>(Double)</type>
+				<value>1080.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>quality_cycles</variable>
+				<type>(Double)</type>
+				<value>6.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>power_n</variable>
+				<type>(Long)</type>
+				<value>1</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>sharpness_mu</variable>
+				<type>(Double)</type>
+				<value>8.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>filter_type</variable>
+				<type>(Choice)</type>
+				<value>0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>filter_application</variable>
+				<type>(Double)</type>
+				<value>0.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>out_dwell_time</variable>
+				<type>(Output)</type>
+				<value>32.0</value>
+			</transform_parameter>
+			<transform_parameter version="1.0.0">
+				<variable>out_bandwidth</variable>
+				<type>(Output)</type>
+				<value>1.909859317102744</value>
+			</transform_parameter>
+			<result version="1.0.0">
+				<created>2021-03-07T13:33:51</created>
+				<rf_waveform data_type="complex128" encoding="npy zlib base64">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</rf_waveform>
+				<rf_xaxis data_type="float64" encoding="npy zlib base64">eNqdk/k31Wkcx9FpxkjSOCpGoaEbKVtKabwZkuRmyb5frutey3X3fZGRTKZJMjpOprQv6kSTGSUqpzjKmIaRtCqtU2nT0SKNZj5/wXx/ued+l+f5PO/367VldTQzPN7QQGagZrAzxRkixlI7xjKON8PFjsHJF0lELH5qvoid+el+ECtXnDl+X8xlCTLH/8/18HJzcXKx09r978vEgK6NTxtqRtoM8N+vOaLumgvFzlb03w7PuYMlDW8c6L4Tfkv1jXdPmk/P3YDazorLtzzovYXYNeedpmLqYnp/CSbuYmRGBvjQd9+AOzOaaS4Ffe8HTuhZ66wef1rnW0w3uWIW9CSA1gtER/uQkePEIFp3BdTrJo5MmBVM66+ES4DN4zuLQmifVbhp4HnrbFgo7cdEWcvKnhruato3DPa+dYOn/cJp/3C8rW5KdmVG0BwR6H7f1rc9PpLmiURtQneEGWcNzbUGRSduXNSKomi+KCTPeLT8qS6a5oyBl3z4dFJpDM0bC7PLH5d0bo2luePwYOGk4z574mj+eJzZMm1BbV08nSMBVS/tD1g3J9B5EiGKmD97Q0cinSsJIXXe1W97k+h8yfh6SuA03p1kOmcKRvPCyq4MpdB5U9HbmWAS/D6Vzp2GPkvP1mvfpdH50xBw3ltvYcKiHFiok/guW1XGojxYsHEIfFs4LZ1ySUdJz8pfT1anUz7peF0YJn45O4NyygDLI9rN+WAG5ZWBrtsJT1mubMqNjaWb0w5VNbApPzb2+XGy/vTJpBwzYfE8x+GL1kzKkwP9DuFtv2AO5crBk9Xy7YouDuWbhbgxTWJdVBblnIVzRwpnPLyaRXlz4Z5c0mvL4lLuXPxs+mN57AMu5c+DyaktYZvyeNQDD7KcKtP2VzzqIxuD1js6xpTZ1Es2wi7sKV5kkEP95KBJeSiAX5xDPeVgrlOdwT7TXOorFxVXGppvlOdSb7kwLGlSWVrlUX95yFt8djFzRx71mIf++23DRY586pOPoMrO+lO1fOqVj2PLu/nD7vnUbz5sX/fNc2nMp57z8e9jWwH1LcDowRfdzHQB9S7AsbWSet5eAfUvADd+ZNO6hwLiQIhZ7ir+znlC4kGIXuMPoc18IXEhROmAfl5/vZD4EMK/0cjk9bCQOBHh02rm3iLiRYQjWcbtLmoRcSMCG6V7g1tExI8I1tPNitiGYuJIjEtDZekFgWLiSYziNgv/6vVi4kqMZdsrbRsviIkvMV5JrcZ6JkuIMwkOMquvPwuXEG8SpDraNk2qkBB3Elh+2FnF6JMQfxJc/MtBEWAtJQ6lKDy8PyY1WUo8SuFd5OylrpESl1IMJR6x2DooJT5l2OPp9vLYHBlxKkPCpF8udfFkxKsMUwe9jv59WEbcytB+snHjZ89lxK8c2nKf3NmecuJYDs/slhBfmZx4luORv79Twgk5cS1HjdW5z2WjcuJbgZgXQfc3Q0GcK2Da0TH+qoJ4V6C1JnR3x3kFca+AQvHH2nvGSuJfCdfwyDTDUCV5oMQ9Rq/vzE1K8kGJbR9jZy7pVpIXSkT0XX0fZakiP1T4/GjyVUGcijxRoaV4oPGHbSryRQVJSsbWAzdV5I0azovuS8/Zq8kfNQYm86IG2GrySI3Ke489RverySc1mM38qTMeq8krDSb89OKZ5wIN+aXBiVxJV5hQQ55pkB84cjjnuIZ808DRRlW6fkRD3mlx/dUob/dSLfmnRflFffBprZY81CJ4txHj2hkt+ajFmOpT0DryUofjkcZ3v1yhIz91yHEubV2wQUee6mBvZLYz5Hcd+apDX3+ZnmOuJ2/12FhvkVK4Rk/+6hHwfeU40nryWI93aVZfnezXk896xNl0jWabFZDXBfAsmfLkjWsB+V0As+Hwa8URBfgH15mphQ==</rf_xaxis>
+			</result>
+		</transform>
+	</pulse_design>    
 </vespa_export>

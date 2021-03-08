@@ -2,15 +2,15 @@
 	<!-- 
 This XML file is in Vespa Interchange File Format (VIFF). You can download
 applications that read and write VIFF files and learn more about VIFF here:
-http://scion.duhs.duke.edu/vespa/
+https://github.com/vespa-mrs/vespa/tree/main/vespa
 
-It was created with Vespa version 0.2.6.
+It was created with Vespa version 1.0.0.
  -->
-	<timestamp>2011-10-21T21:42:26</timestamp>
+	<timestamp>2021-03-07T21:04:26</timestamp>
 	<comment>This is the master file for populating the database.</comment>
 	<experiment id="19c0ea8b-b2c3-4a8d-910a-041061a67d0d" version="1.1.0">
 		<name>Example One-Pulse</name>
-		<created>2011-10-21T21:07:24</created>
+		<created>2021-03-07T21:07:24</created>
 		<investigator>Brian J. Soher</investigator>
 		<comment>The simplest pulse sequence possible</comment>
 		<main_field_frequency>123.90000000000001</main_field_frequency>
@@ -19,9 +19,9 @@ It was created with Vespa version 0.2.6.
 		<peak_search_ppm_high>10.0</peak_search_ppm_high>
 		<blend_tolerance_ppm>0.0015</blend_tolerance_ppm>
 		<blend_tolerance_phase>50.0</blend_tolerance_phase>
-		<pulse_sequence id="28e07f4b-5d37-43e0-828d-4e7a733fd542" version="1.0.0">
+		<pulse_sequence id="28e07f4b-5d37-43e0-828d-4e7a73bjs100" version="1.0.0">
 			<name>One-Pulse</name>
-			<created>2011-10-21T20:39:42</created>
+			<created>2021-03-07T20:39:42</created>
 			<creator>Brian Soher</creator>
 			<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
@@ -62,13 +62,13 @@ def run(sim_desc):
     #       garbage collected, our copy of the results in not affected
     sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
 </sequence_code>
-			<binning_code>import pygamma
+			<binning_code>import pygamma as pg
 import numpy as np
 
 def run(sim_desc):
-    area   = pygamma.DoubleVector(0)
-    ppm    = pygamma.DoubleVector(0)
-    phase  = pygamma.DoubleVector(0)
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
     field  = sim_desc.field             # freq in MHz
     nspins = sim_desc.nspins
     tolppm = sim_desc.blend_tolerance_ppm
@@ -80,19 +80,14 @@ def run(sim_desc):
     obs_iso = sim_desc.observe_isotope
     nlines  = sim_desc.mx.size()
 
-    # need the quantum number of the observe isotope
-    tmp = pygamma.Isotope(obs_iso)
-    obs_qn = tmp.qn()
-
-    # The original scaling factor fails when a heteronuclear spin system. We 
-    # have found empirically that scaling needs to be a product of the spin 
-    # quantum number of the non-observe nuclei minus the observe nuclei  
-    # quantum number. It also depends on the number of non-observe nuclei.
-    # So ... we get the factor calculated below, 'qnscale', with which we 
-    # modify each line returned from the transition table.
-    qnscale = 1.0
-    for i in range(nspins):
-        qnscale *= 2*sys.qn(i)+1
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
     qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
 
     freqs = []
@@ -101,7 +96,7 @@ def run(sim_desc):
     outp  = []
     nbin  = 0
     found = False
-    
+
     PI = 3.14159265358979323846
     RAD2DEG = 180.0/PI
 
@@ -111,12 +106,12 @@ def run(sim_desc):
 
     for i in range(nlines):
         freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-    
+
     for i in range(nlines):
         freq = freqs[i]
-        if (freq > ppmlo) and (freq &#60; ppmhi):
+        if (freq &gt; ppmlo) and (freq &lt; ppmhi):
             val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
             tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
 
         if nbin == 0:
@@ -126,20 +121,20 @@ def run(sim_desc):
             nbin += 1
         else:
             for k in range(nbin):
-                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
-                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                if (freq &gt;= outf[k]-tolppm) and (freq &lt;= outf[k]+tolppm):
+                    if (tmpp &gt;= outp[k]-tolpha) and (tmpp &lt;= outp[k]+tolpha):
                         ampsum   =  outa[k]+tmpa
                         outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
                         outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
                         outa[k] +=  tmpa;
-                        found = True 
+                        found = True
             if not found:
                 outf.append(freq)
                 outa.append(tmpa)
                 outp.append(tmpp)
                 nbin += 1
             found = False
-    
+
     ppm.resize(nbin)
     area.resize(nbin)
     phase.resize(nbin)
@@ -746,7 +741,7 @@ def run(sim_desc):
 	</experiment>
 	<experiment id="57d9c93c-7032-43cf-971e-b456bc7fd74e" version="1.1.0">
 		<name>Example PRESS Ideal</name>
-		<created>2011-10-21T21:37:59</created>
+		<created>2021-03-07T21:37:59</created>
 		<investigator>Brian J. Soher</investigator>
 		<comment>This example shows how the TE1 and TE 2 loops can be used to create a 3D data set for various metabolites. You should be able to visualize this data in both the integral and contour plots as well as individually or in stacks.</comment>
 		<main_field_frequency>123.90000000000001</main_field_frequency>
@@ -755,9 +750,9 @@ def run(sim_desc):
 		<peak_search_ppm_high>10.0</peak_search_ppm_high>
 		<blend_tolerance_ppm>0.0015</blend_tolerance_ppm>
 		<blend_tolerance_phase>50.0</blend_tolerance_phase>
-		<pulse_sequence id="43be13ae-de9a-40a1-9a2d-c872d8c8b8b2" version="1.0.0">
+		<pulse_sequence id="43be13ae-de9a-40a1-9a2d-c872d8bjs100" version="1.0.0">
 			<name>PRESS Ideal</name>
-			<created>2011-10-21T20:44:20</created>
+			<created>2021-03-07T20:44:20</created>
 			<creator>Brian Soher</creator>
 			<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
@@ -815,13 +810,13 @@ def run(sim_desc):
     #       garbage collected, our copy of the results in not affected
     sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
 </sequence_code>
-			<binning_code>import pygamma
+			<binning_code>import pygamma as pg
 import numpy as np
 
 def run(sim_desc):
-    area   = pygamma.DoubleVector(0)
-    ppm    = pygamma.DoubleVector(0)
-    phase  = pygamma.DoubleVector(0)
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
     field  = sim_desc.field             # freq in MHz
     nspins = sim_desc.nspins
     tolppm = sim_desc.blend_tolerance_ppm
@@ -833,19 +828,14 @@ def run(sim_desc):
     obs_iso = sim_desc.observe_isotope
     nlines  = sim_desc.mx.size()
 
-    # need the quantum number of the observe isotope
-    tmp = pygamma.Isotope(obs_iso)
-    obs_qn = tmp.qn()
-
-    # The original scaling factor fails when a heteronuclear spin system. We 
-    # have found empirically that scaling needs to be a product of the spin 
-    # quantum number of the non-observe nuclei minus the observe nuclei  
-    # quantum number. It also depends on the number of non-observe nuclei.
-    # So ... we get the factor calculated below, 'qnscale', with which we 
-    # modify each line returned from the transition table.
-    qnscale = 1.0
-    for i in range(nspins):
-        qnscale *= 2*sys.qn(i)+1
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
     qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
 
     freqs = []
@@ -854,7 +844,7 @@ def run(sim_desc):
     outp  = []
     nbin  = 0
     found = False
-    
+
     PI = 3.14159265358979323846
     RAD2DEG = 180.0/PI
 
@@ -864,12 +854,12 @@ def run(sim_desc):
 
     for i in range(nlines):
         freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-    
+
     for i in range(nlines):
         freq = freqs[i]
-        if (freq > ppmlo) and (freq &#60; ppmhi):
+        if (freq &gt; ppmlo) and (freq &lt; ppmhi):
             val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
             tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
 
         if nbin == 0:
@@ -879,20 +869,20 @@ def run(sim_desc):
             nbin += 1
         else:
             for k in range(nbin):
-                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
-                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                if (freq &gt;= outf[k]-tolppm) and (freq &lt;= outf[k]+tolppm):
+                    if (tmpp &gt;= outp[k]-tolpha) and (tmpp &lt;= outp[k]+tolpha):
                         ampsum   =  outa[k]+tmpa
                         outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
                         outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
                         outa[k] +=  tmpa;
-                        found = True 
+                        found = True
             if not found:
                 outf.append(freq)
                 outa.append(tmpa)
                 outp.append(tmpp)
                 nbin += 1
             found = False
-    
+
     ppm.resize(nbin)
     area.resize(nbin)
     phase.resize(nbin)
@@ -9479,7 +9469,7 @@ def run(sim_desc):
 	</experiment>
 	<experiment id="f8becd0e-df54-444e-81b5-3c275c5f4f28" version="1.1.0">
 		<name>Example Spin-Echo</name>
-		<created>2011-10-21T21:27:39</created>
+		<created>2021-03-07T21:27:39</created>
 		<investigator>Brian J. Soher</investigator>
 		<comment>This example creates a series of TE values for various metabolites. It can be used to display results in the Integral window</comment>
 		<main_field_frequency>123.90000000000001</main_field_frequency>
@@ -9488,9 +9478,9 @@ def run(sim_desc):
 		<peak_search_ppm_high>10.0</peak_search_ppm_high>
 		<blend_tolerance_ppm>0.0015</blend_tolerance_ppm>
 		<blend_tolerance_phase>50.0</blend_tolerance_phase>
-		<pulse_sequence id="69888594-2ff1-4e63-b86c-735480da38f6" version="1.0.0">
+		<pulse_sequence id="69888594-2ff1-4e63-b86c-735480bjs100" version="1.0.0">
 			<name>Spin-Echo</name>
-			<created>2011-10-21T20:47:37</created>
+			<created>2021-03-07T20:47:37</created>
 			<creator>Brian Soher</creator>
 			<comment>This is an example PyGAMMA pulse sequence for use in Vespa-Simulation
 
@@ -9543,13 +9533,13 @@ def run(sim_desc):
     #       garbage collected, our copy of the results in not affected
     sim_desc.mx = pg.TTable1D(ACQ.table(sigma0))
 </sequence_code>
-			<binning_code>import pygamma
+			<binning_code>import pygamma as pg
 import numpy as np
 
 def run(sim_desc):
-    area   = pygamma.DoubleVector(0)
-    ppm    = pygamma.DoubleVector(0)
-    phase  = pygamma.DoubleVector(0)
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
     field  = sim_desc.field             # freq in MHz
     nspins = sim_desc.nspins
     tolppm = sim_desc.blend_tolerance_ppm
@@ -9561,19 +9551,14 @@ def run(sim_desc):
     obs_iso = sim_desc.observe_isotope
     nlines  = sim_desc.mx.size()
 
-    # need the quantum number of the observe isotope
-    tmp = pygamma.Isotope(obs_iso)
-    obs_qn = tmp.qn()
-
-    # The original scaling factor fails when a heteronuclear spin system. We 
-    # have found empirically that scaling needs to be a product of the spin 
-    # quantum number of the non-observe nuclei minus the observe nuclei  
-    # quantum number. It also depends on the number of non-observe nuclei.
-    # So ... we get the factor calculated below, 'qnscale', with which we 
-    # modify each line returned from the transition table.
-    qnscale = 1.0
-    for i in range(nspins):
-        qnscale *= 2*sys.qn(i)+1
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
     qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
 
     freqs = []
@@ -9582,7 +9567,7 @@ def run(sim_desc):
     outp  = []
     nbin  = 0
     found = False
-    
+
     PI = 3.14159265358979323846
     RAD2DEG = 180.0/PI
 
@@ -9592,12 +9577,12 @@ def run(sim_desc):
 
     for i in range(nlines):
         freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-    
+
     for i in range(nlines):
         freq = freqs[i]
-        if (freq > ppmlo) and (freq &#60; ppmhi):
+        if (freq &gt; ppmlo) and (freq &lt; ppmhi):
             val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal 
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
             tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
 
         if nbin == 0:
@@ -9607,20 +9592,20 @@ def run(sim_desc):
             nbin += 1
         else:
             for k in range(nbin):
-                if (freq >= outf[k]-tolppm) and (freq &#60;= outf[k]+tolppm):
-                    if (tmpp >= outp[k]-tolpha) and (tmpp &#60;= outp[k]+tolpha):
+                if (freq &gt;= outf[k]-tolppm) and (freq &lt;= outf[k]+tolppm):
+                    if (tmpp &gt;= outp[k]-tolpha) and (tmpp &lt;= outp[k]+tolpha):
                         ampsum   =  outa[k]+tmpa
                         outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
                         outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
                         outa[k] +=  tmpa;
-                        found = True 
+                        found = True
             if not found:
                 outf.append(freq)
                 outa.append(tmpa)
                 outp.append(tmpp)
                 nbin += 1
             found = False
-    
+
     ppm.resize(nbin)
     area.resize(nbin)
     phase.resize(nbin)
