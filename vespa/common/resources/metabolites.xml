@@ -3,225 +3,47 @@
 This XML file is in Vespa Interchange File Format (VIFF). You can download
 applications that read and write VIFF files and learn more about VIFF here:
 https://github.com/vespa-mrs/vespa/tree/main/vespa
+
+
  -->
-	<timestamp>2011-03-17T10:50:58</timestamp>
+	<timestamp>2021-03-07T10:50:58</timestamp>
 	<comment>This is the master file for populating the database.</comment>
-	<metabolite id="533ac7e6-4dcd-427d-b1df-439be07ec63b" version="1.0.0">
-		<name>GPC-gp</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
+	<metabolite id="487b89c3-5af1-4b2d-a957-60f99e918ddc" version="1.0.0">
+		<name>2-hydroxyglutarate</name>
+		<created>2015-12-22T14:07:58</created>
+		<creator>bjs</creator>
+		<comment>Values taken from 2002 paper by Dominika Bal and Adam Gryff-Keller in Magnetic Resonance in Chemistry, 40:533-536</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>3.605</chemical_shift>
+			<chemical_shift>4.022</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>3.672</chemical_shift>
+			<chemical_shift>1.825</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>3.903</chemical_shift>
+			<chemical_shift>1.977</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>3.871</chemical_shift>
+			<chemical_shift>2.221</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>3.946</chemical_shift>
+			<chemical_shift>2.272</chemical_shift>
 		</spin>
-		<spin>
-			<isotope>31P</isotope>
-			<chemical_shift>100.0</chemical_shift>
-		</spin>
-		<j_coupling>-14.78</j_coupling>
-		<j_coupling>5.77</j_coupling>
+		<j_coupling>7.6</j_coupling>
+		<j_coupling>4.1</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>4.53</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>5.77</j_coupling>
-		<j_coupling>4.53</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>-14.78</j_coupling>
-		<j_coupling>6.03</j_coupling>
-		<j_coupling>6.03</j_coupling>
-	</metabolite>
-	<metabolite id="0a8d7945-fe26-4a88-a1f4-3197ec85c046" version="1.0.0">
-		<name>GPC-pcholine1</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
-		<deactivated />
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>4.312</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>4.312</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.659</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.659</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>14N</isotope>
-			<chemical_shift>100.0</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>31P</isotope>
-			<chemical_shift>100.0</chemical_shift>
-		</spin>
-		<j_coupling>-9.32</j_coupling>
-		<j_coupling>3.1</j_coupling>
-		<j_coupling>5.9</j_coupling>
-		<j_coupling>2.67</j_coupling>
-		<j_coupling>6.03</j_coupling>
-		<j_coupling>5.9</j_coupling>
-		<j_coupling>3.1</j_coupling>
-		<j_coupling>2.67</j_coupling>
-		<j_coupling>6.03</j_coupling>
-		<j_coupling>-9.32</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-	</metabolite>
-	<metabolite id="ec80a5ce-2dbe-46bf-9da7-4dc4c8060033" version="1.0.0">
-		<name>GPC-pcholine2</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
-		<deactivated />
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.212</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.212</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.212</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.212</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.212</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.212</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.212</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.212</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.212</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>14N</isotope>
-			<chemical_shift>100.0</chemical_shift>
-		</spin>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
-		<j_coupling>0.57</j_coupling>
-	</metabolite>
-	<metabolite id="4ffc1254-049b-4a31-bc04-31e414b73bf7" version="1.0.0">
-		<name>NAAG-truncated</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
-		<deactivated />
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>2.042</chemical_shift>
-		</spin>
-	</metabolite>
-	<metabolite id="0a98b61d-1980-4a02-bafe-8f264af3a887" version="1.0.0">
-		<name>NAAG-truncated-siemens</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
-		<deactivated />
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>2.045</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>2.045</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>2.045</chemical_shift>
-		</spin>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
+		<j_coupling>-14.0</j_coupling>
+		<j_coupling>5.3</j_coupling>
+		<j_coupling>10.4</j_coupling>
+		<j_coupling>10.6</j_coupling>
+		<j_coupling>6.0</j_coupling>
+		<j_coupling>-15.0</j_coupling>
 	</metabolite>
 	<metabolite id="023bc7b6-006c-4f74-9f3b-27e3cf996aa2" version="1.0.0">
 		<name>acetate</name>
@@ -415,43 +237,6 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<j_coupling>3.168</j_coupling>
 		<j_coupling>2.681</j_coupling>
 		<j_coupling>-14.07</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-	</metabolite>
-	<metabolite id="d7396e37-1a4b-4b42-9807-dec1cbaf7374" version="1.0.0">
-		<name>choline-methylene-siemens</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
-		<deactivated />
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>4.054</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>4.054</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.501</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.501</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>14N</isotope>
-			<chemical_shift>100.0</chemical_shift>
-		</spin>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>3.14</j_coupling>
-		<j_coupling>6.979</j_coupling>
-		<j_coupling>2.572</j_coupling>
-		<j_coupling>7.011</j_coupling>
-		<j_coupling>3.168</j_coupling>
-		<j_coupling>2.681</j_coupling>
-		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 	</metabolite>
@@ -791,62 +576,6 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<j_coupling>6.0</j_coupling>
 		<j_coupling>-12.1</j_coupling>
 	</metabolite>
-	<metabolite id="dc32f238-d1f9-452a-8c91-f01a4f4b2ed3" version="1.0.0">
-		<name>glucose-alpha-weiland</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
-		<deactivated />
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>5.23</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.5</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.66</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.32</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.75</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.75</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.73</chemical_shift>
-		</spin>
-		<j_coupling>3.8</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>9.6</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>9.4</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>9.9</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>1.5</j_coupling>
-		<j_coupling>6.0</j_coupling>
-		<j_coupling>-12.1</j_coupling>
-	</metabolite>
 	<metabolite id="b3ea6621-d4a1-4a6e-b706-af31f0c9098e" version="1.0.0">
 		<name>glucose-beta</name>
 		<created>2010-03-24T16:20:18</created>
@@ -880,62 +609,6 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<spin>
 			<isotope>1H</isotope>
 			<chemical_shift>3.707</chemical_shift>
-		</spin>
-		<j_coupling>8.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>9.1</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>9.4</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>8.9</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>1.6</j_coupling>
-		<j_coupling>5.4</j_coupling>
-		<j_coupling>-12.3</j_coupling>
-	</metabolite>
-	<metabolite id="49813259-ce5d-4166-a027-c2b865b5db79" version="1.0.0">
-		<name>glucose-beta-weiland</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
-		<deactivated />
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>4.63</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.2</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.4</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.33</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.38</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.78</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.73</chemical_shift>
 		</spin>
 		<j_coupling>8.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
@@ -1178,6 +851,190 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 			<chemical_shift>3.548</chemical_shift>
 		</spin>
 		<j_coupling>0.0</j_coupling>
+	</metabolite>
+	<metabolite id="533ac7e6-4dcd-427d-b1df-439be07ec63b" version="1.0.0">
+		<name>GPC-gp</name>
+		<created>2010-03-24T16:20:18</created>
+		<creator>Brian Soher</creator>
+		<comment />
+		<deactivated />
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.605</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.672</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.903</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.871</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.946</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>31P</isotope>
+			<chemical_shift>100.0</chemical_shift>
+		</spin>
+		<j_coupling>-14.78</j_coupling>
+		<j_coupling>5.77</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>4.53</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>5.77</j_coupling>
+		<j_coupling>4.53</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>-14.78</j_coupling>
+		<j_coupling>6.03</j_coupling>
+		<j_coupling>6.03</j_coupling>
+	</metabolite>
+	<metabolite id="0a8d7945-fe26-4a88-a1f4-3197ec85c046" version="1.0.0">
+		<name>GPC-pcholine1</name>
+		<created>2010-03-24T16:20:18</created>
+		<creator>Brian Soher</creator>
+		<comment />
+		<deactivated />
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>4.312</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>4.312</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.659</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.659</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>14N</isotope>
+			<chemical_shift>100.0</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>31P</isotope>
+			<chemical_shift>100.0</chemical_shift>
+		</spin>
+		<j_coupling>-9.32</j_coupling>
+		<j_coupling>3.1</j_coupling>
+		<j_coupling>5.9</j_coupling>
+		<j_coupling>2.67</j_coupling>
+		<j_coupling>6.03</j_coupling>
+		<j_coupling>5.9</j_coupling>
+		<j_coupling>3.1</j_coupling>
+		<j_coupling>2.67</j_coupling>
+		<j_coupling>6.03</j_coupling>
+		<j_coupling>-9.32</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+	</metabolite>
+	<metabolite id="ec80a5ce-2dbe-46bf-9da7-4dc4c8060033" version="1.0.0">
+		<name>GPC-pcholine2</name>
+		<created>2010-03-24T16:20:18</created>
+		<creator>Brian Soher</creator>
+		<comment />
+		<deactivated />
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.212</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.212</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.212</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.212</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.212</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.212</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.212</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.212</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>3.212</chemical_shift>
+		</spin>
+		<spin>
+			<isotope>14N</isotope>
+			<chemical_shift>100.0</chemical_shift>
+		</spin>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.57</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.57</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.57</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.57</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.57</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.57</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.57</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.57</j_coupling>
+		<j_coupling>0.57</j_coupling>
 	</metabolite>
 	<metabolite id="7eb8263f-c2a9-4940-81ed-108f67f85151" version="1.0.0">
 		<name>histamine</name>
@@ -1427,6 +1284,17 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
+	</metabolite>
+	<metabolite id="4ffc1254-049b-4a31-bc04-31e414b73bf7" version="1.0.0">
+		<name>NAAG-truncated</name>
+		<created>2010-03-24T16:20:18</created>
+		<creator>Brian Soher</creator>
+		<comment />
+		<deactivated />
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>2.042</chemical_shift>
+		</spin>
 	</metabolite>
 	<metabolite id="b0b81f85-a128-4d14-8ffd-f6f905066f32" version="1.0.0">
 		<name>phenylalanine</name>
@@ -1812,33 +1680,6 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<j_coupling>3.561</j_coupling>
 		<j_coupling>-12.254</j_coupling>
 	</metabolite>
-	<metabolite id="b9c2dbc8-ae2e-4058-b82d-12138a68c37d" version="1.0.0">
-		<name>spatial-norm-singlet</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
-		<deactivated />
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.02</chemical_shift>
-		</spin>
-	</metabolite>
-	<metabolite id="6659113d-b896-40e4-815e-b93554ec5f16" version="1.0.0">
-		<name>spatial-norm-singlet2</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
-		<deactivated />
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.06</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.06</chemical_shift>
-		</spin>
-		<j_coupling>0.0</j_coupling>
-	</metabolite>
 	<metabolite id="2fa15b9e-49cc-4866-b958-6d4ae46e0a0c" version="1.0.0">
 		<name>succinate</name>
 		<created>2010-03-24T16:20:18</created>
@@ -1896,35 +1737,6 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<j_coupling>6.403</j_coupling>
 		<j_coupling>6.792</j_coupling>
 		<j_coupling>-12.93</j_coupling>
-	</metabolite>
-	<metabolite id="56453906-5414-4164-8103-9b3415c54f01" version="1.0.0">
-		<name>taurine-siemens</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment />
-		<deactivated />
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.4206</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.4206</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.2459</chemical_shift>
-		</spin>
-		<spin>
-			<isotope>1H</isotope>
-			<chemical_shift>3.2459</chemical_shift>
-		</spin>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>6.742</j_coupling>
-		<j_coupling>6.464</j_coupling>
-		<j_coupling>6.403</j_coupling>
-		<j_coupling>6.792</j_coupling>
-		<j_coupling>0.0</j_coupling>
 	</metabolite>
 	<metabolite id="8a641743-c22d-4f46-833d-fd90274f822d" version="1.0.0">
 		<name>threonine</name>
