@@ -1,2 +1,2 @@
 For an explanation of the files in this directory, see this Wiki page:
-http://scion.duhs.duke.edu/vespa/project/wiki/ChangingTheDatabaseStructure
+https://vespa-mrs.github.io/vespa.io/development/project_dev/database/ChangingTheDatabaseStructure.html

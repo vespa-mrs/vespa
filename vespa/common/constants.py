@@ -79,9 +79,108 @@ RESULTS_SPACE_DIMENSIONS = 4
 
 
 
+
+
+# Default code for a pulse sequence's binning algorithm. Shows up in 
+# Simulation's pulse sequence description dialog.
+# 
+# V1 used GAMMA internal method, it did not handle X-nuc in metab correctly
+# V2 direct port of GAMMA method to Python, fixed X-nuc in metab issue, but
+#     the rest of the scaling calc was empirical
+# V3 similar to V3, but found a GAMMA function to return closed form of the
+#     values needed to scale, just FYI this also handle X-nuc correctly
+# V4 (this version) cleaned up Python code, removed/renamed double vars
+
+DEFAULT_BINNING_CODE = """import pygamma as pg
+import numpy as np
+
+def run(sim_desc):
+    area   = pg.DoubleVector(0)
+    ppm    = pg.DoubleVector(0)
+    phase  = pg.DoubleVector(0)
+    field  = sim_desc.field             # freq in MHz
+    nspins = sim_desc.nspins
+    tolppm = sim_desc.blend_tolerance_ppm
+    tolpha = sim_desc.blend_tolerance_phase
+    ppmlo  = sim_desc.peak_search_ppm_low
+    ppmhi  = sim_desc.peak_search_ppm_high
+
+    sys     = sim_desc.spin_system
+    obs_iso = sim_desc.observe_isotope
+    nlines  = sim_desc.mx.size()
+
+    # Scaling is based on the quantum number of each spin, the qnStates.size
+    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
+    # observe spin.  This gets us back to the 'physics' norm where values are
+    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
+    # that is being normalized here.
+    
+    obs_qn  = pg.Isotope(obs_iso).qn()
+    qnscale = sys.qnStates().size()
+    qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
+
+    freqs = []
+    outf  = []
+    outa  = []
+    outp  = []
+    nbin  = 0
+    found = False
+
+    PI = 3.14159265358979323846
+    RAD2DEG = 180.0/PI
+
+    # Based on TTable1D::calc_spectra() ---------------------------------------
+
+    indx = sim_desc.mx.Sort(0,-1,0)
+
+    for i in range(nlines):
+        freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
+
+    for i in range(nlines):
+        freq = freqs[i]
+        if (freq > ppmlo) and (freq < ppmhi):
+            val = sim_desc.mx.I(indx[i])
+            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
+            tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
+
+        if nbin == 0:
+            outf.append(freq)
+            outa.append(tmpa)
+            outp.append(tmpp)
+            nbin += 1
+        else:
+            for k in range(nbin):
+                if (freq >= outf[k]-tolppm) and (freq <= outf[k]+tolppm):
+                    if (tmpp >= outp[k]-tolpha) and (tmpp <= outp[k]+tolpha):
+                        ampsum   =  outa[k]+tmpa
+                        outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
+                        outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
+                        outa[k] +=  tmpa;
+                        found = True
+            if not found:
+                outf.append(freq)
+                outa.append(tmpa)
+                outp.append(tmpp)
+                nbin += 1
+            found = False
+
+    ppm.resize(nbin)
+    area.resize(nbin)
+    phase.resize(nbin)
+
+    for i in range(nbin):
+        ppm[i]   = outf[i]
+        area[i]  = outa[i]
+        phase[i] = -1.0*outp[i]
+
+    return (ppm, area, phase)
+"""
+
+
+
 # Default code for a pulse sequence's binning algorithm. Shows up in
 # Simulation's pulse sequence description dialog.
-DEFAULT_BINNING_CODE = """import pygamma
+DEFAULT_BINNING_CODE_V3 = """import pygamma
 import numpy as np
 
 def run(sim_desc):
@@ -171,100 +270,6 @@ def run(sim_desc):
 
     return (ppm, area, phase)
 """
-
-
-# Default code for a pulse sequence's binning algorithm. Shows up in
-# Simulation's pulse sequence description dialog.
-# bjs Combined V2 with 'New Xiao Ji' Version (aka V3?)
-# Mostly just cleaning up variable renames issues
-
-DEFAULT_BINNING_CODE_V4 = """import pygamma as pg
-import numpy as np
-
-def run(sim_desc):
-    area   = pg.DoubleVector(0)
-    ppm    = pg.DoubleVector(0)
-    phase  = pg.DoubleVector(0)
-    field  = sim_desc.field             # freq in MHz
-    nspins = sim_desc.nspins
-    tolppm = sim_desc.blend_tolerance_ppm
-    tolpha = sim_desc.blend_tolerance_phase
-    ppmlo  = sim_desc.peak_search_ppm_low
-    ppmhi  = sim_desc.peak_search_ppm_high
-
-    sys     = sim_desc.spin_system
-    obs_iso = sim_desc.observe_isotope
-    nlines  = sim_desc.mx.size()
-
-    # Scaling is based on the quantum number of each spin, the qnStates.size
-    # method sums 2*qn[i]+1 and then we divide by 2*qn[observe]+1 of the
-    # observe spin.  This gets us back to the 'physics' norm where values are
-    # =/- 1/2, so then we multiply by 2.0 to get values of 1.0 for each spin 
-    # that is being normalized here.
-    
-    obs_qn  = pg.Isotope(obs_iso).qn()
-    qnscale = sys.qnStates().size()
-    qnscale = qnscale / (2.0 * (2.0*obs_qn+1))
-
-    freqs = []
-    outf  = []
-    outa  = []
-    outp  = []
-    nbin  = 0
-    found = False
-
-    PI = 3.14159265358979323846
-    RAD2DEG = 180.0/PI
-
-    # Based on TTable1D::calc_spectra() ---------------------------------------
-
-    indx = sim_desc.mx.Sort(0,-1,0)
-
-    for i in range(nlines):
-        freqs.append(-1 * sim_desc.mx.Fr(indx[i])/(2.0*PI*field))
-
-    for i in range(nlines):
-        freq = freqs[i]
-        if (freq > ppmlo) and (freq < ppmhi):
-            val = sim_desc.mx.I(indx[i])
-            tmpa = np.sqrt(val.real()**2 + val.imag()**2) / qnscale  #normal
-            tmpp = -RAD2DEG * np.angle(val.real()+1j*val.imag())
-
-        if nbin == 0:
-            outf.append(freq)
-            outa.append(tmpa)
-            outp.append(tmpp)
-            nbin += 1
-        else:
-            for k in range(nbin):
-                if (freq >= outf[k]-tolppm) and (freq <= outf[k]+tolppm):
-                    if (tmpp >= outp[k]-tolpha) and (tmpp <= outp[k]+tolpha):
-                        ampsum   =  outa[k]+tmpa
-                        outf[k]  = (outa[k]*outf[k] + tmpa*freq)/ampsum
-                        outp[k]  = (outa[k]*outp[k] + tmpa*tmpp)/ampsum
-                        outa[k] +=  tmpa;
-                        found = True
-            if not found:
-                outf.append(freq)
-                outa.append(tmpa)
-                outp.append(tmpp)
-                nbin += 1
-            found = False
-
-    ppm.resize(nbin)
-    area.resize(nbin)
-    phase.resize(nbin)
-
-    for i in range(nbin):
-        ppm[i]   = outf[i]
-        area[i]  = outa[i]
-        phase[i] = -1.0*outp[i]
-
-    return (ppm, area, phase)
-"""
-
-
-
 
 # Default code for a pulse sequence's binning algorithm. Shows up in
 # Simulation's pulse sequence description dialog.

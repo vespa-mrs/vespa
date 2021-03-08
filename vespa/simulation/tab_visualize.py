@@ -742,6 +742,7 @@ class TabVisualize(visualize.PanelVisualizeUI):
         # it only works under Linux/GTK.
         callback = self.build_basis_progress if ("__WXGTK__" in wx.PlatformInfo) else None
 
+        self.top.statusbar.SetStatusText('Calculating spectra for Results', 0)
         self.basis.data = bbf_module.build_basis_functions(self.experiment, dim0, sw, resppm, callback)
         self.set_apodization()
         self.top.statusbar.SetStatusText(' ',0)

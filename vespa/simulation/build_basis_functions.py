@@ -156,12 +156,20 @@ def build_basis_functions(experiment, dim0, sw, resppm, progress_callback=None, 
     nsims = len(experiment.metabolites)
     for dim in experiment.dims:
         nsims *= len(dim)
-        
+
+    do_local = False
+    if nsims < 500:
+        do_local = True
+    elif nsims < 2000:
+        # let's minimize process setup time, 500 and 2000 and 2 and 4 are empirical - bjs
+        n_cpu = 2 if n_cpu > 2 else n_cpu
+    elif nsims < 10000:
+        n_cpu = 4 if n_cpu > 4 else n_cpu
+
     # I calculate the total number of lines so that I can report progress.
     # Even on a simulation with ~2.6m lines, this calculation takes just 
     # one tenth of a second on my laptop so it's definitely worthwhile.
-    nlines_total = sum([len(simulation.ppms) for simulation 
-                                                 in experiment.simulations])
+    nlines_total = sum([len(simulation.ppms) for simulation in experiment.simulations])
                                                      
     global_nlines_total = nlines_total              
 
@@ -176,22 +184,25 @@ def build_basis_functions(experiment, dim0, sw, resppm, progress_callback=None, 
     # chunks = _build_chunks(experiment, progress_callback)
     # results = [_process_chunk(chunk) for chunk in chunks]
 
-    pool = multiprocessing.Pool(n_cpu, _initializer, [resppm, npts, sw, const1, const2, nlines_total])
+    if do_local:
+        _initializer(resppm, npts, sw, const1, const2, nlines_total)
+        chunks = _build_chunks(experiment, progress_callback)
+        results = [_process_chunk(chunk) for chunk in chunks]
 
-    
-    # The 3rd param to imap_unordered() is a chunksize. These chunks are not
-    # to be confused with the chunks returned by _build_chunks()! chunksize
-    # just determines how many values will be grabbed from the iterator 
-    # at once. Using a chunksize > 1 gives slightly better performance, but
-    # only slightly. The advantage of using a chunksize == 1 is that 
-    # _build_chunks() is called every time a worker needs new work, so we
-    # can use it as a cheap callback/progress indicator.
-    results = pool.imap_unordered(_process_chunk, 
-                                  _build_chunks(experiment, progress_callback), 
-                                  1)
-    
-    pool.close()
-    pool.join()
+    else:
+        pool = multiprocessing.Pool(n_cpu, _initializer, [resppm, npts, sw, const1, const2, nlines_total])
+
+        # The 3rd param to imap_unordered() is a chunksize. These chunks are not
+        # to be confused with the chunks returned by _build_chunks()! chunksize
+        # just determines how many values will be grabbed from the iterator
+        # at once. Using a chunksize > 1 gives slightly better performance, but
+        # only slightly. The advantage of using a chunksize == 1 is that
+        # _build_chunks() is called every time a worker needs new work, so we
+        # can use it as a cheap callback/progress indicator.
+        results = pool.imap_unordered(_process_chunk,
+                                      _build_chunks(experiment, progress_callback),  1)
+        pool.close()
+        pool.join()
     
     # The lines from each simulation are combined into one uber-FID
     basis_data = np.empty((nsims, npts), dtype='complex64')

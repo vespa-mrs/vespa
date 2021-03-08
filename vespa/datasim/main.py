@@ -52,8 +52,8 @@ class Main(wx.Frame):
         self._mgr = aui.AuiManager()
         self._mgr.SetManagedWindow(self)
 
-        self.SetIcon(images.mondrian_like_icon1_pix32.GetIcon())
-        #self.SetIcon(images.Mondrian.GetIcon())
+        self.SetIcon(images.icon1_128_datasim_monogram.GetIcon())
+#        self.SetIcon(images.mondrian_like_icon1_pix32.GetIcon())
 
         self.statusbar = self.CreateStatusBar(4, 0)
         self.statusbar.SetStatusText("Ready")
@@ -243,23 +243,23 @@ class Main(wx.Frame):
     ############    Help menu
 
     def on_user_manual(self, event):
+        # DEPRECATED
         path = util_misc.get_vespa_install_directory()
         path = os.path.join(path, "docs", "datasim_user_manual.pdf")
         wx_util.display_file(path)
 
-    def on_datasim_help_online(self, event):
+    def on_datasim_online_user_manual(self, event):
         webbrowser.open("https://vespa-mrs.github.io/vespa.io/user_manuals/datasim_user_manual.html", 1)
 
     def on_vespa_help_online(self, event):
         webbrowser.open("https://vespa-mrs.github.io/vespa.io/", 1)
-
 
     def on_about(self, event):
         bit = str(8 * struct.calcsize('P')) + '-bit Python'
         info = wx_adv.AboutDialogInfo()
         info.SetVersion(util_misc.get_vespa_version())
         info.SetCopyright("Copyright 2012, Brian J Soher. All rights reserved.")
-        info.SetDescription("DataSim creates simulated data sets from Vespa-Simulation Experiments. Running on "+bit)
+        info.SetDescription("DataSim creates simulated MRS data sets from Vespa-Simulation Experiments. Running on "+bit)
         info.SetWebSite("https://github.com/vespa-mrs/vespa")
         wx_adv.AboutBox(info)
 

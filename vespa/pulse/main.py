@@ -67,8 +67,8 @@ class Main(wx.Frame):
         # a segfault. So here we create a reference that we don't use. 
         self.__aui_manager = aui_manager
 
-        self.SetIcon(images.mondrian_like_icon3_pix32.GetIcon())
-        #self.SetIcon(images.Mondrian.GetIcon())
+        self.SetIcon(images.icon3_128_pulse_monogram.GetIcon())
+#        self.SetIcon(images.mondrian_like_icon3_pix32.GetIcon())
 
         self.statusbar = self.CreateStatusBar(4, 0)
         self.statusbar.SetStatusText("Ready")
@@ -317,11 +317,12 @@ class Main(wx.Frame):
     ############    Help menu
 
     def on_user_manual(self, event):
+        # DEPRECATED
         path = util_misc.get_vespa_install_directory()
         path = os.path.join(path, "docs", "pulse_user_manual.pdf")
         wx_util.display_file(path)
 
-    def on_pulse_help_online(self, event):
+    def on_pulse_online_user_manual(self, event):
         webbrowser.open("https://vespa-mrs.github.io/vespa.io/user_manuals/pulse_user_manual.html", 1)
 
     def on_vespa_help_online(self, event):

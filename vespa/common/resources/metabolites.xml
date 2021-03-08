@@ -6,12 +6,12 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 
 It was created with Vespa version 1.0.0rc5.
 -->
-	<timestamp>2021-03-07T22:32:08</timestamp>
-	<comment>Exported from BJS version 1.0.0 database, which is really a glorified version 0.10.0 database. </comment>
+	<timestamp>2021-03-08T08:27:44</timestamp>
+	<comment>Values initially taken from Govindaraju, NMR Biomed, 2000; 13:129-153 and subsequently updated  from Govindaraju, NMR Biome 2015; 25:xxx-xxx. For Vespa version 1.0.0 all values were re-confirmed and re-exported.</comment>
 	<metabolite id="487b89c3-5af1-4b2d-a957-60f99e918ddc" version="1.0.0">
 		<name>2-hydroxyglutarate</name>
 		<created>2015-12-22T14:07:58</created>
-		<creator>bjs</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Bal and Gryff-Keller, Magn Reson Chem, 2002; 40:533-536</comment>
 		<deactivated />
 		<spin>
@@ -48,7 +48,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="023bc7b6-006c-4f74-9f3b-27e3cf996aa2" version="1.0.0">
 		<name>acetate</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -99,7 +99,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="a1b9f07b-3665-4ce8-ba4a-5f454baf9681" version="1.0.0">
 		<name>aspartate</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -121,7 +121,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="05f7a5b8-e0fc-4dc6-94f4-9c5aac1048d3" version="1.0.0">
 		<name>atp-adenosine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -150,7 +150,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="207e3e60-81d6-4be7-82fc-148132501cba" version="1.0.0">
 		<name>atp-ribose</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -206,8 +206,9 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="2b742886-dec3-42e9-af01-a51bc50db40d" version="1.0.0">
 		<name>choline-methylene</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+and NMR Biomed, 2015; 28:923-924</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -243,7 +244,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="c78b350c-561b-4d8c-a968-646f2ace60ca" version="1.0.0">
 		<name>choline-trimethyl</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -335,8 +336,8 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="f03efaa3-d686-41db-8df2-8a2e450f596b" version="1.0.0">
 		<name>choline-truncated</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<creator>Brian J Soher</creator>
+		<comment>Values adapted from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -357,7 +358,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="53438094-d020-42d0-b41b-a7268f651cba" version="1.0.0">
 		<name>creatine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -400,31 +401,35 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 	</metabolite>
-	<metabolite id="6024f117-775a-4f1a-bd2b-fd88f63c1f3f" version="1.0.0">
+	<metabolite id="b20a7e6f-c71b-4987-b85b-62c64bdea193" version="1.0.0">
 		<name>ethanol</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<created>2021-03-07T23:23:12</created>
+		<creator>Brian J Soher</creator>
+		<comment>Original J-couplings from Dieter Meyerhoff, UCSF.
+New chemical shift values from:
+Biological Magnetic Resonance Data Bank
+https://bmrb.io/metabolomics/mol_summary/show_data.php?id=bmse000297
+2nd ref - Gottlieb et.al. J Org Chem. 1997; 62:7512-7515</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>1.19</chemical_shift>
+			<chemical_shift>1.175</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>1.19</chemical_shift>
+			<chemical_shift>1.175</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>1.19</chemical_shift>
+			<chemical_shift>1.175</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>3.67</chemical_shift>
+			<chemical_shift>3.645</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>3.67</chemical_shift>
+			<chemical_shift>3.645</chemical_shift>
 		</spin>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
@@ -440,8 +445,9 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="e8d82c7e-66dd-412c-8a21-e0d8ca4323c4" version="1.0.0">
 		<name>ethanolamine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153 
+and NMR Biomed, 2015; 28:923-924</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -474,19 +480,21 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 	</metabolite>
-	<metabolite id="2bdcaf78-c705-4765-a1e6-9f3de067b072" version="1.0.0">
+	<metabolite id="5046b1e5-63a4-41eb-b7cf-662d98db2091" version="1.0.0">
 		<name>gaba</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<created>2021-03-08T00:24:58</created>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+and NMR Biomed, 2015; 28:923-924
+</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>3.0128</chemical_shift>
+			<chemical_shift>2.284</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>3.0128</chemical_shift>
+			<chemical_shift>2.284</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
@@ -498,32 +506,32 @@ It was created with Vespa version 1.0.0rc5.
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>2.284</chemical_shift>
+			<chemical_shift>3.0128</chemical_shift>
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>2.284</chemical_shift>
+			<chemical_shift>3.0128</chemical_shift>
 		</spin>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>5.372</j_coupling>
-		<j_coupling>7.127</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>10.578</j_coupling>
-		<j_coupling>6.982</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.0</j_coupling>
+		<j_coupling>-10.744</j_coupling>
 		<j_coupling>7.755</j_coupling>
-		<j_coupling>7.432</j_coupling>
 		<j_coupling>6.173</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>7.432</j_coupling>
 		<j_coupling>7.933</j_coupling>
 		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>-13.121</j_coupling>
+		<j_coupling>5.372</j_coupling>
+		<j_coupling>10.578</j_coupling>
+		<j_coupling>7.127</j_coupling>
+		<j_coupling>6.982</j_coupling>
+		<j_coupling>-12.021</j_coupling>
 	</metabolite>
 	<metabolite id="8f189d1b-147c-4fdb-965b-5844a5da1faa" version="1.0.0">
 		<name>glucose-alpha</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -579,7 +587,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="b3ea6621-d4a1-4a6e-b706-af31f0c9098e" version="1.0.0">
 		<name>glucose-beta</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -635,7 +643,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="af680e2e-0b0c-4732-a96d-73ed9374244f" version="1.0.0">
 		<name>glutamate</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -672,7 +680,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="218e323f-ff4b-4c3a-b297-22ac7424a428" version="1.0.0">
 		<name>glutamine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -728,7 +736,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="6b9fd1ba-d904-477f-9f49-a8dca5751697" version="1.0.0">
 		<name>glutathione-glutamate</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -762,11 +770,13 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>6.7</j_coupling>
 		<j_coupling>-15.92</j_coupling>
 	</metabolite>
-	<metabolite id="198aa0e0-8c65-44fd-86b7-a1a540841dde" version="1.0.0">
-		<name>glutathione-glycine</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+	<metabolite id="acf787fa-0858-4156-8bfd-4e7fb1ac245a" version="1.0.0">
+		<name>glutathione-glycine-cysteine</name>
+		<created>2021-03-08T00:38:53</created>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+
+</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -788,7 +798,13 @@ It was created with Vespa version 1.0.0rc5.
 			<isotope>1H</isotope>
 			<chemical_shift>2.9747</chemical_shift>
 		</spin>
-		<j_coupling>-14.06</j_coupling>
+		<spin>
+			<isotope>1H</isotope>
+			<chemical_shift>7.154</chemical_shift>
+		</spin>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
@@ -797,12 +813,15 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>7.09</j_coupling>
 		<j_coupling>4.71</j_coupling>
+		<j_coupling>0.0</j_coupling>
 		<j_coupling>-14.06</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
 	</metabolite>
 	<metabolite id="32d2ed2f-6558-47c2-ba4a-0612edad35c1" version="1.0.0">
 		<name>glycerol</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -839,7 +858,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="743a005c-3c58-4cfe-9c0a-e6d3dcf1a762" version="1.0.0">
 		<name>glycine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -855,8 +874,12 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="533ac7e6-4dcd-427d-b1df-439be07ec63b" version="1.0.0">
 		<name>GPC-gp</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+and NMR Biomed, 2015; 28:923-924
+
+This is glycero-phosphocholine, glycerol moiety 
+</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -901,8 +924,11 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="0a8d7945-fe26-4a88-a1f4-3197ec85c046" version="1.0.0">
 		<name>GPC-pcholine1</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+and NMR Biomed, 2015; 28:923-924
+
+This is glycero-phosphocholine, choline moiety part 1, both CH2 nodes</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -944,11 +970,16 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 	</metabolite>
-	<metabolite id="ec80a5ce-2dbe-46bf-9da7-4dc4c8060033" version="1.0.0">
+	<metabolite id="16ef0595-13df-4048-af4f-4f41fbaea599" version="1.0.0">
 		<name>GPC-pcholine2</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<created>2021-03-08T00:54:26</created>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+and NMR Biomed, 2015; 28:923-924
+
+This is glycero-phosphocholine, choline moiety part 2, the single (CH3)3 node
+
+</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -998,7 +1029,6 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
@@ -1006,41 +1036,45 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
 		<j_coupling>0.0</j_coupling>
-		<j_coupling>0.57</j_coupling>
-		<j_coupling>0.57</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
+		<j_coupling>0.0</j_coupling>
 	</metabolite>
-	<metabolite id="7eb8263f-c2a9-4940-81ed-108f67f85151" version="1.0.0">
+	<metabolite id="4d36f96d-81e3-4037-ba68-d399b7553d6c" version="1.0.0">
 		<name>histamine</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<created>2021-03-08T00:58:14</created>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+and NMR Biomed, 2015; 28:923-924
+
+</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1077,7 +1111,7 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>7.001</j_coupling>
-		<j_coupling>0.0</j_coupling>
+		<j_coupling>6.27</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
@@ -1095,7 +1129,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="f7c61d3f-91a4-4f12-943c-3d3fd136680b" version="1.0.0">
 		<name>histidine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1141,7 +1175,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="86fb55a1-9417-4760-978b-c2a34a62d896" version="1.0.0">
 		<name>homocarnosine-truncated</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1157,7 +1191,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="884f7be8-fbce-43aa-bd0e-542f94886c28" version="1.0.0">
 		<name>lactate</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1186,7 +1220,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="72a6393f-298e-409f-9cd3-890ff7c9c799" version="1.0.0">
 		<name>myo-inositol</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1232,7 +1266,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="39fa61db-7f7a-4095-8465-87b60a19565e" version="1.0.0">
 		<name>n-acetylaspartate</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1288,7 +1322,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="4ffc1254-049b-4a31-bc04-31e414b73bf7" version="1.0.0">
 		<name>NAAG-truncated</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1299,7 +1333,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="b0b81f85-a128-4d14-8ffd-f6f905066f32" version="1.0.0">
 		<name>phenylalanine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1366,7 +1400,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="0fc55bfd-a27b-4ade-beec-22698090a299" version="1.0.0">
 		<name>phosphocreatine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1419,11 +1453,12 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 	</metabolite>
-	<metabolite id="06304fa7-3759-4382-8c85-c0f58cd67eb7" version="1.0.0">
+	<metabolite id="adb0b853-3e12-4b95-8315-8c680936d8e6" version="1.0.0">
 		<name>phosphorylcholine-notrimethyl</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<created>2021-03-08T08:01:14</created>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+and NMR Biomed, 2015; 28:923-924</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1452,7 +1487,7 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>-14.89</j_coupling>
 		<j_coupling>2.284</j_coupling>
 		<j_coupling>7.231</j_coupling>
-		<j_coupling>2.86</j_coupling>
+		<j_coupling>2.68</j_coupling>
 		<j_coupling>6.298</j_coupling>
 		<j_coupling>7.326</j_coupling>
 		<j_coupling>2.235</j_coupling>
@@ -1468,8 +1503,9 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="0bc71a27-9f56-45c2-8b8c-2aa03eb17b3e" version="1.0.0">
 		<name>phosphorylcholine-trimethyl</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+and NMR Biomed, 2015; 28:923-924</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1547,8 +1583,9 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="af3acc91-28ae-4bee-9911-08b26fb1341c" version="1.0.0">
 		<name>phosphorylethanolamine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+and NMR Biomed, 2015; 28:923-924</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1593,7 +1630,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="3b554cb1-c052-4ff2-9007-80ff35e4435f" version="1.0.0">
 		<name>pyruvate</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1615,7 +1652,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="7484cc6b-8637-4726-9375-b70d90ccc2fa" version="1.0.0">
 		<name>scyllo-inositol</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1658,11 +1695,13 @@ It was created with Vespa version 1.0.0rc5.
 		<j_coupling>0.0</j_coupling>
 		<j_coupling>0.0</j_coupling>
 	</metabolite>
-	<metabolite id="85b344db-037f-4268-8e98-3e4402a53b7f" version="1.0.0">
+	<metabolite id="55e67045-50c4-44f6-8a6b-521413d6eef2" version="1.0.0">
 		<name>serine</name>
-		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<created>2021-03-08T08:09:22</created>
+		<creator>Brian J J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+
+</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1674,7 +1713,7 @@ It was created with Vespa version 1.0.0rc5.
 		</spin>
 		<spin>
 			<isotope>1H</isotope>
-			<chemical_shift>3.9364</chemical_shift>
+			<chemical_shift>3.9864</chemical_shift>
 		</spin>
 		<j_coupling>5.979</j_coupling>
 		<j_coupling>3.561</j_coupling>
@@ -1683,7 +1722,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="2fa15b9e-49cc-4866-b958-6d4ae46e0a0c" version="1.0.0">
 		<name>succinate</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1712,8 +1751,9 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="8e46ee56-8912-4401-aea9-e449523ea9a8" version="1.0.0">
 		<name>taurine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
-		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
+		<creator>Brian J Soher</creator>
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153
+and NMR Biomed, 2015; 28:923-924</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1778,7 +1818,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="a3613ff1-67af-4015-a8be-3c16f33e6778" version="1.0.0">
 		<name>tryptophan</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1845,7 +1885,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="45e16c8f-a94d-4162-957e-994f1bbbfeb7" version="1.0.0">
 		<name>tyrosine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
@@ -1901,7 +1941,7 @@ It was created with Vespa version 1.0.0rc5.
 	<metabolite id="f2ba527f-b90d-4789-88d7-3147b575a150" version="1.0.0">
 		<name>valine</name>
 		<created>2010-03-24T16:20:18</created>
-		<creator>Brian Soher</creator>
+		<creator>Brian J Soher</creator>
 		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>

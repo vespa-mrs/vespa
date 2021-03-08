@@ -58,8 +58,9 @@ class Main(wx.Frame):
         self._mgr = aui.AuiManager()
         self._mgr.SetManagedWindow(self)
 
-        self.SetIcon(images.mondrian_like_icon2_pix32.GetIcon())
-        #self.SetIcon(images.Mondrian.GetIcon())
+        self.SetIcon(images.icon2_128_simulation_monogram.GetIcon())
+#        self.SetIcon(images.mondrian_like_icon2_pix32.GetIcon())
+
 
         self.statusbar = self.CreateStatusBar(4, 0)
         self.statusbar.SetStatusText("Ready")
@@ -258,25 +259,23 @@ class Main(wx.Frame):
     ############    Help menu
 
     def on_user_manual(self, event):
+        # DEPRECATED
         path = util_misc.get_vespa_install_directory()
         path = os.path.join(path, "docs", "simulation_user_manual.pdf")
         wx_util.display_file(path)
 
-
-    def on_simulation_help_online(self, event):
+    def on_simulation_online_user_manual(self, event):
         webbrowser.open("https://vespa-mrs.github.io/vespa.io/user_manuals/simulation_user_manual.html", 1)
-
 
     def on_vespa_help_online(self, event):
         webbrowser.open("https://vespa-mrs.github.io/vespa.io/", 1)
-
 
     def on_about(self, event):
         bit = str(8 * struct.calcsize('P')) + '-bit Python'
         info = wx_adv.AboutDialogInfo()
         info.SetVersion(util_misc.get_vespa_version())
-        info.SetCopyright("Copyright 2010, Duke University. All rights reserved.")
-        info.SetDescription("Simulation is an advanced spectral simulation and analysis environment. Running on "+bit)
+        info.SetCopyright("Copyright 2010, Brian J Soher. All rights reserved.")
+        info.SetDescription("Simulation is an advanced MRS spectral simulation and analysis environment. Running on "+bit)
         info.SetWebSite("https://github.com/vespa-mrs/vespa")
         wx_adv.AboutBox(info)
 

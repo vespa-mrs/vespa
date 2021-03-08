@@ -866,8 +866,8 @@ def _get_menu_data(main):
         )
 
     help = [
-            ("&User Manual",            main.on_user_manual),
-            ("&Analysis Help Online",   main.on_analysis_help_online),
+#            ("&User Manual",            main.on_user_manual),
+            ("&Analysis Online User Manual",   main.on_analysis_online_user_manual),
             ("&Vespa Help Online",      main.on_vespa_help_online),
             ("&About", main.on_about, wx.ITEM_NORMAL, wx.ID_ABOUT),
            ]
