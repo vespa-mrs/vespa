@@ -1,18 +1,18 @@
 <vespa_export version="1.0.0">
-	<!-- 
+	<!--
 This XML file is in Vespa Interchange File Format (VIFF). You can download
 applications that read and write VIFF files and learn more about VIFF here:
 https://github.com/vespa-mrs/vespa/tree/main/vespa
 
-
- -->
-	<timestamp>2021-03-07T10:50:58</timestamp>
-	<comment>This is the master file for populating the database.</comment>
+It was created with Vespa version 1.0.0rc5.
+-->
+	<timestamp>2021-03-07T22:32:08</timestamp>
+	<comment>Exported from BJS version 1.0.0 database, which is really a glorified version 0.10.0 database. </comment>
 	<metabolite id="487b89c3-5af1-4b2d-a957-60f99e918ddc" version="1.0.0">
 		<name>2-hydroxyglutarate</name>
 		<created>2015-12-22T14:07:58</created>
 		<creator>bjs</creator>
-		<comment>Values taken from 2002 paper by Dominika Bal and Adam Gryff-Keller in Magnetic Resonance in Chemistry, 40:533-536</comment>
+		<comment>Values taken from Bal and Gryff-Keller, Magn Reson Chem, 2002; 40:533-536</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -49,7 +49,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>acetate</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -71,7 +71,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>alanine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -100,7 +100,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>aspartate</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -122,7 +122,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>atp-adenosine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -151,7 +151,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>atp-ribose</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -207,7 +207,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>choline-methylene</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -244,7 +244,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>choline-trimethyl</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -336,7 +336,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>choline-truncated</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -358,7 +358,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>creatine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -404,7 +404,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>ethanol</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -441,7 +441,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>ethanolamine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -478,7 +478,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>gaba</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -524,7 +524,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>glucose-alpha</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -580,7 +580,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>glucose-beta</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -636,7 +636,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>glutamate</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -673,7 +673,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>glutamine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -729,7 +729,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>glutathione-glutamate</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -766,7 +766,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>glutathione-glycine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -803,7 +803,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>glycerol</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -840,7 +840,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>glycine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -856,7 +856,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>GPC-gp</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -902,7 +902,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>GPC-pcholine1</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -948,7 +948,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>GPC-pcholine2</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1040,7 +1040,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>histamine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1096,7 +1096,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>histidine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1142,7 +1142,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>homocarnosine-truncated</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1158,7 +1158,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>lactate</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1187,7 +1187,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>myo-inositol</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1233,7 +1233,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>n-acetylaspartate</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1289,7 +1289,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>NAAG-truncated</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1300,7 +1300,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>phenylalanine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1367,7 +1367,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>phosphocreatine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1423,7 +1423,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>phosphorylcholine-notrimethyl</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1469,7 +1469,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>phosphorylcholine-trimethyl</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1548,7 +1548,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>phosphorylethanolamine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1594,7 +1594,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>pyruvate</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1616,7 +1616,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>scyllo-inositol</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1662,7 +1662,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>serine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1684,7 +1684,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>succinate</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1713,7 +1713,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>taurine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1742,7 +1742,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>threonine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1779,7 +1779,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>tryptophan</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1846,7 +1846,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>tyrosine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
@@ -1902,7 +1902,7 @@ https://github.com/vespa-mrs/vespa/tree/main/vespa
 		<name>valine</name>
 		<created>2010-03-24T16:20:18</created>
 		<creator>Brian Soher</creator>
-		<comment />
+		<comment>Values taken from Govindaraju, NMR Biomed, 2000; 13:129-153</comment>
 		<deactivated />
 		<spin>
 			<isotope>1H</isotope>
