@@ -81,10 +81,7 @@ class Main(wx.Frame):
         self._mgr = aui.AuiManager()
         self._mgr.SetManagedWindow(self)
 
-#        self.SetIcon(images.mondrian_like_icon4_pix32.GetIcon())
         self.SetIcon(images.icon4_128_analysis_monogram.GetIcon())
-
-
 
         self.statusbar = self.CreateStatusBar(4, 0)
         self.statusbar.SetStatusText("Ready")

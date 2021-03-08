@@ -59,8 +59,6 @@ class Main(wx.Frame):
         self._mgr.SetManagedWindow(self)
 
         self.SetIcon(images.icon2_128_simulation_monogram.GetIcon())
-#        self.SetIcon(images.mondrian_like_icon2_pix32.GetIcon())
-
 
         self.statusbar = self.CreateStatusBar(4, 0)
         self.statusbar.SetStatusText("Ready")

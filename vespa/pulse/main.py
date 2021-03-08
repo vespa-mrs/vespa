@@ -68,7 +68,6 @@ class Main(wx.Frame):
         self.__aui_manager = aui_manager
 
         self.SetIcon(images.icon3_128_pulse_monogram.GetIcon())
-#        self.SetIcon(images.mondrian_like_icon3_pix32.GetIcon())
 
         self.statusbar = self.CreateStatusBar(4, 0)
         self.statusbar.SetStatusText("Ready")
@@ -98,7 +97,6 @@ class Main(wx.Frame):
         modify = [item for item in modify0 if item[0] not in hide]
                 
         util_menu.bar.update_transforms(create,modify)
-        
 
         self.build_panes(aui_manager)
         self.bind_events()
