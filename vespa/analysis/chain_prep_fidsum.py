@@ -115,6 +115,8 @@ class ChainPrepFidsum(Chain):
                 self._block.coil_combine_weights = wt
                 self._block.coil_combine_phases  = ph
             else:
+                if self.freq_raw is None:
+                    self.freq_raw = self.freq_current.copy() * 0
                 print(' error - chain_pref_fidsum, no external dataset coil_combine values')
                 plot_results = { 'freq_current'  : self.freq_current.copy(),
                                  'freq_summed'   : self.freq_current.copy() * 0,

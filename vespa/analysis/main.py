@@ -331,7 +331,7 @@ class Main(wx.Frame):
                     # refresh chain in each block for new preset values
                     chain_outputs = {}
                     chain_outputs['raw']   = dataset.blocks['raw'].chain.run([(0,0,0)], entry='all')
-                    chain_outputs['prep']  = dataset.blocks['prep'].chain.run([(0,0,0)], entry='all')
+                    chain_outputs['prep']  = dataset.blocks['prep'].chain.run([(0,0,0)], entry='all', freq_raw=True)
                     chain_outputs['spectral'] = dataset.blocks['spectral'].chain.run([(0, 0, 0)], entry='all')
                     chain_outputs['fit']   = dataset.blocks['fit'].chain.run([(0, 0, 0)], entry='initial_only')
                     chain_outputs['spectral'] = dataset.blocks['spectral'].chain.run([(0, 0, 0)], entry='all')
@@ -546,7 +546,7 @@ class Main(wx.Frame):
         but only raw mrs data, so we treat it differently from ordinary VIFF.
 
         """
-        dataset = None
+        dataset = []
 
         ini_name = "import_viff_raw"
         default_path = util_analysis_config.get_path(ini_name)
@@ -606,12 +606,14 @@ class Main(wx.Frame):
 
                     path, _ = os.path.split(filename)
                     util_analysis_config.set_path(ini_name, path)
+
+                    dataset = [dataset,]
                 else:
                     msg = """No Vespa raw data found in that VIFF file."""
                     common_dialogs.message(msg, "Analysis - Import Data", common_dialogs.E_OK)
 
 
-            return [dataset]
+            return dataset
 
 
     def _open_viff_dataset_file(self):

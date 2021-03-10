@@ -350,7 +350,7 @@ def external_dataset(chain, delta=0.0):
 
 def external_dataset_with_offset(chain):
     raw_combined1, weights1, phases10 = external_dataset(chain)
-    raw_combined2, weights2, phases20 = siemens(chain)
+    raw_combined2, weights2, phases20 = siemens(chain.raw)
 
     phases1 = np.angle(np.sum(phases10, axis=0), deg=True)
     phases2 = np.angle(np.sum(phases20, axis=0), deg=True)

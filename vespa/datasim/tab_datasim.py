@@ -152,12 +152,12 @@ class TabDatasim(datasim_ui.DatasimUI):
         wx_util.configure_spin(self.FloatNoiseRmsMultiplier, 70, 2, 5, (0.0000001,1000000.0))
         wx_util.configure_spin(self.SpinMonteCarloVoxels, 70, None, None, (1,10000))
 
-        wx_util.configure_spin(self.FloatMmolGroupScale, 80, 7, 0.1, (0.0000001,1000000.0))
+        wx_util.configure_spin(self.FloatMmolGroupScale, 90, 10, 0.1, (0.0000000001,1000000.0))
         lines = ['None', 'Birch_MRM_2017', 'Wilson_MRM_2021']
         self.ChoicePresetMmol.SetItems(lines)
         self.ChoicePresetMmol.SetStringSelection(lines[0])
 
-        wx_util.configure_spin(self.FloatBaseGroupScale, 80, 7, 0.1, (0.0000001,1000000.0))
+        wx_util.configure_spin(self.FloatBaseGroupScale, 90, 10, 0.1, (0.0000000001,1000000.0))
 
 
     def populate_controls(self):

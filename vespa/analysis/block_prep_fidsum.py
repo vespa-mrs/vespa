@@ -196,9 +196,10 @@ class _Settings(object):
             util_xml.TextSubElement(e, "rats_baseline_order",               self.rats_baseline_order)
             util_xml.TextSubElement(e, "rats_target_method",                self.rats_target_method)
 
+            util_xml.TextSubElement(e, "global_left_shift",                 self.global_left_shift)
             util_xml.TextSubElement(e, "global_phase0",                     self.global_phase0)
             util_xml.TextSubElement(e, "global_phase1",                     self.global_phase1)
-            util_xml.TextSubElement(e, "global_left_shift",                 self.global_left_shift)
+            util_xml.TextSubElement(e, "global_gaussian_apodization",       self.global_gaussian_apodization)
             util_xml.TextSubElement(e, "chop_data",                         self.chop_data)
             util_xml.TextSubElement(e, "zero_phase1",                       self.zero_phase1)
             util_xml.TextSubElement(e, "apply_peak_shift",                  self.apply_peak_shift)
@@ -258,6 +259,8 @@ class _Settings(object):
                     setattr(self, name, util_xml.BOOLEANS[item])
 
             for name in ("coil_combine_method",
+                         "coil_combine_external_filename",
+                         "coil_combine_external_dataset_id",
                          "exclude_method", 
                          "correction_method",
                          "vespa_target_method",

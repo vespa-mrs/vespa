@@ -16,6 +16,10 @@ from vespa.analysis.fileio.siemens_twix import RawReaderSiemensTwix
 
 
 
+# RAWDATA_SCALE is based on ICE_RAWDATA_SCALE in SpecRoFtFunctor.cpp
+RAWDATA_SCALE = 131072.0 * 256.0
+
+
 
 class RawReaderSiemensTwixSlaserCmrrVe(RawReaderSiemensTwix):
 
@@ -33,6 +37,10 @@ class RawReaderSiemensTwixSlaserCmrrVe(RawReaderSiemensTwix):
 
         data = d['data']
         prep = d['prep']
+        nref = d["ref_nscans"]
+        navg = d["lAverages"]
+
+        # Note. Scaling is done below to match Versin 0.10.0
 
         if d["remove_os"]:
             data = self._remove_oversampling_basic(data)
@@ -44,44 +52,42 @@ class RawReaderSiemensTwixSlaserCmrrVe(RawReaderSiemensTwix):
         if prep is not None:
             prep = np.conjugate(prep)
 
-        nref = d["ref_nscans"]
-        navg = d["lAverages"]
-
         raws = []
 
         # dataset1 - scan 0, water unsuppressed for coil combine
         
-        d["data"] = prep
+        d["data"] = prep * RAWDATA_SCALE / 1.0               # this matches version 0.10.0
+
         d["data_source"] = filename+'.combine'
         raws.append(DataRawCmrrSlaser(d))
 
         # dataset2 - scan 1-2, water unsuppressed for ECC
         
-        d["data"] = data[:,:,0:nref,:].copy()
+        d["data"] = data[:,:,0:nref,:].copy() * RAWDATA_SCALE / float(nref) # this matches version 0.10.0
         d["data_source"] = filename+'.ecc1'
         raws.append(DataRawCmrrSlaser(d))
 
         # dataset3 - scans 3-4, water unsuppressed for water scale
         
-        d["data"] = data[:,:,nref:nref*2,:].copy()
+        d["data"] = data[:,:,nref:nref*2,:].copy() * RAWDATA_SCALE / float(nref)    # this matches version 0.10.0
         d["data_source"] = filename+'.water1'
         raws.append(DataRawCmrrSlaser(d))
 
         # dataset5 - scans 69-70 (2 total), water unsuppressed for ecc
 
-        d["data"] = data[:,:,nref*2+navg:nref*2+navg+nref,:].copy()
+        d["data"] = data[:,:,nref*2+navg:nref*2+navg+nref,:].copy() * RAWDATA_SCALE / float(nref)
         d["data_source"] = filename+'.ecc2'
         raws.append(DataRawCmrrSlaser(d))
 
         # dataset6 - scans 71-72 (2 total), water unsuppressed for water scale
 
-        d["data"] = data[:,:,nref*2+navg+nref:nref*2+navg+nref*2,:].copy()
+        d["data"] = data[:,:,nref*2+navg+nref:nref*2+navg+nref*2,:].copy() * RAWDATA_SCALE / float(nref)
         d["data_source"] = filename+'.water2'
         raws.append(DataRawCmrrSlaser(d))
 
         # dataset4 - scans 5-68 (64 total), metabolite data with WS
 
-        d["data"] = data[:,:,nref*2:nref*2+navg,:].copy()
+        d["data"] = data[:,:,nref*2:nref*2+navg,:].copy() * RAWDATA_SCALE / float(navg)
         d["data_source"] = filename+'.metab64'
         raws.append(DataRawCmrrSlaser(d))
 
@@ -119,6 +125,13 @@ class RawReaderSiemensTwixSlaserCmrrVbGulinLong(RawReaderSiemensTwixSlaserCmrrVe
         data = d['data']
         prep = d['prep']
 
+        _, _, navg, npts = data.shape
+
+        # gives integral values of 1 or larger for nice display
+        scale = RAWDATA_SCALE / float(navg)
+        data = data * scale
+        prep = prep * scale
+
         if d["remove_os"]:
             data = self._remove_oversampling_basic(data)
             if prep is not None:
@@ -133,19 +146,19 @@ class RawReaderSiemensTwixSlaserCmrrVbGulinLong(RawReaderSiemensTwixSlaserCmrrVe
 
         # dataset1 - scan 0, water unsuppressed for coil combine and (maybe) ECC
 
-        d["data"] = prep[:,:,0:1,:].copy()
+        d["data"] = prep[:,:,0:1,:].copy() * RAWDATA_SCALE / float(1.0)
         d["data_source"] = filename + '.combine'
         raws.append(DataRawCmrrSlaser(d))
 
         # dataset2 - scan 1-2, water unsuppressed for water scale
 
-        d["data"] = prep[:,:,1:2,:].copy()
+        d["data"] = prep[:,:,1:2,:].copy() * RAWDATA_SCALE / float(2.0)
         d["data_source"] = filename + '.water1'
         raws.append(DataRawCmrrSlaser(d))
 
         # dataset3 - scans 5-68 (64 total), metabolite data with WS
 
-        d["data"] = data.copy()
+        d["data"] = data.copy() * RAWDATA_SCALE / float(navg)
         d["data_source"] = filename + '.metab64'
         raws.append(DataRawCmrrSlaser(d))
 

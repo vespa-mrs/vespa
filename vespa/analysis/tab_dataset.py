@@ -425,7 +425,7 @@ class TabDataset(dataset_module.DatasetUI):
                 if item == 'raw':
                     tab.process()
                 elif item == 'prep':
-                    tab.process(do_calculate=True)
+                    tab.process()
                 elif item == 'spectral':
                     tab.process()
                     tab.svd_checklist_update()
