@@ -638,12 +638,14 @@ class FitOptimizeMethod(object):
     NONE                            = ""
     CONSTRAINED_LEVENBERG_MARQUARDT = "constrained_levenburg_marquardt"
     LMFIT_DEFAULT                   = "lmfit_default"
+    LMFIT_JACOBIAN                  = "lmfit_jacobian"
 
     # Items for the Voigt fitting tool radio buttons
     choices = collections.OrderedDict(((NONE , "None"),
                                        (CONSTRAINED_LEVENBERG_MARQUARDT , "Constrained Levenburg-Marquardt"),
                                        (LMFIT_DEFAULT ,                   "LMFit Default"),
-                                      ))
+                                       (LMFIT_JACOBIAN,                   "LMFit with Jacobian"),
+                                       ))
 
 class FitOptimizeWeightsMethod(object):
     """ Macromolecular Linewidths Method """

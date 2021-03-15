@@ -36,7 +36,10 @@ def initial_values(chain):
     unique_abbr = chain._dataset.prior_list_unique
 
     util_initial_values.find_initial_values(chain)
- 
+
+    if chain.init_ph0 == 0: chain.init_ph0 = 0.0001
+    if chain.init_ph1 == 0: chain.init_ph1 = 0.0001
+
     # Calculate parameter initial values
     a = np.hstack([chain.init_area, 
                    chain.init_freq,         # this is radians here
@@ -440,31 +443,43 @@ def optimize_model(chain):
             for i,item in enumerate(v.keys()):
                 a[item].set(value=a0[i])
             
-        elif set.optimize_method == 'bob': #constants.FitOptimizeMethod.LMFIT_DEFAULT:
+        elif set.optimize_method == constants.FitOptimizeMethod.LMFIT_DEFAULT:
+
+            print('in1:', [a[item].value for item in a.valuesdict().keys()])
 
             chain.data_scale = data
 
-            result = lmfit.minimize(chain.lorgauss_internal_lmfit, a, method='least_squares')
+            # result = lmfit.minimize(chain.lorgauss_internal_lmfit, a, method='least_squares')
+
+            func = chain.lorgauss_internal_lmfit
+            min1 = lmfit.Minimizer(func, a)
+            #result = min1.leastsq()
+            result = min1.least_squares()
 
             wchis, chis = chain.lorgauss_internal_lmfit(result.params, report_stats=True)
             badfit = 0 if result.success else 1
             a = result.params.copy()
 
-        elif set.optimize_method == constants.FitOptimizeMethod.LMFIT_DEFAULT:
+            print('out1:', [result.params[item].value for item in result.params.valuesdict().keys()])
+
+        elif set.optimize_method == constants.FitOptimizeMethod.LMFIT_JACOBIAN:
+
+            print('in2:', [a[item].value for item in a.valuesdict().keys()])
 
             chain.data_scale = data
 
             func  = chain.lorgauss_internal_lmfit
-            # dfunc = chain.lorgauss_internal_lmfit_dfunc
+            dfunc = chain.lorgauss_internal_lmfit_dfunc
 
             min1 = lmfit.Minimizer(func, a)
-            result = min1.leastsq()
-            # result = min1.leastsq(Dfun=dfunc, col_deriv=1)
-
+            #result = min1.leastsq(Dfun=dfunc, col_deriv=1)
+            result = min1.least_squares(jac=dfunc)
 
             wchis, chis = chain.lorgauss_internal_lmfit(result.params, report_stats=True)
             badfit = 0 if result.success else 1
             a = result.params.copy()
+
+            print('out2:', [result.params[item].value for item in result.params.valuesdict().keys()])
 
 
         chain.fit_results = a

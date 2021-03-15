@@ -283,7 +283,7 @@ class ChainFitVoigt(Chain):
                         
         return plot_results
 
-    def lorgauss_internal_lmfit_dfunc(self, params):
+    def lorgauss_internal_lmfit_dfunc(self, params, *args, **kwargs):
         """
         This is in the format that LMFIT expects to call in the Minimizer class.
 
@@ -292,21 +292,30 @@ class ChainFitVoigt(Chain):
         concatenated into a single array.
 
         """
-        keep = []
-        for i, key in enumerate(params.keys()):
-            if params[key].expr is None:
-                keep.append(i)
+        ww = self.weight_array
+        ww = np.concatenate([ww, ww])
 
-        yfit, all_pders = self.lorgauss_internal(params, pderflg=True)
+        if isinstance(params, Parameters):
+            # keep = []
+            # for i, key in enumerate(params.keys()):
+            #     if params[key].expr is None:
+            #         keep.append(i)
 
-        pders = all_pders[keep,:]
+            v = params.valuesdict()
+            params = np.array([item[1] for item in list(v.items())])
+
+
+
+        yfit, pders = self.lorgauss_internal(params, pderflg=True)
+
+        # pders = all_pders[keep,:]
 
         dfunc = []
         for pder in pders:
-            dfunc.append(np.concatenate([pder.real, pder.imag]))
+            dfunc.append(np.concatenate([pder.real, pder.imag]) * ww)
         dfunc = np.array(dfunc)
 
-        return dfunc
+        return dfunc.T
 
 
     def lorgauss_internal_lmfit(self, params, report_stats=False):

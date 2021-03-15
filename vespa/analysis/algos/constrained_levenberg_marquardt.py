@@ -203,6 +203,9 @@ def constrained_levenberg_marquardt(y, w, a, limits, function=None,
                 if pder1 is not None:
                     pder1 = np.concatenate([pder1.real, pder1.imag], axis=1)
 
+            pder2 = pder1.copy()
+            pder1 = None
+
             if pder1 is None:
                 for term in range(nterms):
                     # Copy current parameters ---
