@@ -440,11 +440,27 @@ def optimize_model(chain):
             for i,item in enumerate(v.keys()):
                 a[item].set(value=a0[i])
             
-        elif set.optimize_method == constants.FitOptimizeMethod.LMFIT_DEFAULT:
+        elif set.optimize_method == 'bob': #constants.FitOptimizeMethod.LMFIT_DEFAULT:
 
             chain.data_scale = data
 
             result = lmfit.minimize(chain.lorgauss_internal_lmfit, a, method='least_squares')
+
+            wchis, chis = chain.lorgauss_internal_lmfit(result.params, report_stats=True)
+            badfit = 0 if result.success else 1
+            a = result.params.copy()
+
+        elif set.optimize_method == constants.FitOptimizeMethod.LMFIT_DEFAULT:
+
+            chain.data_scale = data
+
+            func  = chain.lorgauss_internal_lmfit
+            # dfunc = chain.lorgauss_internal_lmfit_dfunc
+
+            min1 = lmfit.Minimizer(func, a)
+            result = min1.leastsq()
+            # result = min1.leastsq(Dfun=dfunc, col_deriv=1)
+
 
             wchis, chis = chain.lorgauss_internal_lmfit(result.params, report_stats=True)
             badfit = 0 if result.success else 1

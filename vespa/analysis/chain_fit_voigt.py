@@ -283,6 +283,31 @@ class ChainFitVoigt(Chain):
                         
         return plot_results
 
+    def lorgauss_internal_lmfit_dfunc(self, params):
+        """
+        This is in the format that LMFIT expects to call in the Minimizer class.
+
+        This returns the weighted difference (data - yfit) * ww as a single
+        numpy float array, where the real and imaginary vectors have been
+        concatenated into a single array.
+
+        """
+        keep = []
+        for i, key in enumerate(params.keys()):
+            if params[key].expr is None:
+                keep.append(i)
+
+        yfit, all_pders = self.lorgauss_internal(params, pderflg=True)
+
+        pders = all_pders[keep,:]
+
+        dfunc = []
+        for pder in pders:
+            dfunc.append(np.concatenate([pder.real, pder.imag]))
+        dfunc = np.array(dfunc)
+
+        return dfunc
+
 
     def lorgauss_internal_lmfit(self, params, report_stats=False):
         """
@@ -296,7 +321,7 @@ class ChainFitVoigt(Chain):
         data  = self.data_scale.copy()
         ww    = self.weight_array
                 
-        yfit, pder = self.lorgauss_internal(params)
+        yfit, pder = self.lorgauss_internal(params, pderflg=False)
         
         yfit = np.concatenate([yfit.real, yfit.imag])
         data = np.concatenate([data.real, data.imag])

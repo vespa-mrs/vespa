@@ -162,6 +162,13 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
             data, prep = twix.get_data_numpy_rep_coil_avg_npts_order(return_prep=True)
         elif index == 'echo':
             data, prep = twix.get_data_numpy_echo_coil_avg_npts_order(return_prep=True)
+        elif index == 'scan':
+            data, prep = twix.get_data_numpy_channel_scan_order_with_prep()
+            while len(data.shape) < 4:
+                data = np.expand_dims(data, axis=0)
+            if prep is not None:
+                while len(prep.shape) < 4:
+                    prep = np.expand_dims(prep, axis=0)
         else:
             data, prep = twix.get_data_numpy_rep_coil_avg_npts_order(return_prep=True)
 
