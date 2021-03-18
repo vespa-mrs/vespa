@@ -285,37 +285,41 @@ class ChainFitVoigt(Chain):
 
     def lorgauss_internal_lmfit_dfunc(self, params, *args, **kwargs):
         """
-        This is in the format that LMFIT expects to call in the Minimizer class.
+        This is in the format that LMFIT expects to call in the Minimizer class
+        for the 'least_squares' algorithm.
 
-        This returns the weighted difference (data - yfit) * ww as a single
-        numpy float array, where the real and imaginary vectors have been
-        concatenated into a single array.
+        This returns the weighted partial derivative functions all_pders * ww
+        as a single numpy (n,m) float array, where where n = # of variable
+        parameters (versus dependent params) and m = # of spectral points. In
+        this case, the real and imaginary vectors have been concatenated into
+        a single array, so m = 2 * npts_spectral_zerofilled.
+
+        Note. The vespa model (for one example) might have 48 parameters, but
+        only 42 are variable parameters while the other 6 are dependent
+        expressions (e.g. freq_naag = freq_naa + 0.04). The LMFIT algorithm
+        only passes in the 42 'free' params, and I need to expand that into the
+        actual 48 for the self.lorgauss_internal() call to work properly. On
+        return, I need to remove the pder entris for the dependent parameters
+        (and return just a 42 x npts array).
 
         """
-        ww = self.weight_array
-        ww = np.concatenate([ww, ww])
+        ww = np.concatenate([self.weight_array, self.weight_array])
 
-        if isinstance(params, Parameters):
-            # keep = []
-            # for i, key in enumerate(params.keys()):
-            #     if params[key].expr is None:
-            #         keep.append(i)
+        all_params = self.all_params.copy()                     # copy of full param set
+        for name, val in zip(self.lmfit_variable_names, params):
+            all_params[name].value = val                        # update indep params values to current pass
+        all_params.update_constraints()                         # evaluate dependent params values
 
-            v = params.valuesdict()
-            params = np.array([item[1] for item in list(v.items())])
+        yfit, all_pders = self.lorgauss_internal(all_params, pderflg=True)
 
-
-
-        yfit, pders = self.lorgauss_internal(params, pderflg=True)
-
-        # pders = all_pders[keep,:]
+        pders = all_pders[self.lmfit_variable_indices,:]        # remove dependent param pders
 
         dfunc = []
         for pder in pders:
-            dfunc.append(np.concatenate([pder.real, pder.imag]) * ww)
+            dfunc.append(np.concatenate([pder.real, pder.imag]) * ww * (-1))    # -1 determined empirically, bjs 3/2021
         dfunc = np.array(dfunc)
 
-        return dfunc.T
+        return dfunc.T          # transpose determined empirically
 
 
     def lorgauss_internal_lmfit(self, params, report_stats=False):
@@ -329,7 +333,12 @@ class ChainFitVoigt(Chain):
         """
         data  = self.data_scale.copy()
         ww    = self.weight_array
-                
+
+        # all_params = self.all_params.copy()
+        # for name, val in zip(self.result_var_names, params):
+        #     all_params[name].value = val
+        # all_params.update_constraints()
+
         yfit, pder = self.lorgauss_internal(params, pderflg=False)
         
         yfit = np.concatenate([yfit.real, yfit.imag])

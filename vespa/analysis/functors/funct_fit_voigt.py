@@ -22,7 +22,7 @@ import vespa.common.util.generic_spectral as util_spectral
 from vespa.analysis.constants import FitLineshapeModel, FitMacromoleculeMethod
 from vespa.analysis.algos.constrained_levenberg_marquardt import constrained_levenberg_marquardt
 
-
+from vespa.analysis.constants import FitOptimizeMethod
 
 
 def initial_values(chain):
@@ -229,11 +229,11 @@ def initialize_for_fit(chain):
         params.add(plabel[i], value=a[i], min=lim[0][i], max=lim[1][i])
 
     
-    if set.optimize_method == constants.FitOptimizeMethod.CONSTRAINED_LEVENBERG_MARQUARDT:
+    if set.optimize_method == FitOptimizeMethod.CONSTRAINED_LEVENBERG_MARQUARDT:
         # make no changes
         pass
 
-    elif set.optimize_method == constants.FitOptimizeMethod.LMFIT_DEFAULT:
+    elif set.optimize_method in [FitOptimizeMethod.LMFIT_DEFAULT, FitOptimizeMethod.LMFIT_JACOBIAN]:
     
         for i in range(len(chain.initial_values)):
                 
@@ -278,11 +278,6 @@ def initialize_for_fit(chain):
                     delta_fre = pkppms[unique_abbr.index('glc')] - pkppms[unique_abbr.index('tau')]
                     delta_fre = delta_fre * frequency * 2.0 * np.pi
                     params['freq_glc'].set(min=-np.inf, max=np.inf, expr='freq_tau - '+str(delta_fre))
-            
-
-    if 'freq_naag' in list(params.keys()):
-        bob = 10
-#        print 'freq_naag, freq_naa  -  '+str(params['freq_naag'].value)+'  '+str(params['freq_naa'].value) 
 
     chain.fit_results = params
 
@@ -418,9 +413,38 @@ def optimize_model(chain):
     Note. The baseline is added into the model in the function_model() method,
     so we never 'subtract out the baseline from the data' in this step of the
     fitting.
-    
+
+    For both LMFIT methods, we may have 'dependent parameters' that are set up
+    as expressions rather than start value and bounds. E.g. the frequency value
+    for NAAG might be:  freq_naag = freq_naa + 0.04 to keep it as a shoulder of
+    NAA. The LMFIT algorithms passes all paramters to the 'evaluation function'
+    but only the 'independent paramters' to the Jacobian (partial derivative)
+    function. We need to do some book keeping here at the start to ensure that
+    the chain object has the info needed by the LMFIT Jacobian function to deal
+    with this variability. One example might be the following:
+
+    Example. The vespa model might initially have 48 parameters, but only 42
+    are independent parameters while the other 6 are dependent expressions (e.g.
+    freq_naag = freq_naa + 0.04). The LMFIT algorithm only passes in the 42
+    'free' params to the Jacobian function , and I need to expand that into the
+    actual 48 for the self.lorgauss_internal() call to work properly. On return,
+    I need to remove the pder entries for the dependent parameters (and return
+    just a 42 x npts array).
+
+    Note. bjs - mar 2021, The pure LMFIT_DEFAULT gives slightly better results than
+     the pure LMFIT_JACOBIAN, despite being many times slower. My first pass fix
+     for this is to make the last iteration of the LMFIT_JACOBIAN method use the
+     LMFIT_DEFAULT call. This uses a 2-point estimation for the Jacobian call
+     instead of the closed form provided by the chain_fit_voigt object. So far it
+     is the best of both worlds, a fast first few iterations and a more precise (?)
+     final iteration.
+
     """
     set = chain._block.set
+    niter = set.optimize_global_iterations
+    iter  = chain.iteration
+
+
     if set.optimize_method:
 
         a     = chain.fit_results.copy()
@@ -431,9 +455,27 @@ def optimize_model(chain):
         itmax = set.optimize_max_iterations
         toler = set.optimize_stop_tolerance
 
-        if set.optimize_method == constants.FitOptimizeMethod.CONSTRAINED_LEVENBERG_MARQUARDT:
+        if set.optimize_method in [FitOptimizeMethod.LMFIT_DEFAULT, FitOptimizeMethod.LMFIT_JACOBIAN]:
+            # Book keeping to determine names/indices for independent parameters.
+            # Used in
+            #   chain_fit_voigt.lorgauss_internal_lmfit_dfunc()
+            #   chain_fit_voigt.lorgauss_internal_lmfit()
 
-            # parse input parameters
+            chain.all_params = a.copy()
+            var_names = []
+            keep = []
+            for i, key in enumerate(a.keys()):
+                if a[key].expr is None:
+                    var_names.append(a[key].name)
+                    keep.append(i)
+            chain.lmfit_variable_names = var_names
+            chain.lmfit_variable_indices = keep
+            chain.data_scale = data
+
+
+        if set.optimize_method == FitOptimizeMethod.CONSTRAINED_LEVENBERG_MARQUARDT:
+
+            # parse model parameters into list of parameter initial values
             v = a.valuesdict()
             a0 = np.array([item[1] for item in list(v.items())])
 
@@ -443,48 +485,38 @@ def optimize_model(chain):
             for i,item in enumerate(v.keys()):
                 a[item].set(value=a0[i])
             
-        elif set.optimize_method == constants.FitOptimizeMethod.LMFIT_DEFAULT:
+        elif set.optimize_method == FitOptimizeMethod.LMFIT_DEFAULT:
 
-            print('in1:', [a[item].value for item in a.valuesdict().keys()])
-
-            chain.data_scale = data
-
-            # result = lmfit.minimize(chain.lorgauss_internal_lmfit, a, method='least_squares')
-
-            func = chain.lorgauss_internal_lmfit
-            min1 = lmfit.Minimizer(func, a)
-            #result = min1.leastsq()
+            func   = chain.lorgauss_internal_lmfit
+            min1   = lmfit.Minimizer(func, a)
             result = min1.least_squares()
 
             wchis, chis = chain.lorgauss_internal_lmfit(result.params, report_stats=True)
             badfit = 0 if result.success else 1
             a = result.params.copy()
 
-            print('out1:', [result.params[item].value for item in result.params.valuesdict().keys()])
+            print('\niter: '+str(iter)+'   nfev: '+str(result.nfev))
 
-        elif set.optimize_method == constants.FitOptimizeMethod.LMFIT_JACOBIAN:
+        elif set.optimize_method == FitOptimizeMethod.LMFIT_JACOBIAN:
 
-            print('in2:', [a[item].value for item in a.valuesdict().keys()])
-
-            chain.data_scale = data
-
-            func  = chain.lorgauss_internal_lmfit
+            func = chain.lorgauss_internal_lmfit
             dfunc = chain.lorgauss_internal_lmfit_dfunc
 
             min1 = lmfit.Minimizer(func, a)
-            #result = min1.leastsq(Dfun=dfunc, col_deriv=1)
-            result = min1.least_squares(jac=dfunc)
+            if iter < niter:
+                result = min1.least_squares(jac=dfunc)
+            elif iter == niter:
+                # see note above for this call
+                result = min1.least_squares()
 
             wchis, chis = chain.lorgauss_internal_lmfit(result.params, report_stats=True)
             badfit = 0 if result.success else 1
             a = result.params.copy()
 
-            print('out2:', [result.params[item].value for item in result.params.valuesdict().keys()])
+            print('\niter: '+str(iter)+'   nfev: '+str(result.nfev))
 
-
-        chain.fit_results = a
-        chain.fit_stats   = np.array([chis, wchis, badfit])
-
+        chain.fit_results  = a
+        chain.fit_stats    = np.array([chis, wchis, badfit])
         chain.fitted_lw, _ = util_spectral.voigt_width(a['ta'].value, a['tb'].value, chain._dataset)
 
 
@@ -1143,74 +1175,5 @@ def do_processing_voxel_change(chain, flag_auto_initvals=False):
 
         
 
-# def optimize_model_original_saved(chain):
-#     """
-#     Note. The baseline is added into the model in the function_model() method,
-#     so we never 'subtract out the baseline from the data' in this step of the
-#     fitting.
-#     
-#     """
-#     set = chain._block.set
-#     if set.optimize_method:
-# 
-#         data  = chain.data.copy()
-#         nmet  = chain.nmet
-#         a     = chain.fit_results.copy()
-#         ww    = chain.weight_array
-#         lim   = chain.limits.copy()
-#         itmax = set.optimize_max_iterations
-#         toler = set.optimize_stop_tolerance
-# 
-#         if set.optimize_method == constants.FitOptimizeMethod.CONSTRAINED_LEVENBERG_MARQUARDT:
-# 
-#             # parse input parameters
-#         
-#             if isinstance(a, Parameters):
-#                 v = a.valuesdict()
-#                 a0 = np.array([item[1] for item in v.items()])
-#             else:
-#                 a0 = a
-# 
-#             if set.optimize_scaling_flag:
-#                 a0, pscale, lim, data, baseline = parameter_scale(chain, a0, lim, data, baseline=chain.fit_baseline)
-#                 chain.fit_baseline = baseline
-# 
-#             yfit, a0, sig, chis, wchis, badfit = constrained_levenberg_marquardt(data, ww, a0, lim, chain.fit_function, itmax, toler)
-# 
-#             if set.optimize_scaling_flag:
-#                 a0, chis, wchis, baseline = parameter_unscale(chain, a0, pscale, chis, wchis, baseline=chain.fit_baseline)
-#                 chain.fit_baseline = baseline
-# 
-#             if isinstance(a, Parameters):
-#                 v = a.valuesdict()
-#                 for i,item in enumerate(v.keys()):
-#                     a[item].set(value=a0[i])
-#             else:
-#                 a = a0
-#             
-#         elif set.optimize_method == constants.FitOptimizeMethod.LMFIT_DEFAULT:
-# 
-#             if set.optimize_scaling_flag:
-#                 a, pscale, lim, data, baseline = parameter_scale(chain, a, lim, data, baseline=chain.fit_baseline)
-#                 chain.fit_baseline = baseline
-# 
-#             chain.data_scale = data
-# 
-#             result = lmfit.minimize(chain.lorgauss_internal_lmfit, a, method='least_squares')
-# 
-#             a = result.params.copy()
-# 
-#             if set.optimize_scaling_flag:
-#                 a, chis, wchis, baseline = parameter_unscale(chain, a, pscale, chis, wchis, baseline=chain.fit_baseline)
-#                 chain.fit_baseline = baseline
-# 
-#         chain.fit_results = a
-#         chain.fit_stats   = np.array([chis, wchis, badfit])
-# 
-#         #chain.fitted_lw, _ = util_spectral.voigt_width(a[nmet*2], a[nmet*2+1], chain._dataset)
-#         chain.fitted_lw, _ = util_spectral.voigt_width(a['ta'].value, a['tb'].value, chain._dataset)
-#         
-            
 
-      
  

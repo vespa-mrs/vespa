@@ -317,8 +317,9 @@ def analysis_cli_chain(datasets, presets,
                 if verbose: print(process_id + " - attach mmol_basis to - metab")
                 dset.set_associated_dataset_mmol(basis_mmol)
 
-        if verbose: print(process_id + " - attaching water to - metab")
-        dset.set_associated_dataset_quant(data_water)
+        if data_water is not None:
+            if verbose: print(process_id + " - attaching water to - metab")
+            dset.set_associated_dataset_quant(data_water)
 
     if verbose: print(process_id+" - run chain - metab")
     _process_all_blocks(data_metab)
@@ -586,7 +587,7 @@ def analysis_kernel(params, verbose=False, process_id='single', exception_as_lis
 
         msg = 'begin loading datasets'
         datasets = []
-        if settings.dataformat in ['philips_press28_dicom', 'philips_slaser30_cmrr_spar']:
+        if settings.dataformat in ['philips_press28_dicom', 'philips_slaser30_cmrr_spar', 'vasf']:
             for key in ['metab', 'water', 'ecc', 'coil']:
                 fname = fdatasets[key]
                 if fname is not None:
@@ -600,6 +601,10 @@ def analysis_kernel(params, verbose=False, process_id='single', exception_as_lis
             if fname is not None:
                 dataset = util_file_import.get_datasets_cli(fname, settings.import_class, None)
                 datasets.append(dataset[0],dataset[1],dataset[2],dataset[3])            # all files in one
+
+        else:
+            msg = "VIE.analysis_kernel: Unknown 'settings.dataformat' name, can not load dataset, returning."
+            raise ValueError(msg)
 
         msg = 'begin loading mmol basis'
         if fbasis_mmol is not None:

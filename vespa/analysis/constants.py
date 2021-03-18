@@ -88,38 +88,6 @@ class Apodization(object):
                                        (LORENTZIAN , "Lorentzian"),
                                       ))
 
-# class DcOffset(object):
-#     """ DC offset constants """
-#     MIN = -1e5
-#     MAX =  1e5
-#     INCREMENT = 0.5
-#
-#
-# class FrequencyShift(object):
-#     """ Frequency shift constants """
-#     MIN = -1e4
-#     MAX =  1e4
-#     INCREMENT = 0.5
-#
-#
-# class Phase_0(object):
-#     """ First order phase constants """
-#     MIN = 0
-#     MAX = 360
-#     INCREMENT = 0.01
-#
-#
-# class Phase_1(object):
-#     """ First order phase constants """
-#     MIN = -1e4
-#     MAX =  1e4
-#     INCREMENT = 10.0
-#
-#     MIN_PIVOT = -1000
-#     MAX_PIVOT =  1000
-#     INCREMENT_PIVOT = 0.5
-
-
 class SpatialFilter(object):
     """ Spatial filter constants """
     # These constants are arbitrary and may change.

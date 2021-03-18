@@ -17,6 +17,6 @@ class ChainPrepIdentity(Chain):
         super().__init__(dataset, block)
 
 
-    def run(self, voxels, entry='all'):
+    def run(self, voxels, entry='all', freq_raw=False):
         pass
 

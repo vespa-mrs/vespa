@@ -55,7 +55,6 @@ def run(settings, verbose=True):
             settings.import_class = 'import_philips_dicom'
             mrs_files = []
             other_files = []
-            data_dir = settings.data_dir
             for dirpath, dirnames, filenames in os.walk(settings.data_dir):
                 for filename in filenames:
                     ftest = os.path.join(dirpath, filename)

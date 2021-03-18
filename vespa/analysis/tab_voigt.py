@@ -1023,7 +1023,7 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
             elif layout == 'lcm_multi':
                 fig_call = figure_layouts.lcm_multipage_pdf
                 nobase = False
-                fixphase = True
+                fixphase = False
                 dpi = 300
             elif layout == '2plot':
                 fig_call = figure_layouts.analysis_plot2
