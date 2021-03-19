@@ -22,7 +22,7 @@ import vespa.common.util.generic_spectral as util_spectral
 from vespa.analysis.constants import FitLineshapeModel, FitMacromoleculeMethod
 from vespa.analysis.algos.constrained_levenberg_marquardt import constrained_levenberg_marquardt
 
-from vespa.analysis.constants import FitOptimizeMethod
+from vespa.analysis.constants import FitOptimizeMethod as optmeth
 
 
 def initial_values(chain):
@@ -229,11 +229,11 @@ def initialize_for_fit(chain):
         params.add(plabel[i], value=a[i], min=lim[0][i], max=lim[1][i])
 
     
-    if set.optimize_method == FitOptimizeMethod.CONSTRAINED_LEVENBERG_MARQUARDT:
+    if set.optimize_method == optmeth.CONSTRAINED_LEVENBERG_MARQUARDT:
         # make no changes
         pass
 
-    elif set.optimize_method in [FitOptimizeMethod.LMFIT_DEFAULT, FitOptimizeMethod.LMFIT_JACOBIAN]:
+    elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN]:
     
         for i in range(len(chain.initial_values)):
                 
@@ -405,9 +405,7 @@ def baseline_model(chain):
         chain.fit_baseline = chain.data.copy() * 0.0
 
 
-
-            
-            
+# noinspection PyUnboundLocalVariable
 def optimize_model(chain):
     """
     Note. The baseline is added into the model in the function_model() method,
@@ -455,9 +453,21 @@ def optimize_model(chain):
         itmax = set.optimize_max_iterations
         toler = set.optimize_stop_tolerance
 
-        if set.optimize_method in [FitOptimizeMethod.LMFIT_DEFAULT, FitOptimizeMethod.LMFIT_JACOBIAN]:
-            # Book keeping to determine names/indices for independent parameters.
-            # Used in
+
+        if set.optimize_method == optmeth.CONSTRAINED_LEVENBERG_MARQUARDT:
+
+            # parse model parameters into list of parameter initial values
+            v = a.valuesdict()
+            a0 = np.array([item[1] for item in list(v.items())])
+
+            yfit, a0, sig, chis, wchis, badfit = constrained_levenberg_marquardt(data, ww, a0, lim, chain.fit_function, itmax, toler)
+
+            v = a.valuesdict()
+            for i,item in enumerate(v.keys()):
+                a[item].set(value=a0[i])
+
+        elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN]:
+            # Bookeeping determines names/indices for independent parameters. Used in
             #   chain_fit_voigt.lorgauss_internal_lmfit_dfunc()
             #   chain_fit_voigt.lorgauss_internal_lmfit()
 
@@ -472,48 +482,22 @@ def optimize_model(chain):
             chain.lmfit_variable_indices = keep
             chain.data_scale = data
 
-
-        if set.optimize_method == FitOptimizeMethod.CONSTRAINED_LEVENBERG_MARQUARDT:
-
-            # parse model parameters into list of parameter initial values
-            v = a.valuesdict()
-            a0 = np.array([item[1] for item in list(v.items())])
-
-            yfit, a0, sig, chis, wchis, badfit = constrained_levenberg_marquardt(data, ww, a0, lim, chain.fit_function, itmax, toler)
-
-            v = a.valuesdict()
-            for i,item in enumerate(v.keys()):
-                a[item].set(value=a0[i])
-            
-        elif set.optimize_method == FitOptimizeMethod.LMFIT_DEFAULT:
-
-            func   = chain.lorgauss_internal_lmfit
-            min1   = lmfit.Minimizer(func, a)
-            result = min1.least_squares()
-
-            wchis, chis = chain.lorgauss_internal_lmfit(result.params, report_stats=True)
-            badfit = 0 if result.success else 1
-            a = result.params.copy()
-
-            print('\niter: '+str(iter)+'   nfev: '+str(result.nfev))
-
-        elif set.optimize_method == FitOptimizeMethod.LMFIT_JACOBIAN:
-
-            func = chain.lorgauss_internal_lmfit
+            func  = chain.lorgauss_internal_lmfit
             dfunc = chain.lorgauss_internal_lmfit_dfunc
+            min1  = lmfit.Minimizer(func, a)
 
-            min1 = lmfit.Minimizer(func, a)
-            if iter < niter:
-                result = min1.least_squares(jac=dfunc)
-            elif iter == niter:
-                # see note above for this call
+            if set.optimize_method == optmeth.LMFIT_DEFAULT:
                 result = min1.least_squares()
+            elif set.optimize_method == optmeth.LMFIT_JACOBIAN:
+                result = min1.least_squares(jac=dfunc)
+            elif set.optimize_method == optmeth.LMFIT_JACOBIAN_REFINE:
+                result = min1.least_squares(jac=dfunc) if iter < niter else min1.least_squares()
 
             wchis, chis = chain.lorgauss_internal_lmfit(result.params, report_stats=True)
             badfit = 0 if result.success else 1
             a = result.params.copy()
 
-            print('\niter: '+str(iter)+'   nfev: '+str(result.nfev))
+            print('\niter: ' + str(iter) + '   nfev: ' + str(result.nfev))
 
         chain.fit_results  = a
         chain.fit_stats    = np.array([chis, wchis, badfit])
@@ -1026,7 +1010,7 @@ def optimize_model_slsqp(self, chain):
         itmax = self.optimize_max_iterations
         toler = self.optimize_stop_tolerance
 
-        if self.optimize_method == constants.FitOptimizeMethod.CONSTRAINED_LEVENBERG_MARQUARDT:
+        if self.optimize_method == optmeth.CONSTRAINED_LEVENBERG_MARQUARDT:
 
             # if self.optimize_scaling_flag:
             #     a, pscale, lim, data, baseline = parameter_scale(nmet, a, lim, data, baseline=chain.fit_baseline)
