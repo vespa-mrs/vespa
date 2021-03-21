@@ -15,7 +15,6 @@ import vespa.analysis.algos.splines as splines
 import vespa.analysis.algos.wavelet_filter as wavelet_filter
 import vespa.analysis.util_initial_values as util_initial_values
 import vespa.common.constants as common_constants
-import vespa.common.util.ppm as util_ppm
 import vespa.common.minf_parabolic_info as minf
 import vespa.common.util.generic_spectral as util_spectral
 
@@ -156,7 +155,70 @@ def initial_values(chain):
     # set the weight array
     chain.weight_array = util_initial_values.set_weight_array( chain )
     
-    
+
+
+
+
+def create_param_labels(chain):
+    """  Create list of unique parameter labels """
+
+    plabel = []
+
+    unique_abbr = [item.replace('-','_') for item in chain._dataset.prior_list_unique]
+
+    for item in unique_abbr: plabel.append('area_'+item)
+    for item in unique_abbr: plabel.append('freq_'+item)
+    plabel.append('ta')
+    plabel.append('tb')
+    plabel.append('ph0')
+    plabel.append('ph1')
+
+    if chain._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET:
+        plabel.append('mmol_area')
+        plabel.append('mmol_freq')
+
+    return plabel
+
+
+def a2param(chain, a, lims=None):
+    """ convert position dependent variables to LMFIT parameters """
+
+    plabel = create_param_labels(chain)
+    params = Parameters()
+
+    for i in range(len(a)):
+        if lims is not None:
+            params.add(plabel[i], value=a[i], min=lims[0][i], max=lims[1][i])
+        else:
+            params.add(plabel[i], value=a[i])
+
+    return params
+
+
+def param2a(chain, params):
+    """
+    Convert LMFIT parameters back to position dependent variables
+    - some of the params are free variables, these just get added to 'a' by value
+    - some are hard constrained expressions, these also get added to 'a' by value
+    - some are constrained inequality expressions, these typically have a second
+       parameter involved labelled 'delta_<param_name>' that needs to be part of
+       the conversion.
+
+    """
+    a = [params[item].value for item in create_param_labels(chain)]
+
+    # plabel = create_param_labels(chain)
+    # pnames = list(params.keys())
+    #
+    # for key in plabel:
+    #
+    #     if (key=='freq_naag') and ('delta_freq_naag' in pnames):
+    #         a.append(params['freq_naa'].value - params['delta_freq_naag'].value)
+    #     else:
+    #         a.append(params[key].value)
+
+    return np.array(a)
+
 
 def initialize_for_fit(chain):
     """
@@ -172,41 +234,16 @@ def initialize_for_fit(chain):
        conversion to Parameter objects
     
     """
+    ds  = chain._dataset
     set = chain._block.set
-    
-    metinfo = chain._dataset.user_prior.metinfo
-    prior_list = set.prior_list
-    unique_abbr = chain._dataset.prior_list_unique
 
-    frequency = chain._dataset.frequency
-    pkppms    = np.array(set.prior_peak_ppm)
-    #pkppms  = dataset.ppm2pts(np.array(set.prior_peak_ppm))     # these are in pts here
-    
-    # Create list of unique parameter labels -----
-    plabel = []
-    for item in unique_abbr:
-        item = item.replace('-','_')
-        plabel.append('area_'+item)
-    for item in unique_abbr:
-        item = item.replace('-','_')
-        plabel.append('freq_'+item)
-    plabel.append('ta')
-    plabel.append('tb')
-    plabel.append('ph0')
-    plabel.append('ph1')
-
-    if chain._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET:
-        plabel.append('mmol_area')
-        plabel.append('mmol_freq')
-        
-    chain.plabel = plabel
-
-
-    # Scale initial values arrays if needed ---  
     a     = chain.initial_values.copy()
     lim   = chain.limits.copy()
     data  = chain.data.copy()
-    
+
+    # Scale initial values arrays if needed
+
+    chain.pscale = np.array([1.0, ] * len(a))
     if set.optimize_scaling_flag:
         a, pscale, lim, data, baseline = parameter_scale(chain, a, lim, data, baseline=chain.fit_baseline)
         chain.fit_baseline = baseline
@@ -214,69 +251,60 @@ def initialize_for_fit(chain):
         chain.data_scale   = data           # bjs - remove duplication at some point
         chain.pscale       = pscale
         chain.limits       = lim
-    else:
-        chain.pscale = np.array([1.0,] * len(a))
 
-    # convert initial value arrays to Parameters dict
-    params = Parameters()
-    
-    # Tor us to set constrains, all terms in an expression must already exist. 
-    # This is a problem for tau/glc pair. The fix is to declare them all as 
-    # free Params then go back and adjust any that need adjusting. For the
-    # constrained lev-mar, we don't make any changes, just for LMFit.
-    
-    for i in range(len(chain.initial_values)):
-        params.add(plabel[i], value=a[i], min=lim[0][i], max=lim[1][i])
+    # Create all LMFIT Params as free vars then adjust any that are expressions
 
-    
+    params = a2param(chain, a, lim)
+    plabel = create_param_labels(chain)
+    pkppms = {item1 : item2 for item1, item2 in zip(ds.prior_list_unique, set.prior_peak_ppm)}
+    const1 = ds.frequency * 2.0 * np.pi
+
     if set.optimize_method == optmeth.CONSTRAINED_LEVENBERG_MARQUARDT:
-        # make no changes
-        pass
+        pass        # no changes needed
 
-    elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN]:
+    elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN, optmeth.LMFIT_JACOBIAN_REFINE]:
     
-        for i in range(len(chain.initial_values)):
+        for i in range(len(a)):
                 
             if set.optimize_constrain_ppm_naa_naag and plabel[i] == 'freq_naag':
                 
-                if 'naa' in unique_abbr and 'naag' in unique_abbr:
-                    delta_fre = pkppms[unique_abbr.index('naag')] - pkppms[unique_abbr.index('naa')]
-                    delta_fre = delta_fre * frequency * 2.0 * np.pi
-                    params['freq_naag'].set(min=-np.inf, max=np.inf, expr='freq_naa - '+str(delta_fre))
+                if 'freq_naa' in plabel:
+
+                    # delta_fre = (pkppms['naag'] - pkppms['naa']) * const1
+                    # params['freq_naag'].set(min=-np.inf, max=np.inf, expr='freq_naa - '+str(delta_fre))
+
+                    delta = pkppms['naag'] - pkppms['naa']
+                    params.add(name='delta_freq_naag', value=delta*const1, min=(delta-0.01)*const1, max=(delta+0.03)*const1, vary=True)
+                    params['freq_naag'].set(expr='freq_naa - delta_freq_naag')      # ppms add, but freq subtracts, this is freq here
 
             elif set.optimize_constrain_ppm_cr_pcr and plabel[i] == 'freq_pcr':
                 
-                if 'cr' in unique_abbr and 'pcr' in unique_abbr:
-                    delta_fre = pkppms[unique_abbr.index('pcr')] - pkppms[unique_abbr.index('cr')]
-                    delta_fre = delta_fre * frequency * 2.0 * np.pi
+                if 'freq_cr' in plabel:
+                    delta_fre = (pkppms['pcr'] - pkppms['cr']) * const1
                     params['freq_pcr'].set(min=-np.inf, max=np.inf, expr='freq_cr - '+str(delta_fre))
 
             elif set.optimize_constrain_ppm_gpc_pcho and plabel[i] == 'freq_pcho':
                 
-                if 'gpc' in unique_abbr and 'pcho' in unique_abbr:
-                    delta_fre = pkppms[unique_abbr.index('gpc')] - pkppms[unique_abbr.index('pcho')]
-                    delta_fre = delta_fre * frequency * 2.0 * np.pi
+                if 'freq_gpc' in plabel:
+                    delta_fre = (pkppms['gpc'] - pkppms['pcho']) * const1
                     params['freq_pcho'].set(min=-np.inf, max=np.inf, expr='freq_gpc - '+str(delta_fre))
 
             elif set.optimize_constrain_ppm_cr2_pcr2 and plabel[i] == 'freq_pcr2':
                 
-                if 'cr2' in unique_abbr and 'pcr2' in unique_abbr:
-                    delta_fre = pkppms[unique_abbr.index('pcr2')] - pkppms[unique_abbr.index('cr2')]
-                    delta_fre = delta_fre * frequency * 2.0 * np.pi
+                if 'freq_cr2' in plabel:
+                    delta_fre = (pkppms['pcr2'] - pkppms['cr2']) * const1
                     params['freq_pcr2'].set(min=-np.inf, max=np.inf, expr='freq_cr2 - '+str(delta_fre))
 
             elif set.optimize_constrain_ppm_glu_gln and plabel[i] == 'freq_gln':
                 
-                if 'glu' in unique_abbr and 'gln' in unique_abbr:
-                    delta_fre = pkppms[unique_abbr.index('gln')] - pkppms[unique_abbr.index('glu')]
-                    delta_fre = delta_fre * frequency * 2.0 * np.pi
+                if 'freq_glu' in plabel:
+                    delta_fre = (pkppms['gln'] - pkppms['glu']) * const1
                     params['freq_gln'].set(min=-np.inf, max=np.inf, expr='freq_glu - '+str(delta_fre))
 
             elif set.optimize_constrain_ppm_tau_glc and plabel[i] == 'freq_glc':
                                 
-                if 'tau' in unique_abbr and 'glc' in unique_abbr:
-                    delta_fre = pkppms[unique_abbr.index('glc')] - pkppms[unique_abbr.index('tau')]
-                    delta_fre = delta_fre * frequency * 2.0 * np.pi
+                if 'freq_tau' in plabel:
+                    delta_fre = (pkppms['glc'] - pkppms['tau']) * const1
                     params['freq_glc'].set(min=-np.inf, max=np.inf, expr='freq_tau - '+str(delta_fre))
 
     chain.fit_results = params
@@ -295,8 +323,11 @@ def finalize_from_fit(chain):
     
     # Convert Parameters dict to list --- 
     params = chain.fit_results
-    v = params.valuesdict()
-    a = np.array([item[1] for item in list(v.items())])
+
+    a = param2a(chain, params)
+
+    # v = params.valuesdict()
+    # a = np.array([item[1] for item in list(v.items())])
 
     # Scale parameter list values if needed --- 
     if set.optimize_scaling_flag:
@@ -405,7 +436,6 @@ def baseline_model(chain):
         chain.fit_baseline = chain.data.copy() * 0.0
 
 
-# noinspection PyUnboundLocalVariable
 def optimize_model(chain):
     """
     Note. The baseline is added into the model in the function_model() method,
@@ -466,8 +496,8 @@ def optimize_model(chain):
             for i,item in enumerate(v.keys()):
                 a[item].set(value=a0[i])
 
-        elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN]:
-            # Bookeeping determines names/indices for independent parameters. Used in
+        elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN, optmeth.LMFIT_JACOBIAN_REFINE]:
+            # Bookeeping to determin names/indices for independent parameters. Used in
             #   chain_fit_voigt.lorgauss_internal_lmfit_dfunc()
             #   chain_fit_voigt.lorgauss_internal_lmfit()
 
@@ -954,109 +984,109 @@ def save_yfit(chain):
 
 
 
-def optimize_model_slsqp(self, chain):
-    """
-    This was as attempt at using a minimize function from scipy that would also
-    allow us to set conditions such as NAAppm - NAAGppm - 0.05 = 0
-    
-    Here's an online ref that I pasted in for some reason:
-    
-        The argument you're interested in is eqcons, which is a list of functions
-        whose value should be zero in a successfully optimized problem.
-
-        See the fmin_slsqp test script at
-        http://projects.scipy.org/scipy/attachment/ticket/570/slsqp_test.py
-
-        In particular, your case will be something like this
-
-        x = fmin_slsqp(testfunc,[-1.0,1.0], args = (-1.0,), eqcons = [lambda x, y:
-        x[0]-x[1] ], iprint = 2, full_output = 1)
-
-        In your case, eqcons will be:
-        [lambda x, y: x[0]+x[1]+x[2]-1, lambda x, y: x[3]+x[4]+x[5]-1 ]
-
-        Alternatively, you can write a Python function that returns those two values
-        in a sequence as pass it to fmin_slsqp as  f_eqcons.
-    
-        On Mon, May 4, 2009 at 2:00 PM, Leon Adams <skorpio11@gmail.com> wrote:
-
-        > Hi,
-        >
-        > I was wondering what the status is of the Slsqp extension to the optimize
-        > package. I am currently in need of the ability to place an equality
-        > constraint on some of my input variables, but the available documentation on
-        > slsqp seems insufficient.
-        >
-        > My Scenario:
-        >
-        > I have an objective fn: Obfn(x1,x2,x3,x4,x5,x6) that I would like to place
-        > the additional constrain of
-        > x1 + x2 + x3 = 1
-        > x4 + x5 + x6 = 1
-        >
-        > If there is a good usage example I can be pointed to, it would be
-        > appreciated
-        >
-        > Thanks in advance.
-    
-    """
-    if self.optimize_method:
-
-        data  = chain.data.copy()
-        nmet  = chain.nmet
-        a     = chain.fit_results.copy()
-        ww    = chain.weight_array
-        lim   = chain.limits.copy()
-        itmax = self.optimize_max_iterations
-        toler = self.optimize_stop_tolerance
-
-        if self.optimize_method == optmeth.CONSTRAINED_LEVENBERG_MARQUARDT:
-
-            # if self.optimize_scaling_flag:
-            #     a, pscale, lim, data, baseline = parameter_scale(nmet, a, lim, data, baseline=chain.fit_baseline)
-            #     chain.fit_baseline = baseline
-
-            yfit, a, sig, chis, wchis, badfit = \
-                        constrained_levenberg_marquardt(data, 
-                                                        ww, 
-                                                        a, 
-                                                        lim, 
-                                                        chain, 
-                                                        chain.fit_function, 
-                                                        itmax, 
-                                                        toler)
-
-            x0 = a
-            func = chain.fit_function
-            out, fx, its, imode, smode = fmin_slsqp(func, x0,   eqcons=[], 
-                                                                f_eqcons=None, 
-                                                                ieqcons=[], 
-                                                                f_ieqcons=None, 
-                                                                bounds=lim, 
-                                                                fprime=None, 
-                                                                fprime_eqcons=None, 
-                                                                fprime_ieqcons=None, 
-                                                                args=(), 
-                                                                iter=100, 
-                                                                acc=1e-06, 
-                                                                iprint=1, 
-                                                                disp=None, 
-                                                                full_output=0, 
-                                                                epsilon=1.4901161193847656e-08)
-
-
-
-            # if self.optimize_scaling_flag:
-            #     a, chis, wchis, baseline = parameter_unscale(nmet, a, 
-            #                                                             pscale, 
-            #                                                             chis, wchis, 
-            #                                                             baseline=chain.fit_baseline)
-            #     chain.fit_baseline = baseline
-
-        chain.fit_results = a.copy()
-        chain.fit_stats   = np.array([chis, wchis, badfit])
-
-        chain.fitted_lw, _ = util_spectral.voigt_width(a[nmet*2], a[nmet*2+1], chain._dataset)
+# def optimize_model_slsqp(self, chain):
+#     """
+#     This was as attempt at using a minimize function from scipy that would also
+#     allow us to set conditions such as NAAppm - NAAGppm - 0.05 = 0
+#
+#     Here's an online ref that I pasted in for some reason:
+#
+#         The argument you're interested in is eqcons, which is a list of functions
+#         whose value should be zero in a successfully optimized problem.
+#
+#         See the fmin_slsqp test script at
+#         http://projects.scipy.org/scipy/attachment/ticket/570/slsqp_test.py
+#
+#         In particular, your case will be something like this
+#
+#         x = fmin_slsqp(testfunc,[-1.0,1.0], args = (-1.0,), eqcons = [lambda x, y:
+#         x[0]-x[1] ], iprint = 2, full_output = 1)
+#
+#         In your case, eqcons will be:
+#         [lambda x, y: x[0]+x[1]+x[2]-1, lambda x, y: x[3]+x[4]+x[5]-1 ]
+#
+#         Alternatively, you can write a Python function that returns those two values
+#         in a sequence as pass it to fmin_slsqp as  f_eqcons.
+#
+#         On Mon, May 4, 2009 at 2:00 PM, Leon Adams <skorpio11@gmail.com> wrote:
+#
+#         > Hi,
+#         >
+#         > I was wondering what the status is of the Slsqp extension to the optimize
+#         > package. I am currently in need of the ability to place an equality
+#         > constraint on some of my input variables, but the available documentation on
+#         > slsqp seems insufficient.
+#         >
+#         > My Scenario:
+#         >
+#         > I have an objective fn: Obfn(x1,x2,x3,x4,x5,x6) that I would like to place
+#         > the additional constrain of
+#         > x1 + x2 + x3 = 1
+#         > x4 + x5 + x6 = 1
+#         >
+#         > If there is a good usage example I can be pointed to, it would be
+#         > appreciated
+#         >
+#         > Thanks in advance.
+#
+#     """
+#     if self.optimize_method:
+#
+#         data  = chain.data.copy()
+#         nmet  = chain.nmet
+#         a     = chain.fit_results.copy()
+#         ww    = chain.weight_array
+#         lim   = chain.limits.copy()
+#         itmax = self.optimize_max_iterations
+#         toler = self.optimize_stop_tolerance
+#
+#         if self.optimize_method == optmeth.CONSTRAINED_LEVENBERG_MARQUARDT:
+#
+#             # if self.optimize_scaling_flag:
+#             #     a, pscale, lim, data, baseline = parameter_scale(nmet, a, lim, data, baseline=chain.fit_baseline)
+#             #     chain.fit_baseline = baseline
+#
+#             yfit, a, sig, chis, wchis, badfit = \
+#                         constrained_levenberg_marquardt(data,
+#                                                         ww,
+#                                                         a,
+#                                                         lim,
+#                                                         chain,
+#                                                         chain.fit_function,
+#                                                         itmax,
+#                                                         toler)
+#
+#             x0 = a
+#             func = chain.fit_function
+#             out, fx, its, imode, smode = fmin_slsqp(func, x0,   eqcons=[],
+#                                                                 f_eqcons=None,
+#                                                                 ieqcons=[],
+#                                                                 f_ieqcons=None,
+#                                                                 bounds=lim,
+#                                                                 fprime=None,
+#                                                                 fprime_eqcons=None,
+#                                                                 fprime_ieqcons=None,
+#                                                                 args=(),
+#                                                                 iter=100,
+#                                                                 acc=1e-06,
+#                                                                 iprint=1,
+#                                                                 disp=None,
+#                                                                 full_output=0,
+#                                                                 epsilon=1.4901161193847656e-08)
+#
+#
+#
+#             # if self.optimize_scaling_flag:
+#             #     a, chis, wchis, baseline = parameter_unscale(nmet, a,
+#             #                                                             pscale,
+#             #                                                             chis, wchis,
+#             #                                                             baseline=chain.fit_baseline)
+#             #     chain.fit_baseline = baseline
+#
+#         chain.fit_results = a.copy()
+#         chain.fit_stats   = np.array([chis, wchis, badfit])
+#
+#         chain.fitted_lw, _ = util_spectral.voigt_width(a[nmet*2], a[nmet*2+1], chain._dataset)
 
 
 

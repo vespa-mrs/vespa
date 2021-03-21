@@ -689,141 +689,141 @@ def save_yfit(chain):
 
 
 
-def optimize_model_slsqp(self, chain):
-    """
-    This was as attempt at using a minimize function from scipy that would also
-    allow us to set conditions such as NAAppm - NAAGppm - 0.05 = 0
-    
-
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from scipy.optimize import minimize
-
-        # Function definitions
-        def f(x,a):
-            return a[0]*np.exp((a[2]**2)*np.cos(x-a[1])-1)+a[3]
-
-        def residual(a,x,y):
-            return np.linalg.norm(y-f(x,a))**2
-
-        # Assign values
-        x=[0,np.pi/6,np.pi/3,np.pi/2,2*np.pi/3,5*np.pi/6]
-        y=[0.17,0.36,0.61,0.38,0.17,0.16]
-        a0=[1,np.pi/3,np.pi/2,0]
-
-        # Fit!
-        bounds=((None, None), (0, np.pi), (0, None), (None,None))
-        res = minimize(residual, a0, args=(x, y), method='L-BFGS-B', bounds=bounds)
-        # you can safely change method='L-BFGS-B' to 'SLSQP' 
-
-
-        # Plot
-        fig, axs = plt.subplots()
-        axs.plot(x, y, '.k')
-        axs.plot(x, f(x, res.x), '-r')
-
-    Here's an online ref that I pasted in for some reason:
-    
-        The argument you're interested in is eqcons, which is a list of functions
-        whose value should be zero in a successfully optimized problem.
-
-        See the fmin_slsqp test script at
-        http://projects.scipy.org/scipy/attachment/ticket/570/slsqp_test.py
-
-        In particular, your case will be something like this
-
-        x = fmin_slsqp(testfunc,[-1.0,1.0], args = (-1.0,), eqcons = [lambda x, y:
-        x[0]-x[1] ], iprint = 2, full_output = 1)
-
-        In your case, eqcons will be:
-        [lambda x, y: x[0]+x[1]+x[2]-1, lambda x, y: x[3]+x[4]+x[5]-1 ]
-
-        Alternatively, you can write a Python function that returns those two values
-        in a sequence as pass it to fmin_slsqp as  f_eqcons.
-    
-        On Mon, May 4, 2009 at 2:00 PM, Leon Adams <skorpio11@gmail.com> wrote:
-
-        > Hi,
-        >
-        > I was wondering what the status is of the Slsqp extension to the optimize
-        > package. I am currently in need of the ability to place an equality
-        > constraint on some of my input variables, but the available documentation on
-        > slsqp seems insufficient.
-        >
-        > My Scenario:
-        >
-        > I have an objective fn: Obfn(x1,x2,x3,x4,x5,x6) that I would like to place
-        > the additional constrain of
-        > x1 + x2 + x3 = 1
-        > x4 + x5 + x6 = 1
-        >
-        > If there is a good usage example I can be pointed to, it would be
-        > appreciated
-        >
-        > Thanks in advance.
-    
-    """
-    if self.optimize_method:
-
-        data  = chain.data.copy()
-        nmet  = chain.nmet
-        a     = chain.fit_results.copy()
-        ww    = chain.weight_array
-        lim   = chain.limits.copy()
-        itmax = self.optimize_max_iterations
-        toler = self.optimize_stop_tolerance
-
-        if self.optimize_method == constants.FitOptimizeMethod.CONSTRAINED_LEVENBERG_MARQUARDT:
-
-            # if self.optimize_scaling_flag:
-            #     a, pscale, lim, data, baseline = parameter_scale(nmet, a, lim, data, baseline=chain.fit_baseline)
-            #     chain.fit_baseline = baseline
-
-            yfit, a, sig, chis, wchis, badfit = \
-                        constrained_levenberg_marquardt(data, 
-                                                        ww, 
-                                                        a, 
-                                                        lim, 
-                                                        chain, 
-                                                        chain.fit_function, 
-                                                        itmax, 
-                                                        toler)
-
-            x0 = a
-            func = chain.fit_function
-            out, fx, its, imode, smode = minimize(func, x0,    eqcons=[],
-                                                                method='SLSQP',
-                                                                f_eqcons=None, 
-                                                                ieqcons=[], 
-                                                                f_ieqcons=None, 
-                                                                bounds=lim, 
-                                                                fprime=None, 
-                                                                fprime_eqcons=None, 
-                                                                fprime_ieqcons=None, 
-                                                                args=(), 
-                                                                iter=100, 
-                                                                acc=1e-06, 
-                                                                iprint=1, 
-                                                                disp=None, 
-                                                                full_output=0, 
-                                                                epsilon=1.4901161193847656e-08)
-
-
-
-            # if self.optimize_scaling_flag:
-            #     a, chis, wchis, baseline = parameter_unscale(nmet, a, 
-            #                                                             pscale, 
-            #                                                             chis, wchis, 
-            #                                                             baseline=chain.fit_baseline)
-            #     chain.fit_baseline = baseline
-
-        chain.fit_results = a.copy()
-        chain.fit_stats   = np.array([chis, wchis, badfit])
-
-        chain.fitted_lw = []
-        for i in range(nmet):
-            val, _ = util_spectral.voigt_width(10000.0, a[nmet*2+i], chain._dataset)
-            chain.fitted_lw.append(val)
+# def optimize_model_slsqp(self, chain):
+#     """
+#     This was as attempt at using a minimize function from scipy that would also
+#     allow us to set conditions such as NAAppm - NAAGppm - 0.05 = 0
+#
+#
+#         import numpy as np
+#         import matplotlib.pyplot as plt
+#         from scipy.optimize import minimize
+#
+#         # Function definitions
+#         def f(x,a):
+#             return a[0]*np.exp((a[2]**2)*np.cos(x-a[1])-1)+a[3]
+#
+#         def residual(a,x,y):
+#             return np.linalg.norm(y-f(x,a))**2
+#
+#         # Assign values
+#         x=[0,np.pi/6,np.pi/3,np.pi/2,2*np.pi/3,5*np.pi/6]
+#         y=[0.17,0.36,0.61,0.38,0.17,0.16]
+#         a0=[1,np.pi/3,np.pi/2,0]
+#
+#         # Fit!
+#         bounds=((None, None), (0, np.pi), (0, None), (None,None))
+#         res = minimize(residual, a0, args=(x, y), method='L-BFGS-B', bounds=bounds)
+#         # you can safely change method='L-BFGS-B' to 'SLSQP'
+#
+#
+#         # Plot
+#         fig, axs = plt.subplots()
+#         axs.plot(x, y, '.k')
+#         axs.plot(x, f(x, res.x), '-r')
+#
+#     Here's an online ref that I pasted in for some reason:
+#
+#         The argument you're interested in is eqcons, which is a list of functions
+#         whose value should be zero in a successfully optimized problem.
+#
+#         See the fmin_slsqp test script at
+#         http://projects.scipy.org/scipy/attachment/ticket/570/slsqp_test.py
+#
+#         In particular, your case will be something like this
+#
+#         x = fmin_slsqp(testfunc,[-1.0,1.0], args = (-1.0,), eqcons = [lambda x, y:
+#         x[0]-x[1] ], iprint = 2, full_output = 1)
+#
+#         In your case, eqcons will be:
+#         [lambda x, y: x[0]+x[1]+x[2]-1, lambda x, y: x[3]+x[4]+x[5]-1 ]
+#
+#         Alternatively, you can write a Python function that returns those two values
+#         in a sequence as pass it to fmin_slsqp as  f_eqcons.
+#
+#         On Mon, May 4, 2009 at 2:00 PM, Leon Adams <skorpio11@gmail.com> wrote:
+#
+#         > Hi,
+#         >
+#         > I was wondering what the status is of the Slsqp extension to the optimize
+#         > package. I am currently in need of the ability to place an equality
+#         > constraint on some of my input variables, but the available documentation on
+#         > slsqp seems insufficient.
+#         >
+#         > My Scenario:
+#         >
+#         > I have an objective fn: Obfn(x1,x2,x3,x4,x5,x6) that I would like to place
+#         > the additional constrain of
+#         > x1 + x2 + x3 = 1
+#         > x4 + x5 + x6 = 1
+#         >
+#         > If there is a good usage example I can be pointed to, it would be
+#         > appreciated
+#         >
+#         > Thanks in advance.
+#
+#     """
+#     if self.optimize_method:
+#
+#         data  = chain.data.copy()
+#         nmet  = chain.nmet
+#         a     = chain.fit_results.copy()
+#         ww    = chain.weight_array
+#         lim   = chain.limits.copy()
+#         itmax = self.optimize_max_iterations
+#         toler = self.optimize_stop_tolerance
+#
+#         if self.optimize_method == constants.FitOptimizeMethod.CONSTRAINED_LEVENBERG_MARQUARDT:
+#
+#             # if self.optimize_scaling_flag:
+#             #     a, pscale, lim, data, baseline = parameter_scale(nmet, a, lim, data, baseline=chain.fit_baseline)
+#             #     chain.fit_baseline = baseline
+#
+#             yfit, a, sig, chis, wchis, badfit = \
+#                         constrained_levenberg_marquardt(data,
+#                                                         ww,
+#                                                         a,
+#                                                         lim,
+#                                                         chain,
+#                                                         chain.fit_function,
+#                                                         itmax,
+#                                                         toler)
+#
+#             x0 = a
+#             func = chain.fit_function
+#             out, fx, its, imode, smode = minimize(func, x0,    eqcons=[],
+#                                                                 method='SLSQP',
+#                                                                 f_eqcons=None,
+#                                                                 ieqcons=[],
+#                                                                 f_ieqcons=None,
+#                                                                 bounds=lim,
+#                                                                 fprime=None,
+#                                                                 fprime_eqcons=None,
+#                                                                 fprime_ieqcons=None,
+#                                                                 args=(),
+#                                                                 iter=100,
+#                                                                 acc=1e-06,
+#                                                                 iprint=1,
+#                                                                 disp=None,
+#                                                                 full_output=0,
+#                                                                 epsilon=1.4901161193847656e-08)
+#
+#
+#
+#             # if self.optimize_scaling_flag:
+#             #     a, chis, wchis, baseline = parameter_unscale(nmet, a,
+#             #                                                             pscale,
+#             #                                                             chis, wchis,
+#             #                                                             baseline=chain.fit_baseline)
+#             #     chain.fit_baseline = baseline
+#
+#         chain.fit_results = a.copy()
+#         chain.fit_stats   = np.array([chis, wchis, badfit])
+#
+#         chain.fitted_lw = []
+#         for i in range(nmet):
+#             val, _ = util_spectral.voigt_width(10000.0, a[nmet*2+i], chain._dataset)
+#             chain.fitted_lw.append(val)
 
 
 

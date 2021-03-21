@@ -53,6 +53,17 @@ class BlockRawEditFidsum(block_raw.BlockRaw):
         return '\n'.join(lines)
 
 
+    def clear_associated_datasets(self):
+        self.data_on  = None
+        self.data_off = None
+        self.data_sum = None
+        self.data_dif = None
+        self.data_on_id  = ''
+        self.data_off_id = ''
+        self.data_sum_id = ''
+        self.data_dif_id = ''
+
+
     def get_associated_datasets(self, is_main_dataset=True):
         """
         Return list of datasets associated with this object

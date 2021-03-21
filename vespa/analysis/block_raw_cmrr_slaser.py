@@ -55,6 +55,21 @@ class BlockRawCmrrSlaser(block_raw.BlockRaw):
         return '\n'.join(lines)
 
 
+    def clear_associated_datasets(self):
+        self.data_coil_combine      = None
+        self.data_ecc1              = None
+        self.data_water1            = None
+        self.data_metab64           = None
+        self.data_ecc2              = None
+        self.data_water2            = None
+        self.data_coil_combine_id   = ''
+        self.data_ecc1_id           = ''
+        self.data_water1_id         = ''
+        self.data_metab64_id        = ''
+        self.data_ecc2_id           = ''
+        self.data_water2_id         = ''
+
+
     def get_associated_datasets(self, is_main_dataset=True):
         """
         Returns a list of datasets associated with this object

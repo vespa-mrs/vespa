@@ -810,7 +810,13 @@ class Dataset(object):
             raise ValueError("Identity block (Spectral) can not set an associated dataset (ecc)")
         else:
             ecc_dataset = dataset
-            block       = ecc_dataset.blocks["raw"]
+
+            if not ecc_dataset.blocks["prep"].is_identity:
+                block = ecc_dataset.blocks["prep"]
+                block_raw = ecc_dataset.blocks["raw"]
+            else:
+                block = ecc_dataset.blocks["raw"]
+                block_raw = block
             raw_data    = block.data.copy() * 0
             dims        = ecc_dataset.raw_dims
             for k in range(dims[3]):
@@ -822,7 +828,7 @@ class Dataset(object):
             self.blocks["spectral"].set.ecc_dataset    = ecc_dataset
             self.blocks["spectral"].set.ecc_dataset_id = ecc_dataset.id
             self.blocks["spectral"].set.ecc_raw        = raw_data
-            self.blocks["spectral"].set.ecc_filename   = block.data_source
+            self.blocks["spectral"].set.ecc_filename   = block_raw.data_source
 
 
     def set_associated_dataset_mmol(self, dataset):

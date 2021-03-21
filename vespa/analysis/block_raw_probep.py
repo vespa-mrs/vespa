@@ -48,6 +48,13 @@ class BlockRawProbep(block_raw.BlockRaw):
         return '\n'.join(lines)
 
 
+    def clear_associated_datasets(self):
+        self.metab_dataset = None
+        self.water_dataset = None
+        self.metab_dataset_id = ''
+        self.water_dataset_id = ''
+
+
     def get_associated_datasets(self, is_main_dataset=True):
         """
         Return list of datasets associated with this object

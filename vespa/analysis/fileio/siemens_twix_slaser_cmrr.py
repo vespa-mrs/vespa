@@ -193,16 +193,18 @@ class RawReaderSiemensTwixSlaserCmrrVbGulinLongWater(RawReaderSiemensTwixSlaserC
 
         # dataset1 - scan 0, water unsuppressed for coil combine and (maybe) ECC
 
-        d["data"] = prep[:,:,0,:].copy() * RAWDATA_SCALE / float(1.0)
+        # tmp = prep[:,:,0,:].copy()
+        # tmp.shape = (tmp.shape[0], tmp.shape[1], 1, tmp.shape[2])
+        d["data"] = prep[:,:,0:1,:].copy() * RAWDATA_SCALE / float(1.0)
         d["data_source"] = filename + '.combine'
         raws.append(DataRawCmrrSlaser(d))
 
         # dataset2 - scan 1-2, water unsuppressed for water scale
 
         if prep.shape[2] > 1:
-            d["data"] = prep[:,:,1,:].copy() * RAWDATA_SCALE / float(1.0)
+            d["data"] = prep[:,:,1:2,:].copy() * RAWDATA_SCALE / float(1.0)
         else:
-            d["data"] = prep[:,:,0,:].copy() * RAWDATA_SCALE / float(1.0)
+            d["data"] = prep[:,:,0:1,:].copy() * RAWDATA_SCALE / float(1.0)
         d["data_source"] = filename + '.water1'
         raws.append(DataRawCmrrSlaser(d))
 
