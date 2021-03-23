@@ -198,24 +198,11 @@ def a2param(chain, a, lims=None):
 def param2a(chain, params):
     """
     Convert LMFIT parameters back to position dependent variables
-    - some of the params are free variables, these just get added to 'a' by value
-    - some are hard constrained expressions, these also get added to 'a' by value
-    - some are constrained inequality expressions, these typically have a second
-       parameter involved labelled 'delta_<param_name>' that needs to be part of
-       the conversion.
+    - expression parameters are set within the optimization so we can just grab
+      their values and not worry about the 'delta' param used for inequalities.
 
     """
     a = [params[item].value for item in create_param_labels(chain)]
-
-    # plabel = create_param_labels(chain)
-    # pnames = list(params.keys())
-    #
-    # for key in plabel:
-    #
-    #     if (key=='freq_naag') and ('delta_freq_naag' in pnames):
-    #         a.append(params['freq_naa'].value - params['delta_freq_naag'].value)
-    #     else:
-    #         a.append(params[key].value)
 
     return np.array(a)
 
@@ -232,7 +219,48 @@ def initialize_for_fit(chain):
        These will be converted back in the finalize_from_fit() method.
     5) if there are any constraints set, these are applied as part of the
        conversion to Parameter objects
-    
+
+    Notes about using LMFIT inequality parameter expressions - bjs
+    ---------------------------------------------------------------------------
+    - great example here: https://lmfit.github.io/lmfit-py/parameters.html
+    - parameters used in an expression MUST already exist and set to default vals
+    - when I set() a param to an inequality expression, it's value is evaluated
+        then for the expression
+    Thus, for example, to set 'freq_naag' to expr = 'freq_naa - delta_freq_naag'
+    the value for 'freq_naa' must exist and be set, as must the 'delta_freq_naag'
+    parameter.
+
+    It appears that I originally set up the 'equality' expressions to always have
+    the form 'fixed - delta', so that is what I'm keeping now that I'm switching
+    to inequality expressions to give these peaks more wiggle room.
+
+    When the final optimization is done, all parameters are set to final values
+    including the 'expr' ones. Thus I can just query param['freq_naag'].value to
+    get its final value rather than having to dink around with 'delta_freq_naag'
+
+    Notes on LMFIT Parameter Inequality Expressions bounds
+    ---------------------------------------------------------------------------
+    - The 'delta_xxx' are set up by taking diff between peak to be held fixed to
+      the freely varying peak. Thus the delta calc is 'fixed - free' to get the
+      delta in PPM that will be used to push the fixed peak to a higher PPM value.
+    - But, freq parameter values are converted to radian where the 'fixed' peak
+      is at a lower value in radians. Thus the expression is 'free - delta_fixed'
+    - In general, delta_freq_xxx parameters allowed to 'wiggle' by +/- 0.02 PPM
+    - in some cases, the 'free metab pkppm' that the inequality is being measured
+       against is quite close to the 'fixed metab pkppm', say on the order of
+       0.005 ppm apart.
+        - in this case we don't want the wiggle to allow the fixed metab to 'cross
+          over' the free metab. So we set either the min or max bound to something
+          less than 0.02 to prevent this.
+        - for pcr/cr, min=0.0
+        - for pcr2/cr2 the separation is wider, thus min=delta-0.01
+        - for naag/naa the separation is wider, min=delta-0.01, max=delta+0.05 to
+          let the singlet try to fit a peak seen alongside the naa singlet
+        - for pcho/gpc, the free peak is to the left of the fixed peak, thus the
+          delta starts out as negative. max=0.0 and min=delta-wig to allow it to
+          be more negative if needed.
+
+
     """
     ds  = chain._dataset
     set = chain._block.set
@@ -257,55 +285,51 @@ def initialize_for_fit(chain):
     params = a2param(chain, a, lim)
     plabel = create_param_labels(chain)
     pkppms = {item1 : item2 for item1, item2 in zip(ds.prior_list_unique, set.prior_peak_ppm)}
-    const1 = ds.frequency * 2.0 * np.pi
+    const1 = ds.frequency * 2.0 * np.pi  # convert ppm to radians
 
     if set.optimize_method == optmeth.CONSTRAINED_LEVENBERG_MARQUARDT:
         pass        # no changes needed
 
     elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN, optmeth.LMFIT_JACOBIAN_REFINE]:
-    
         for i in range(len(a)):
+            wig = 0.02       # global wiggle amount in PPM
                 
-            if set.optimize_constrain_ppm_naa_naag and plabel[i] == 'freq_naag':
-                
-                if 'freq_naa' in plabel:
+            if set.optimize_constrain_ppm_naa_naag and plabel[i]=='freq_naag' and 'freq_naa' in plabel:
 
-                    # delta_fre = (pkppms['naag'] - pkppms['naa']) * const1
-                    # params['freq_naag'].set(min=-np.inf, max=np.inf, expr='freq_naa - '+str(delta_fre))
+                delta = pkppms['naag'] - pkppms['naa'] + 0.02  # empirical - bjs
+                params.add(name='delta_freq_naag', value=delta*const1, min=(delta-0.01)*const1, max=(delta+0.05)*const1, vary=True)
+                params['freq_naag'].set(expr='freq_naa - delta_freq_naag')
 
-                    delta = pkppms['naag'] - pkppms['naa']
-                    params.add(name='delta_freq_naag', value=delta*const1, min=(delta-0.01)*const1, max=(delta+0.03)*const1, vary=True)
-                    params['freq_naag'].set(expr='freq_naa - delta_freq_naag')      # ppms add, but freq subtracts, this is freq here
+            elif set.optimize_constrain_ppm_cr_pcr and plabel[i]=='freq_pcr'and 'freq_cr' in plabel:
 
-            elif set.optimize_constrain_ppm_cr_pcr and plabel[i] == 'freq_pcr':
-                
-                if 'freq_cr' in plabel:
-                    delta_fre = (pkppms['pcr'] - pkppms['cr']) * const1
-                    params['freq_pcr'].set(min=-np.inf, max=np.inf, expr='freq_cr - '+str(delta_fre))
+                delta = pkppms['pcr'] - pkppms['cr'] + 0.00  # in slaser = +0.005 pcr left of cr, min=0 keeps it left
+                params.add(name='delta_freq_pcr', value=delta*const1, min=0.0, max=(delta+wig)*const1, vary=True)
+                params['freq_pcr'].set(expr='freq_cr - delta_freq_pcr')
 
-            elif set.optimize_constrain_ppm_gpc_pcho and plabel[i] == 'freq_pcho':
-                
-                if 'freq_gpc' in plabel:
-                    delta_fre = (pkppms['gpc'] - pkppms['pcho']) * const1
-                    params['freq_pcho'].set(min=-np.inf, max=np.inf, expr='freq_gpc - '+str(delta_fre))
+            elif set.optimize_constrain_ppm_gpc_pcho and plabel[i]=='freq_pcho' and 'freq_gpc' in plabel:
+                # NB. slight difference in delta design from naag
 
-            elif set.optimize_constrain_ppm_cr2_pcr2 and plabel[i] == 'freq_pcr2':
-                
-                if 'freq_cr2' in plabel:
-                    delta_fre = (pkppms['pcr2'] - pkppms['cr2']) * const1
-                    params['freq_pcr2'].set(min=-np.inf, max=np.inf, expr='freq_cr2 - '+str(delta_fre))
+                delta = pkppms['pcho'] - pkppms['gpc'] + 0.00  # in slaser = -0.005 pcho right of gpc, max=0 keeps it right
+                params.add(name='delta_freq_pcho', value=delta*const1, min=(delta-wig)*const1, max=0.0, vary=True)
+                params['freq_pcho'].set(expr='freq_gpc - delta_freq_pcho')
 
-            elif set.optimize_constrain_ppm_glu_gln and plabel[i] == 'freq_gln':
-                
-                if 'freq_glu' in plabel:
-                    delta_fre = (pkppms['gln'] - pkppms['glu']) * const1
-                    params['freq_gln'].set(min=-np.inf, max=np.inf, expr='freq_glu - '+str(delta_fre))
+            elif set.optimize_constrain_ppm_cr2_pcr2 and plabel[i]=='freq_pcr2' and 'freq_cr2' in plabel:
 
-            elif set.optimize_constrain_ppm_tau_glc and plabel[i] == 'freq_glc':
-                                
-                if 'freq_tau' in plabel:
-                    delta_fre = (pkppms['glc'] - pkppms['tau']) * const1
-                    params['freq_glc'].set(min=-np.inf, max=np.inf, expr='freq_tau - '+str(delta_fre))
+                delta = pkppms['pcr2'] - pkppms['cr2'] + 0.00  # empirical - bjs
+                params.add(name='delta_freq_pcr2', value=delta*const1, min=(delta-0.01)*const1, max=(delta+wig)*const1, vary=True)
+                params['freq_pcr2'].set(expr='freq_cr2 - delta_freq_pcr2')
+
+            elif set.optimize_constrain_ppm_glu_gln and plabel[i]=='freq_gln' and 'freq_glu' in plabel:
+
+                delta = pkppms['gln'] - pkppms['glu'] + 0.00  # empirical - bjs
+                params.add(name='delta_freq_gln', value=delta*const1, min=(delta-wig)*const1, max=(delta+wig)*const1, vary=True)
+                params['freq_gln'].set(expr='freq_glu - delta_freq_gln')
+
+            elif set.optimize_constrain_ppm_tau_glc and plabel[i] == 'freq_glc' and 'freq_tau' in plabel:
+
+                delta = pkppms['glc'] - pkppms['tau'] + 0.00  # empirical - bjs
+                params.add(name='delta_freq_glc', value=delta*const1, min=(delta-wig)*const1, max=(delta+wig)*const1, vary=True)
+                params['freq_glc'].set(expr='freq_tau - delta_freq_glc')
 
     chain.fit_results = params
 
@@ -483,7 +507,6 @@ def optimize_model(chain):
         itmax = set.optimize_max_iterations
         toler = set.optimize_stop_tolerance
 
-
         if set.optimize_method == optmeth.CONSTRAINED_LEVENBERG_MARQUARDT:
 
             # parse model parameters into list of parameter initial values
@@ -502,19 +525,113 @@ def optimize_model(chain):
             #   chain_fit_voigt.lorgauss_internal_lmfit()
 
             chain.all_params = a.copy()
-            var_names = []
+            fvar_names = []
             keep = []
             for i, key in enumerate(a.keys()):
                 if a[key].expr is None:
-                    var_names.append(a[key].name)
+                    fvar_names.append(a[key].name)
                     keep.append(i)
-            chain.lmfit_variable_names = var_names
+            chain.lmfit_variable_names = fvar_names
             chain.lmfit_variable_indices = keep
             chain.data_scale = data
 
             func  = chain.lorgauss_internal_lmfit
             dfunc = chain.lorgauss_internal_lmfit_dfunc
             min1  = lmfit.Minimizer(func, a)
+
+            # HERE IS WHERE I PLAY WITH MY Pder Equations TO MATCH 2-POINT DIFF
+            # ----------------------------------------------------------------------
+
+
+            # b0 = a.copy()
+            # b1 = a.copy()
+            # b0vals = np.array([item[1] for item in list(b0.valuesdict().items())])
+            # fvars = np.array([b0[key].value for key in var_names])
+            # for name, val in zip(var_names, fvars):
+            #    b1[name].value = val
+            # b1.update_constraints()
+            # b1vals = np.array([item[1] for item in list(b1.valuesdict().items())])
+
+
+            bfunc = chain.lorgauss_internal
+
+            par = a.copy()
+            par.update_constraints()
+            x_all   = np.array([item[1] for item in list(par.valuesdict().items())])    # full list
+            x_fvars = np.array([par[key].value for key in fvar_names])                   # free vars only
+            names_all = np.array([item[0] for item in list(par.valuesdict().items())])
+            names_fvar = fvar_names
+
+            x_all_48 = x_all[0:48]
+            f0, pders = bfunc(x_all_48, pderflg=True)
+            f0    = np.concatenate([f0.real, f0.imag])
+            pders = np.array([np.concatenate([pder.real, pder.imag]) for pder in pders])
+
+            dif = np.zeros([48,16384], dtype=np.float64)
+            rel_step = 1.4901161193847656e-08     # empirical from _numdiff
+            h = rel_step * np.maximum(1.0, np.abs(x_all))
+            h = h[0:48]
+            h_vecs = np.diag(h)
+            for i in range(h.size):
+                x = x_all_48 + h_vecs[i]
+                dx = x[i] - x_all_48[i]  # Recompute dx as exactly representable number.
+                df1, _ = bfunc(x, pderflg=False)
+                df = np.concatenate([df1.real, df1.imag])
+                dif[i] = (df - f0) / dx
+
+            bob = 10
+            pders.tofile('d:/users/bsoher/_a_pder_v7.bin')
+            dif.tofile('d:/users/bsoher/_a_diff_v7.bin')
+
+
+            # these next bits compare the full least squares pder/diff calcs
+            all_pders = dfunc(x00)
+            all_pders = all_pders.T
+            pders = []                  # resort Vespa order into LMFIT Parameters order if inequality expressions present
+            indxs = []
+            all_names = list(chain.all_params.keys())
+            for key in chain.lmfit_variable_names:
+                if 'delta_' in key:
+                    indx = all_names.index(key.replace('delta_', ''))
+                    pders.append(-1 * all_pders[indx, :])
+                else:
+                    indx = all_names.index(key)
+                    pders.append(all_pders[indx, :])
+                indxs.append(indx)
+            pder = np.array(pders)
+
+
+            f0 = func(x0)
+            diff = np.empty_like(pders)
+            rel_step = 1.4901161193847656e-08     # empirical from _numdiff
+            h = rel_step * np.maximum(1.0, np.abs(x00))
+            h_vecs = np.diag(h)
+            for i in range(h.size):
+                x = x00 + h_vecs[i]
+                dx = x[i] - x0[i]  # Recompute dx as exactly representable number.
+
+                parx = a.copy()
+                for name, val in zip(var_names, x):
+                    parx[name].value = val
+                parx.update_constraints()
+                xx = np.array([item[1] for item in list(parx.valuesdict().items())])     # updated full list
+
+                df = func(xx) - f0
+                diff[i] = df / dx
+
+            bob = 10
+
+            # from matplotlib import pyplot as plt
+            # for i in range(len(var_names)):
+            #     fig, axs = plt.subplots(3)
+            #     axs[0].plot(diff[i, :])
+            #     axs[1].plot(pder[i, :])
+            #     axs[2].plot(diff[i, :]-pder[i, :])
+            #     plt.show()
+            #
+            # bob = 10
+
+
 
             if set.optimize_method == optmeth.LMFIT_DEFAULT:
                 result = min1.least_squares()
@@ -746,7 +863,6 @@ def _confidence_interval_function(xq, cinfo):
     
     """
     a = cinfo.a.copy()
-#    a[cinfo.indx] = xq  
     a[list(a.keys())[cinfo.indx]].set(value=xq)
 
     yfit, _ = cinfo.fit_function(a, pderflg=False)
@@ -980,115 +1096,6 @@ def save_yini(chain):
 def save_yfit(chain):
     yfit, _ = chain.fit_function(chain.fit_results, pderflg=False, nobase=True, indiv=True)
     chain.yfit = yfit
-
-
-
-
-# def optimize_model_slsqp(self, chain):
-#     """
-#     This was as attempt at using a minimize function from scipy that would also
-#     allow us to set conditions such as NAAppm - NAAGppm - 0.05 = 0
-#
-#     Here's an online ref that I pasted in for some reason:
-#
-#         The argument you're interested in is eqcons, which is a list of functions
-#         whose value should be zero in a successfully optimized problem.
-#
-#         See the fmin_slsqp test script at
-#         http://projects.scipy.org/scipy/attachment/ticket/570/slsqp_test.py
-#
-#         In particular, your case will be something like this
-#
-#         x = fmin_slsqp(testfunc,[-1.0,1.0], args = (-1.0,), eqcons = [lambda x, y:
-#         x[0]-x[1] ], iprint = 2, full_output = 1)
-#
-#         In your case, eqcons will be:
-#         [lambda x, y: x[0]+x[1]+x[2]-1, lambda x, y: x[3]+x[4]+x[5]-1 ]
-#
-#         Alternatively, you can write a Python function that returns those two values
-#         in a sequence as pass it to fmin_slsqp as  f_eqcons.
-#
-#         On Mon, May 4, 2009 at 2:00 PM, Leon Adams <skorpio11@gmail.com> wrote:
-#
-#         > Hi,
-#         >
-#         > I was wondering what the status is of the Slsqp extension to the optimize
-#         > package. I am currently in need of the ability to place an equality
-#         > constraint on some of my input variables, but the available documentation on
-#         > slsqp seems insufficient.
-#         >
-#         > My Scenario:
-#         >
-#         > I have an objective fn: Obfn(x1,x2,x3,x4,x5,x6) that I would like to place
-#         > the additional constrain of
-#         > x1 + x2 + x3 = 1
-#         > x4 + x5 + x6 = 1
-#         >
-#         > If there is a good usage example I can be pointed to, it would be
-#         > appreciated
-#         >
-#         > Thanks in advance.
-#
-#     """
-#     if self.optimize_method:
-#
-#         data  = chain.data.copy()
-#         nmet  = chain.nmet
-#         a     = chain.fit_results.copy()
-#         ww    = chain.weight_array
-#         lim   = chain.limits.copy()
-#         itmax = self.optimize_max_iterations
-#         toler = self.optimize_stop_tolerance
-#
-#         if self.optimize_method == optmeth.CONSTRAINED_LEVENBERG_MARQUARDT:
-#
-#             # if self.optimize_scaling_flag:
-#             #     a, pscale, lim, data, baseline = parameter_scale(nmet, a, lim, data, baseline=chain.fit_baseline)
-#             #     chain.fit_baseline = baseline
-#
-#             yfit, a, sig, chis, wchis, badfit = \
-#                         constrained_levenberg_marquardt(data,
-#                                                         ww,
-#                                                         a,
-#                                                         lim,
-#                                                         chain,
-#                                                         chain.fit_function,
-#                                                         itmax,
-#                                                         toler)
-#
-#             x0 = a
-#             func = chain.fit_function
-#             out, fx, its, imode, smode = fmin_slsqp(func, x0,   eqcons=[],
-#                                                                 f_eqcons=None,
-#                                                                 ieqcons=[],
-#                                                                 f_ieqcons=None,
-#                                                                 bounds=lim,
-#                                                                 fprime=None,
-#                                                                 fprime_eqcons=None,
-#                                                                 fprime_ieqcons=None,
-#                                                                 args=(),
-#                                                                 iter=100,
-#                                                                 acc=1e-06,
-#                                                                 iprint=1,
-#                                                                 disp=None,
-#                                                                 full_output=0,
-#                                                                 epsilon=1.4901161193847656e-08)
-#
-#
-#
-#             # if self.optimize_scaling_flag:
-#             #     a, chis, wchis, baseline = parameter_unscale(nmet, a,
-#             #                                                             pscale,
-#             #                                                             chis, wchis,
-#             #                                                             baseline=chain.fit_baseline)
-#             #     chain.fit_baseline = baseline
-#
-#         chain.fit_results = a.copy()
-#         chain.fit_stats   = np.array([chis, wchis, badfit])
-#
-#         chain.fitted_lw, _ = util_spectral.voigt_width(a[nmet*2], a[nmet*2+1], chain._dataset)
-
-
 
 
 

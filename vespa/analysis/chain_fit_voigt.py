@@ -312,7 +312,21 @@ class ChainFitVoigt(Chain):
 
         yfit, all_pders = self.lorgauss_internal(all_params, pderflg=True)
 
-        pders = all_pders[self.lmfit_variable_indices,:]        # remove dependent param pders
+        pders = []      # resort Vespa order into LMFIT Parameters order if inequality expressions present
+        indxs = []
+        all_names = list(all_params.keys())
+        for key in self.lmfit_variable_names:
+            if 'delta_' in key:
+                indx = all_names.index(key.replace('delta_',''))
+                pders.append(-1 * all_pders[indx,:])
+            else:
+                indx = all_names.index(key)
+                pders.append(all_pders[indx, :])
+            indxs.append(indx)
+            # fyi - this was the hand sorted indices
+            # [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,29,30,31,32,33,34,39,40,41,42,43,44,45,46,47,27,28,35,36,37,38]
+
+        pders = np.array(pders)
 
         dfunc = []
         for pder in pders:
@@ -322,7 +336,7 @@ class ChainFitVoigt(Chain):
         return dfunc.T          # transpose determined empirically
 
 
-    def lorgauss_internal_lmfit(self, params, report_stats=False):
+    def lorgauss_internal_lmfit(self, a, report_stats=False):
         """
         This is in the format that LMFIT expects to call in the Minimizer class.
         
@@ -339,14 +353,14 @@ class ChainFitVoigt(Chain):
         #     all_params[name].value = val
         # all_params.update_constraints()
 
-        yfit, pder = self.lorgauss_internal(params, pderflg=False)
+        yfit, pder = self.lorgauss_internal(a, pderflg=False)
         
         yfit = np.concatenate([yfit.real, yfit.imag])
         data = np.concatenate([data.real, data.imag])
         ww   = np.concatenate([ww, ww])
         
         if report_stats:
-            nfree = np.size(yfit)-len(list(params.keys()))
+            nfree = np.size(yfit)-len(list(a.keys()))
             wchisqr  = np.sum(ww*(data-yfit)**2)/nfree  # got from CCFIT method
             chisqr   = np.sum(   (data-yfit)**2)/nfree 
             return wchisqr, chisqr
@@ -487,7 +501,26 @@ class ChainFitVoigt(Chain):
     
         # Calc Phase1 
         phase1 = np.exp(1j * (a[nmet*2+3]*DTOR*(np.arange(nptszf,dtype=float)-piv)/nptszf))
-        
+
+        # Calc Mmol - to include in pders if needed
+        if (self._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET):
+
+            if self.basis_mmol is not None:
+                mfre = a[self.nparam - 1]
+                mdat = self.basis_mmol.copy()
+                chop = ((((np.arange(npts) + 1) % 2) * 2) - 1)
+                mdat *= chop
+                marea = a[self.nparam - 2]
+                fre = mfre  # *2.0*np.pi    # in Radians here
+                fre = np.exp(1j * fre * mt)
+                ph0 = np.exp(1j * a[nmet * 2 + 2])
+
+                mdat *= marea * fre * ph0
+                mf[0:npts] = mdat
+                mf[0] = mf[0] / 2.0
+
+                mind = mf.copy()
+
         # Calculate Partial Derivatives  
         pder = None
         if pderflg:
@@ -505,9 +538,13 @@ class ChainFitVoigt(Chain):
             pder[nmet*2+0,:]   = (np.fft.fft(     tt     * pall/(a[nmet*2+0]**2))/nptszf) * phase1
             pder[nmet*2+1,:]   = (np.fft.fft(2.0*(tt**2) * pall/(a[nmet*2+1]**3))/nptszf) * phase1
         
-            pder[nmet*2+2,:]   = (np.fft.fft(1j*pall)/nptszf) * phase1 * nptszf
-            pder[nmet*2+3,:]   = (np.fft.fft(   pall)/nptszf) * (1j*DTOR*(np.arange(nptszf,dtype=float)-piv)/nptszf) * phase1
-            
+            pder[nmet*2+2,:]   = (np.fft.fft(1j*pall)/nptszf) * phase1
+            if self.basis_mmol is not None:
+                pder[nmet*2+2, :] += (np.fft.fft(1j*mf)/nptszf) * phase1
+
+            pder[nmet*2+3,:]   = (np.fft.fft(pall)/nptszf) * (1j*DTOR*(np.arange(nptszf,dtype=float)-piv)/nptszf) * phase1
+            if self.basis_mmol is not None:
+                pder[nmet*2+3,:] += (np.fft.fft(mf)/nptszf) * (1j*DTOR*(np.arange(nptszf,dtype=float)-piv)/nptszf) * phase1
             
         # Do the FFT 
         if indiv:   # return individual lines
@@ -530,42 +567,42 @@ class ChainFitVoigt(Chain):
             else: 
                 f = f + self.fit_baseline
     
-    
+
         if (self._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET):
 
-            if self.basis_mmol is not None: 
+            if self.basis_mmol is not None:
 
-                mfre  = a[self.nparam-1]
-                mdat  = self.basis_mmol.copy()
-                chop  = ((((np.arange(npts) + 1) % 2) * 2) - 1)
-                mdat *= chop
-                marea = a[self.nparam-2]
-                fre   = mfre  #*2.0*np.pi    # in Radians here
-                fre   = np.exp( 1j * fre * mt )      
-                ph0   = np.exp( 1j * a[nmet*2+2])    
-                
-                mdat *= marea * fre * ph0
-                mf[0:npts] = mdat
-                mf[0]      = mf[0] / 2.0            
-    
-                mind = mf.copy()
-    
+                # mfre  = a[self.nparam-1]
+                # mdat  = self.basis_mmol.copy()
+                # chop  = ((((np.arange(npts) + 1) % 2) * 2) - 1)
+                # mdat *= chop
+                # marea = a[self.nparam-2]
+                # fre   = mfre  #*2.0*np.pi    # in Radians here
+                # fre   = np.exp( 1j * fre * mt )
+                # ph0   = np.exp( 1j * a[nmet*2+2])
+                #
+                # mdat *= marea * fre * ph0
+                # mf[0:npts] = mdat
+                # mf[0]      = mf[0] / 2.0
+                #
+                # mind = mf.copy()
+
                 mf = (np.fft.fft(mf)/nptszf) * phase1
-    
-                if f.ndim > 1: 
+
+                if f.ndim > 1:
                     mf.shape = 1,mf.shape[0]
                     f = np.concatenate([f, mf],axis=0)
-                else: 
+                else:
                     f = f + mf
-                    
+
                 if pderflg:
                     mtt         = np.zeros(nptszf,float)
                     mtt[0:npts] = np.arange(npts,dtype=float) * td
-                    
+
                     pder[nmet*2+4,:] = (np.fft.fft(mind / marea)/nptszf) * phase1
-                    pder[nmet*2+5,:] = (np.fft.fft(mtt * 1j * mind)/nptszf) * phase1
-    
-        return f, pder   
+                    pder[nmet*2+5,:] = (np.fft.fft(mtt*1j* mind)/nptszf) * phase1
+
+        return f, pder
 
    
    
