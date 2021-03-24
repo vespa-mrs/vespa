@@ -122,29 +122,24 @@ def initial_values(chain):
     top = np.hstack([areamax, fremax, lwAmax, lwBmax, ph0max, ph1max])
 
     if chain._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET:
+        a   = np.hstack([a,   chain.mmol_area,     chain.mmol_fre])
+        bot = np.hstack([bot, chain.mmol_area_min, chain.mmol_fre_min])
+        top = np.hstack([top, chain.mmol_area_max, chain.mmol_fre_max])
 
 #         mmol_area     = set.macromol_single_basis_dataset_start_area
 #         mmol_fre      = chain.init_b0       # in Hz
-#    
 #         if mmol_area == 0.0: mmol_area = 0.01
 #         if mmol_fre  == 0.0: mmol_fre = 0.01
-#            
 #         mmol_area_max = mmol_area * (1.0 + set.optimize_bounds_mmol_range_area/100.0)
 #         mmol_area_min = mmol_area * 0.01
 #         mmol_fre_max  = mmol_fre + set.optimize_bounds_mmol_range_ppm     # in Hz
 #         mmol_fre_min  = mmol_fre - set.optimize_bounds_mmol_range_ppm     # FIXME bjs - does this need to be radians???
-#    
 #         if mmol_fre_max == 0.0: mmol_fre_max = 0.01
 #         if mmol_fre_min == 0.0: mmol_fre_min = 0.01
-#    
 #         mmol_fre     = mmol_fre * 2.0 * np.pi       # convert to radians
 #         mmol_fre_max = mmol_fre_max * 2.0 * np.pi   # convert to radians
 #         mmol_fre_min = mmol_fre_min * 2.0 * np.pi   # convert to radians
 
-        a   = np.hstack([a,   chain.mmol_area,     chain.mmol_fre])
-        bot = np.hstack([bot, chain.mmol_area_min, chain.mmol_fre_min])
-        top = np.hstack([top, chain.mmol_area_max, chain.mmol_fre_max])
-        
     lim = np.array([bot,top])
     chain.limits = lim
 
@@ -520,20 +515,12 @@ def optimize_model(chain):
                 a[item].set(value=a0[i])
 
         elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN, optmeth.LMFIT_JACOBIAN_REFINE]:
-            # Bookeeping to determin names/indices for independent parameters. Used in
-            #   chain_fit_voigt.lorgauss_internal_lmfit_dfunc()
-            #   chain_fit_voigt.lorgauss_internal_lmfit()
 
-            chain.all_params = a.copy()
-            fvar_names = []
-            keep = []
-            for i, key in enumerate(a.keys()):
-                if a[key].expr is None:
-                    fvar_names.append(a[key].name)
-                    keep.append(i)
-            chain.lmfit_variable_names = fvar_names
-            chain.lmfit_variable_indices = keep
             chain.data_scale = data
+
+            # Bookeeping - find free parameters names
+            chain.all_params = a.copy()
+            chain.lmfit_fvar_names = [a[key].name for key in list(a.keys()) if a[key].expr is None]
 
             func  = chain.lorgauss_internal_lmfit
             dfunc = chain.lorgauss_internal_lmfit_dfunc
@@ -542,96 +529,43 @@ def optimize_model(chain):
             # HERE IS WHERE I PLAY WITH MY Pder Equations TO MATCH 2-POINT DIFF
             # ----------------------------------------------------------------------
 
-
-            # b0 = a.copy()
-            # b1 = a.copy()
-            # b0vals = np.array([item[1] for item in list(b0.valuesdict().items())])
-            # fvars = np.array([b0[key].value for key in var_names])
-            # for name, val in zip(var_names, fvars):
-            #    b1[name].value = val
-            # b1.update_constraints()
-            # b1vals = np.array([item[1] for item in list(b1.valuesdict().items())])
-
-
-            bfunc = chain.lorgauss_internal
-
-            par = a.copy()
-            par.update_constraints()
-            x_all   = np.array([item[1] for item in list(par.valuesdict().items())])    # full list
-            x_fvars = np.array([par[key].value for key in fvar_names])                   # free vars only
-            names_all = np.array([item[0] for item in list(par.valuesdict().items())])
-            names_fvar = fvar_names
-
-            x_all_48 = x_all[0:48]
-            f0, pders = bfunc(x_all_48, pderflg=True)
-            f0    = np.concatenate([f0.real, f0.imag])
-            pders = np.array([np.concatenate([pder.real, pder.imag]) for pder in pders])
-
-            dif = np.zeros([48,16384], dtype=np.float64)
-            rel_step = 1.4901161193847656e-08     # empirical from _numdiff
-            h = rel_step * np.maximum(1.0, np.abs(x_all))
-            h = h[0:48]
-            h_vecs = np.diag(h)
-            for i in range(h.size):
-                x = x_all_48 + h_vecs[i]
-                dx = x[i] - x_all_48[i]  # Recompute dx as exactly representable number.
-                df1, _ = bfunc(x, pderflg=False)
-                df = np.concatenate([df1.real, df1.imag])
-                dif[i] = (df - f0) / dx
-
-            bob = 10
-            pders.tofile('d:/users/bsoher/_a_pder_v7.bin')
-            dif.tofile('d:/users/bsoher/_a_diff_v7.bin')
-
-
-            # these next bits compare the full least squares pder/diff calcs
-            all_pders = dfunc(x00)
-            all_pders = all_pders.T
-            pders = []                  # resort Vespa order into LMFIT Parameters order if inequality expressions present
-            indxs = []
-            all_names = list(chain.all_params.keys())
-            for key in chain.lmfit_variable_names:
-                if 'delta_' in key:
-                    indx = all_names.index(key.replace('delta_', ''))
-                    pders.append(-1 * all_pders[indx, :])
-                else:
-                    indx = all_names.index(key)
-                    pders.append(all_pders[indx, :])
-                indxs.append(indx)
-            pder = np.array(pders)
-
-
-            f0 = func(x0)
-            diff = np.empty_like(pders)
-            rel_step = 1.4901161193847656e-08     # empirical from _numdiff
-            h = rel_step * np.maximum(1.0, np.abs(x00))
-            h_vecs = np.diag(h)
-            for i in range(h.size):
-                x = x00 + h_vecs[i]
-                dx = x[i] - x0[i]  # Recompute dx as exactly representable number.
-
-                parx = a.copy()
-                for name, val in zip(var_names, x):
-                    parx[name].value = val
-                parx.update_constraints()
-                xx = np.array([item[1] for item in list(parx.valuesdict().items())])     # updated full list
-
-                df = func(xx) - f0
-                diff[i] = df / dx
-
-            bob = 10
-
+            # # test code for PDER and DIFF (2-pt) methods
+            # # - this test uses a direct pder() call, no least squares calc with data
+            #
+            # bfunc = chain.lorgauss_internal
+            # par = a.copy()
+            # par.update_constraints()
+            # fvar_names = chain.lmfit_fvar_names
+            # x_all   = np.array([item[1] for item in list(par.valuesdict().items())])    # full list
+            # x_fvars = np.array([par[key].value for key in fvar_names])                   # free vars only
+            # names_all = np.array([item[0] for item in list(par.valuesdict().items())])
+            # names_fvar = fvar_names
+            #
+            # x_all_48 = x_all[0:48]
+            # f0, pder = bfunc(x_all_48, pderflg=True)
+            # f0   = np.concatenate([f0.real, f0.imag])
+            # pder = np.array([np.concatenate([item.real, item.imag]) for item in pder])
+            #
+            # diff = np.zeros([48,16384], dtype=np.float64)
+            # rel_step = 1.4901161193847656e-08     # empirical from _numdiff
+            # h = rel_step * np.maximum(1.0, np.abs(x_all))
+            # h = h[0:48]
+            # h_vecs = np.diag(h)
+            # for i in range(h.size):
+            #     x = x_all_48 + h_vecs[i]
+            #     dx = x[i] - x_all_48[i]  # Recompute dx as exactly representable number.
+            #     df1, _ = bfunc(x, pderflg=False)
+            #     df = np.concatenate([df1.real, df1.imag])
+            #     diff[i] = (df - f0) / dx
+            #
+            # # pder.tofile('d:/users/bsoher/_a_pder_v7.bin')
+            # # diff.tofile('d:/users/bsoher/_a_diff_v7.bin')
+            #
             # from matplotlib import pyplot as plt
             # for i in range(len(var_names)):
-            #     fig, axs = plt.subplots(3)
-            #     axs[0].plot(diff[i, :])
-            #     axs[1].plot(pder[i, :])
-            #     axs[2].plot(diff[i, :]-pder[i, :])
+            #     plt.plot(range(diff.shape[1]), diff[i, :]), pder[i, :])
+            # # OR    plt.plot(range(diff.shape[1]), diff[i, :]) - pder[i, :])
             #     plt.show()
-            #
-            # bob = 10
-
-
 
             if set.optimize_method == optmeth.LMFIT_DEFAULT:
                 result = min1.least_squares()

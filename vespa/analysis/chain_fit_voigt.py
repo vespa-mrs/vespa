@@ -42,6 +42,9 @@ class ChainFitVoigt(Chain):
 
         self.reset_results_arrays()
 
+        # book-keeping attributes
+        self.lmfit_fvar_names = []
+
 
     @property
     def nmet(self):
@@ -253,20 +256,17 @@ class ChainFitVoigt(Chain):
         block.cramer_rao[    :,x,y,z] = self.cramer_rao.copy()
         block.confidence[    :,x,y,z] = self.confidence.copy()
 
-        # Initial value algorithms can change b0, ph0/1 values, so we need to save these
-        # into the 'spectral' block. To be well behaved we will as the dataset object to
-        # do this for us.
+        # Initial value algorithms change b0, ph0/ph1. To be well behaved we ask
+        # the dataset object to save these to the 'spectral' block for us.
         #
-        # Note. In running this outside of the GUI, we would need to call this chain with
-        # 'initial_only', then update the 'spectral' block for the new b0 and ph0/1 values
-        # and only then call this chain with 'full_fit'
+        # NB. In CLI mode, call this chain with 'initial_only' first, then update
+        # the 'spectral' block and only then call this chain with 'full_fit'
         
         dataset.set_frequency_shift(dataset.get_frequency_shift(voxel) + self.init_b0, voxel)
         dataset.set_phase_0(-self.init_ph0  * 180.0 / np.pi, voxel)
         dataset.set_phase_1(-self.init_ph1, voxel)
 
-        # Return values specific to calling Tab that contains this Block.Chain
-        # Used to update its self.view (plot_panel_spectrum object).
+        # Return values specific to calling Tab used to update its self.view (plot_panel_spectrum object).
         
         plot_results = { 'fitted_lw'       : self.fitted_lw,
                          'minmaxlw'        : self.minmaxlw,
@@ -282,6 +282,7 @@ class ChainFitVoigt(Chain):
                          'mmol_area'       : self.mmol_area      }
                         
         return plot_results
+
 
     def lorgauss_internal_lmfit_dfunc(self, params, *args, **kwargs):
         """
@@ -302,38 +303,52 @@ class ChainFitVoigt(Chain):
         return, I need to remove the pder entris for the dependent parameters
         (and return just a 42 x npts array).
 
+        params - these are just the free variable values, we need to expand this
+                 into a full list/dict of free and evaluated expression variables
+                 for the call to self.lorgauss_internal(). This can be a list of
+                 current variable values, OR it can be an ordered dict of LMFIT
+                 Paramters.
+
         """
         ww = np.concatenate([self.weight_array, self.weight_array])
 
+        # expand list of free variable values into full list of free and evaluated expression values
+
         all_params = self.all_params.copy()                     # copy of full param set
-        for name, val in zip(self.lmfit_variable_names, params):
-            all_params[name].value = val                        # update indep params values to current pass
-        all_params.update_constraints()                         # evaluate dependent params values
+        for name, val in zip(self.lmfit_fvar_names, params):
+            all_params[name].value = val                        # update free params to current pass values
+        all_params.update_constraints()                         # evaluate expression params values
 
         yfit, all_pders = self.lorgauss_internal(all_params, pderflg=True)
 
-        pders = []      # resort Vespa order into LMFIT Parameters order if inequality expressions present
+        # Re-sort all_pders array if inequality expressions present in Parameters list
+        #
+        # - pder returns in 'Vespa' order (area(s), freq(s), ta, tb, ph0, ph1, mmol_area, mmol_freq)
+        # - if inequality control vars have been added to end of Paramters list (typical in Vespa
+        #    model) then we have to re-sort
+        # - usually things like 'freq_naag' have to be relocated to position where 'delta_freq_naa'
+        #    was located in the 'params' variable that was input to this method
+
+        pders = []
         indxs = []
         all_names = list(all_params.keys())
-        for key in self.lmfit_variable_names:
+        for key in self.lmfit_fvar_names:
             if 'delta_' in key:
-                indx = all_names.index(key.replace('delta_',''))
-                pders.append(-1 * all_pders[indx,:])
+                indx = all_names.index(key.replace('delta_', ''))
+                pders.append(-1 * all_pders[indx, :])               # -1 is empirical vs LMFIT, bjs 3/2021
             else:
                 indx = all_names.index(key)
                 pders.append(all_pders[indx, :])
             indxs.append(indx)
-            # fyi - this was the hand sorted indices
-            # [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,29,30,31,32,33,34,39,40,41,42,43,44,45,46,47,27,28,35,36,37,38]
-
         pders = np.array(pders)
 
+        # expand complex to 1D and apply weighting scheme
         dfunc = []
         for pder in pders:
-            dfunc.append(np.concatenate([pder.real, pder.imag]) * ww * (-1))    # -1 determined empirically, bjs 3/2021
+            dfunc.append(np.concatenate([pder.real, pder.imag]) * ww * (-1))    # -1 is empirically vs LMFIT, bjs 3/2021
         dfunc = np.array(dfunc)
 
-        return dfunc.T          # transpose determined empirically
+        return dfunc.T                          # empirical vs LMFIT requirement
 
 
     def lorgauss_internal_lmfit(self, a, report_stats=False):
@@ -343,17 +358,14 @@ class ChainFitVoigt(Chain):
         This returns the weighted difference (data - yfit) * ww as a single
         numpy float array, where the real and imaginary vectors have been
         concatenated into a single array.
+
+        a - fully expanded list of parameters, free and evaluated expressions
         
         """
         data  = self.data_scale.copy()
         ww    = self.weight_array
 
-        # all_params = self.all_params.copy()
-        # for name, val in zip(self.result_var_names, params):
-        #     all_params[name].value = val
-        # all_params.update_constraints()
-
-        yfit, pder = self.lorgauss_internal(a, pderflg=False)
+        yfit, _ = self.lorgauss_internal(a, pderflg=False)
         
         yfit = np.concatenate([yfit.real, yfit.imag])
         data = np.concatenate([data.real, data.imag])
@@ -521,7 +533,10 @@ class ChainFitVoigt(Chain):
 
                 mind = mf.copy()
 
-        # Calculate Partial Derivatives  
+        # Calculate Partial Derivatives
+        #
+        # TODO bjs - if mmol model changes, much more control logic needed below
+        #
         pder = None
         if pderflg:
             pder = np.zeros((int(len(a)),int(nptszf)), complex)
@@ -567,7 +582,7 @@ class ChainFitVoigt(Chain):
             else: 
                 f = f + self.fit_baseline
     
-
+        # Finish calc of Mmol here and add to full model
         if (self._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET):
 
             if self.basis_mmol is not None:
