@@ -697,8 +697,7 @@ class Main(wx.Frame):
                             pass
                         else:
                             # The dimensions don't match. We can't open these files.
-                            common_dialogs.message(_MSG_OPEN_ATTRIBUTE_MISMATCH,
-                                                   "Analysis - Dimension Mismatch")
+                            common_dialogs.message(_MSG_OPEN_ATTRIBUTE_MISMATCH, "Analysis - Dimension Mismatch")
                             return
 
                         open_dataset = list(self.datasets.values())[0]
@@ -707,8 +706,7 @@ class Main(wx.Frame):
                             pass
                         else:
                             # The zerofill factors don't match. We can't open these files.
-                            common_dialogs.message(_MSG_OPEN_ZEROFILL_MISMATCH,
-                                                   "Analysis - Dimension Mismatch")
+                            common_dialogs.message(_MSG_OPEN_ZEROFILL_MISMATCH, "Analysis - Dimension Mismatch")
                             return
 
                 for dataset in datasets:
@@ -725,16 +723,19 @@ class Main(wx.Frame):
                     else:
                         dataset.dataset_filename = ''
 
+
+                dtabs = None
                 if datasets:
-                    self.notebook_datasets.add_dataset_tab(datasets)
+                    dtabs = self.notebook_datasets.add_dataset_tab(datasets)
 
                 path, _ = os.path.split(filenames[0])
                 util_analysis_config.set_path(ini_name, path)
 
+                return dtabs
+
             else:
                 if not datasets:
-                    common_dialogs.message(_MSG_NO_DATASETS_FOUND % filename,
-                                           "Analysis - Open VIFF")
+                    common_dialogs.message(_MSG_NO_DATASETS_FOUND % filename, "Analysis - Open VIFF")
 
 
     def _save_viff(self, dataset):

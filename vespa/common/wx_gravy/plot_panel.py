@@ -104,6 +104,7 @@ class PlotPanel(wx.Panel):
                                yscale_bump=0.0,
                                props_zoom=None,
                                props_cursor=None,
+                               update_plot=False,
                                **kwargs):
 
         from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
@@ -138,6 +139,8 @@ class PlotPanel(wx.Panel):
         self.unlink = unlink
         self.xscale_bump = xscale_bump
         self.yscale_bump = yscale_bump
+
+        self.update_plot = update_plot
         
         # Under GTK track self's size to avoid a continuous flow of size events.
         self._platform_is_gtk = ("__WXGTK__" in wx.PlatformInfo)
@@ -301,6 +304,8 @@ class PlotPanel(wx.Panel):
         self.figure.set_size_inches( float( pixels[0] )/self.figure.get_dpi(),
                                      float( pixels[1] )/self.figure.get_dpi() )
         self._current_size = pixels
+        if self.update_plot:
+            self.on_update_plot()
 
     def _on_move(self, event):
         """
@@ -334,6 +339,10 @@ class PlotPanel(wx.Panel):
                 
         self.on_scroll(event.button, event.step, iaxis)        
 
+
+    def update_plot(self):
+        # placeholder for user derived method
+        pass
 
     def get_values(self, event):
         """

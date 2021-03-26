@@ -1,6 +1,6 @@
 # Python modules
 import math
-import collections
+from collections import OrderedDict
 
 # 3rd party modules
 import wx
@@ -50,36 +50,26 @@ class TabDataset(dataset_module.DatasetUI):
 
         dataset_module.DatasetUI.__init__(self, _outer_notebook)
 
-        self._outer_notebook  = _outer_notebook
         self.top              = top
+        self._outer_notebook  = _outer_notebook
+        self.indexAB          = [name, None]  # indices for displayed datasets
 
-        self.indexAB          = [name,None]  # indices for displayed datasets
+        # _tabs is akin to Dataset.blocks. One tab per block. A slot can
+        # contain None, no tab in that slot, or a Tab object.
+        self._tabs = OrderedDict([["raw",None], ["prep",None], ["spectral",None], ["fit",None], ["quant",None]])
 
-        # _tabs is an ordered dict of my tabs akin to Dataset.blocks. There
-        # are always the same number of slots; the names of the slots are the
-        # dict's keys. A slot can contain None (==> no tab in that slot) or
-        # a Tab object.
-        self._tabs = collections.OrderedDict()
-        for slot_name in ("raw", "prep", "spectral", "fit", "quant"):
-            self._tabs[slot_name] = None
-
-        # Sync determines whether or not certain options are
-        # automatically synchronized between spectra.
+        # Determine whether certain options synchronized between datasets
         self.sync = False
 
-        # Need a flag to let me know if we don't need to update to update
+        # Need a flag to let me know if we don't need to update
         self.turn_off_update = False
 
-        # We create the dataset notebook here so that we can use one of
-        # our custom notebook classes.
+        # Create dataset notebook here (not wxGlade) to use our custom class
         sizer = self.LabelNotebookPlaceholder.GetContainingSizer()
         self.LabelNotebookPlaceholder.Destroy()
-
         style     = wx.BORDER_NONE
         agw_style = aui.AUI_NB_SCROLL_BUTTONS | aui.AUI_NB_BOTTOM          
-
         self.NotebookDataset = notebooks.VespaAuiNotebook(self, style, agw_style)
-
         sizer.Add(self.NotebookDataset, 1, wx.EXPAND, 0)
 
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.on_tab_changed, self.NotebookDataset)
@@ -116,9 +106,8 @@ class TabDataset(dataset_module.DatasetUI):
 
     def populate_controls(self, preset=False):
         """
-        Populates the dataset tab with pages depending on what is in the
-        data object. It's meant to be called when a new data object
-        is loaded.
+        Populates dataset tab with pages depending on the data object. This is
+        called when a new data object is loaded.
 
         """
         dataset = self.dataset
@@ -131,11 +120,8 @@ class TabDataset(dataset_module.DatasetUI):
                 # Identity blocks don't need a tab.
                 pass
             else:
-                # Here we match block types with tab types. At present this is
-                # a pretty straightforward exercise since we don't support a
-                # great variety of blocks and tabs.
-                # Note that the order of blocks in the dataset determines the
-                # order of tabs in the GUI.
+                # Match block/tab types. Block order determines GUI tab order
+
                 if isinstance(block, block_raw.BlockRaw) or \
                    isinstance(block, block_raw_probep.BlockRawProbep) or \
                    isinstance(block, block_raw_edit_fidsum.BlockRawEditFidsum):
@@ -194,10 +180,9 @@ class TabDataset(dataset_module.DatasetUI):
 
         self.on_voxel_change()
 
-        spectral_tab = self._tabs["spectral"]
-        if spectral_tab:
+        if self._tabs["spectral"] is not None:
             self.FloatScale.SetRange(0.0, 1000000000.0)
-            self.NotebookDataset.activate_tab(spectral_tab)
+            self.NotebookDataset.activate_tab(self._tabs["spectral"])
             self.FloatScale.multiplier = 1.1
 
 

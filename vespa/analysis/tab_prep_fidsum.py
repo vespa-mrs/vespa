@@ -426,6 +426,13 @@ class TabPrepFidsum(tab_base.Tab, fidsum.PanelPrepFidsumUI):
     #
     #=======================================================
 
+    def on_activation(self):
+        super().on_activation()
+        # plot is necessary here to resize img0/img1 waterfall plots
+        # after a dataset loads tried a bunch of other locations, and
+        # CallLater/CallAfter, but only this works ... annoying.
+        self.plot()
+
     # def on_spin_txt_char_hook(self, event):
     #     event.Skip()  # allow the event to propagate further
     #     print("Event handler 'on_spin_txt_char_hook'")
@@ -978,6 +985,14 @@ class TabPrepFidsum(tab_base.Tab, fidsum.PanelPrepFidsumUI):
     def on_splitter(self, event=None):
         # This is sometimes called programmatically, in which case event is None
         self._prefs.sash_position = self.SplitterWindow.GetSashPosition()
+
+    def on_splitter_leftright(self, event):
+        pass
+        #wx.CallLater(200, self.plot)
+
+    def on_splitter_topbottom(self, event):
+        pass
+        #wx.CallLater(200, self.plot)
 
     #=======================================================
     #

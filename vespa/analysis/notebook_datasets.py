@@ -240,7 +240,7 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
             name = names[i]
 
             # register Dataset object at top level
-            self.top.datasets[name] = dataset
+            self.top.datasets[name] = dataset                   # NAME HAS TO BE UNIQUE!!!
 
             # create new notebook tab with process controls
             dtab = tab_dataset.TabDataset(self, self.top, name)
@@ -249,6 +249,7 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
         # let the world know the keys have changed
         keys = sorted(self.top.datasets.keys())
         pubsub.sendMessage("dataset_keys_change", keys=keys)
+
 
 
     def close_active_dataset(self):

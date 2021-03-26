@@ -317,20 +317,24 @@ class PlotPanelPrepFidsumImage(PlotPanel):
         tab - the AUI Notebook tab that contains this plot_panel
 
         """
-        PlotPanel.__init__(self, parent, **kwargs)
+        self.parent = parent
+        self.tab = tab
+        self.top = wx.GetApp().GetTopWindow()
+
+        PlotPanel.__init__(self, parent, update_plot=True, **kwargs)
 
         # customize subplot layout in Subclass !!!
         self.figure.subplots_adjust(top=0.9, bottom=0.08, right=0.98, left=0.08, hspace=0.06)
         self.axes[0].set_xlim()
 
-        self.parent = parent
-        self.tab = tab
-        self.top = wx.GetApp().GetTopWindow()
-
         self.set_color((255, 255, 255))
 
     #----------------------------------------------------------------
     # Event handlers
+
+    def on_update_plot(self):
+        self.tab.plot()
+
 
     def on_motion(self, xdata, ydata, val, bounds, iaxis):
 
