@@ -562,10 +562,15 @@ def optimize_model(chain):
             # # diff.tofile('d:/users/bsoher/_a_diff_v7.bin')
             #
             # from matplotlib import pyplot as plt
-            # for i in range(len(var_names)):
-            #     plt.plot(range(diff.shape[1]), diff[i, :]), pder[i, :])
-            # # OR    plt.plot(range(diff.shape[1]), diff[i, :]) - pder[i, :])
-            #     plt.show()
+            # for i in range(len(names_fvar)):
+            #     if i >= 42:
+            #         fig, axs = plt.subplots(4)
+            #         axs[0].plot(range(diff.shape[1]), diff[i, :], pder[i, :])
+            #         axs[1].plot(range(diff.shape[1]), diff[i, :] - pder[i, :])
+            #         axs[2].plot(range(diff.shape[1]), diff[i, :], -pder[i, :])
+            #         axs[3].plot(range(diff.shape[1]), diff[i, :] + pder[i, :])
+            #
+            #         plt.show()
 
             if set.optimize_method == optmeth.LMFIT_DEFAULT:
                 result = min1.least_squares()

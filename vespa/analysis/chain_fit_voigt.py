@@ -552,7 +552,10 @@ class ChainFitVoigt(Chain):
                 pder[i+nmet,:] = (np.fft.fft(tt * 1j * pind[i,:])/nptszf) * phase1
             pder[nmet*2+0,:]   = (np.fft.fft(     tt     * pall/(a[nmet*2+0]**2))/nptszf) * phase1
             pder[nmet*2+1,:]   = (np.fft.fft(2.0*(tt**2) * pall/(a[nmet*2+1]**3))/nptszf) * phase1
-        
+
+            if self._block.set.lineshape_model == FitLineshapeModel.GAUSS:
+                pder[nmet * 2 + 0, :] *= -1e-6      # empirical from LMFIT tests
+
             pder[nmet*2+2,:]   = (np.fft.fft(1j*pall)/nptszf) * phase1
             if self.basis_mmol is not None:
                 pder[nmet*2+2, :] += (np.fft.fft(1j*mf)/nptszf) * phase1

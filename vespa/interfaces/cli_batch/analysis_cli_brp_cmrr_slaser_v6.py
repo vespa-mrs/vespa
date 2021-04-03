@@ -486,7 +486,8 @@ def do_main():
     fbase = "D:\\Users\\bsoher\\projects\\2015_gulin_BRP\\data_sharing\\Test_Retest_Paper_Data\\"
 
     out_base  = fbase + 'a_results_siemens_twix_v01\\'     # picked this so ends at top of dir hierarchy
-    out_label = 'twix_'
+    # out_label = 'twix_'
+    out_label = 'debug_'
 
     fpreset_coil  = fbase + 'preset_analysis_brp_slaser_coil_v1.xml'
     fpreset_ecc   = fbase + 'preset_analysis_brp_slaser_ecc_v1.xml'
@@ -641,8 +642,8 @@ def do_main():
             fbase+"MSH34\\meas_MID399_sead_CBM_w3_FID108544.dat"]
             ]
 
-    datafiles = fdata
-#    datafiles = fdata[0:4]
+#    datafiles = fdata
+    datafiles = fdata[0:1]
     
     #----------------------------------------------------------
     # Basic file checking for existence
