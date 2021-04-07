@@ -1,10 +1,9 @@
 # Python modules
 
 
-
 # 3rd party modules
 import numpy as np
-import lmfit
+import scipy as sp
 from scipy.stats import distributions
 from lmfit import Parameters, Minimizer
 
@@ -154,31 +153,31 @@ def initial_values(chain):
 
 
 
-def create_param_labels(chain):
-    """  Create list of unique parameter labels """
-
-    plabel = []
-
-    unique_abbr = [item.replace('-','_') for item in chain._dataset.prior_list_unique]
-
-    for item in unique_abbr: plabel.append('area_'+item)
-    for item in unique_abbr: plabel.append('freq_'+item)
-    plabel.append('ta')
-    plabel.append('tb')
-    plabel.append('ph0')
-    plabel.append('ph1')
-
-    if chain._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET:
-        plabel.append('mmol_area')
-        plabel.append('mmol_freq')
-
-    return plabel
+# def create_param_labels(chain):
+#     """  Create list of unique parameter labels """
+#
+#     plabel = []
+#
+#     unique_abbr = [item.replace('-','_') for item in chain._dataset.prior_list_unique]
+#
+#     for item in unique_abbr: plabel.append('area_'+item)
+#     for item in unique_abbr: plabel.append('freq_'+item)
+#     plabel.append('ta')
+#     plabel.append('tb')
+#     plabel.append('ph0')
+#     plabel.append('ph1')
+#
+#     if chain._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET:
+#         plabel.append('mmol_area')
+#         plabel.append('mmol_freq')
+#
+#     return plabel
 
 
 def a2param(chain, a, lims=None):
     """ convert position dependent variables to LMFIT parameters """
 
-    plabel = create_param_labels(chain)
+    plabel = chain.create_param_labels()
     params = Parameters()
 
     for i in range(len(a)):
@@ -197,7 +196,7 @@ def param2a(chain, params):
       their values and not worry about the 'delta' param used for inequalities.
 
     """
-    a = [params[item].value for item in create_param_labels(chain)]
+    a = [params[item].value for item in chain.create_param_labels()]
 
     return np.array(a)
 
@@ -278,7 +277,7 @@ def initialize_for_fit(chain):
     # Create all LMFIT Params as free vars then adjust any that are expressions
 
     params = a2param(chain, a, lim)
-    plabel = create_param_labels(chain)
+    plabel = chain.create_param_labels()
     pkppms = {item1 : item2 for item1, item2 in zip(ds.prior_list_unique, set.prior_peak_ppm)}
     const1 = ds.frequency * 2.0 * np.pi  # convert ppm to radians
 
@@ -524,53 +523,10 @@ def optimize_model(chain):
 
             func  = chain.lorgauss_internal_lmfit
             dfunc = chain.lorgauss_internal_lmfit_dfunc
-            min1  = lmfit.Minimizer(func, a)
+            min1  = Minimizer(func, a)
 
-            # HERE IS WHERE I PLAY WITH MY Pder Equations TO MATCH 2-POINT DIFF
-            # ----------------------------------------------------------------------
-
-            # # test code for PDER and DIFF (2-pt) methods
-            # # - this test uses a direct pder() call, no least squares calc with data
-            #
-            # bfunc = chain.lorgauss_internal
-            # par = a.copy()
-            # par.update_constraints()
-            # fvar_names = chain.lmfit_fvar_names
-            # x_all   = np.array([item[1] for item in list(par.valuesdict().items())])    # full list
-            # x_fvars = np.array([par[key].value for key in fvar_names])                   # free vars only
-            # names_all = np.array([item[0] for item in list(par.valuesdict().items())])
-            # names_fvar = fvar_names
-            #
-            # x_all_48 = x_all[0:48]
-            # f0, pder = bfunc(x_all_48, pderflg=True)
-            # f0   = np.concatenate([f0.real, f0.imag])
-            # pder = np.array([np.concatenate([item.real, item.imag]) for item in pder])
-            #
-            # diff = np.zeros([48,16384], dtype=np.float64)
-            # rel_step = 1.4901161193847656e-08     # empirical from _numdiff
-            # h = rel_step * np.maximum(1.0, np.abs(x_all))
-            # h = h[0:48]
-            # h_vecs = np.diag(h)
-            # for i in range(h.size):
-            #     x = x_all_48 + h_vecs[i]
-            #     dx = x[i] - x_all_48[i]  # Recompute dx as exactly representable number.
-            #     df1, _ = bfunc(x, pderflg=False)
-            #     df = np.concatenate([df1.real, df1.imag])
-            #     diff[i] = (df - f0) / dx
-            #
-            # # pder.tofile('d:/users/bsoher/_a_pder_v7.bin')
-            # # diff.tofile('d:/users/bsoher/_a_diff_v7.bin')
-            #
-            # from matplotlib import pyplot as plt
-            # for i in range(len(names_fvar)):
-            #     if i >= 42:
-            #         fig, axs = plt.subplots(4)
-            #         axs[0].plot(range(diff.shape[1]), diff[i, :], pder[i, :])
-            #         axs[1].plot(range(diff.shape[1]), diff[i, :] - pder[i, :])
-            #         axs[2].plot(range(diff.shape[1]), diff[i, :], -pder[i, :])
-            #         axs[3].plot(range(diff.shape[1]), diff[i, :] + pder[i, :])
-            #
-            #         plt.show()
+            # Code to check LMFIT pder vs pdiff calcs
+            # _test_pder_vs_pdiff(chain, a, min1)
 
             if set.optimize_method == optmeth.LMFIT_DEFAULT:
                 result = min1.least_squares()
@@ -590,6 +546,55 @@ def optimize_model(chain):
         chain.fitted_lw, _ = util_spectral.voigt_width(a['ta'].value, a['tb'].value, chain._dataset)
 
 
+def _test_pder_vs_pdiff(chain, a, min1):
+
+    # HERE IS WHERE I PLAY WITH MY Pder Equations TO MATCH 2-POINT DIFF
+    #----------------------------------------------------------------------
+
+    # test code for PDER and DIFF (2-pt) methods
+    # - this test uses a direct pder() call, no least squares calc with data
+
+    bfunc = chain.lorgauss_internal_lmfit_dfunc
+    par = a.copy()
+    par.update_constraints()
+    fvar_names = chain.lmfit_fvar_names
+    x_fvars = np.array([par[key].value for key in fvar_names])                   # free vars only
+    names_fvar = fvar_names
+    npar = len(x_fvars)
+
+    pder = bfunc(x_fvars, pderflg=True)
+    pder = pder.T
+
+    res = min1.prepare_fit(par)
+    f1 = min1._Minimizer__residual(x_fvars, apply_bounds_transformation=False)
+    diff = np.zeros([npar,len(f1)], dtype=np.float64)
+    rel_step = 1.4901161193847656e-08     # empirical from _numdiff
+    h = rel_step * np.maximum(1.0, np.abs(x_fvars))
+    h_vecs = np.diag(h)
+    for i in range(h.size):
+        x = x_fvars + h_vecs[i]
+        dx = x[i] - x_fvars[i]
+        df = min1._Minimizer__residual(x, apply_bounds_transformation=False)
+        diff[i] = (df - f1) / dx
+
+    # pder.tofile('d:/users/bsoher/_a_pder_v7.bin')
+    # diff.tofile('d:/users/bsoher/_a_diff_v7.bin')
+
+    plabels = chain.create_param_labels()
+    from matplotlib import pyplot as plt
+    for i in range(len(names_fvar)):
+        if i >= 21:
+            fig, axs = plt.subplots(4)
+            axs[0].plot(range(diff.shape[1]), diff[i, :], pder[i, :])
+            axs[1].plot(range(diff.shape[1]), diff[i, :] - pder[i, :])
+            axs[2].plot(range(diff.shape[1]), diff[i, :], -pder[i, :])
+            axs[3].plot(range(diff.shape[1]), diff[i, :] + pder[i, :])
+            plt.title('label = '+plabels[i])
+            plt.pause(0.05)
+
+            plt.show()
+
+
 def confidence_intervals(chain):
 
     set = chain._block.set
@@ -603,6 +608,8 @@ def confidence_intervals(chain):
 
     v = a.valuesdict()
     a0 = np.array([item[1] for item in list(v.items())])
+
+    a0 = a0[0:chain.nparam]
 
     nmet    = chain.nmet
     dim0    = chain._dataset.spectral_dims[0]
@@ -827,6 +834,8 @@ def cramer_rao_bounds(chain):
 
     v = a.valuesdict()
     a0 = np.array([item[1] for item in list(v.items())])
+
+    a0 = a0[0:chain.nparam]
 
     # Pick fraction of points starting from right edge of spectrum
     # for estimating variance
@@ -1086,11 +1095,11 @@ def do_processing_full_fit(chain):
         if chain.statusbar: chain.statusbar.SetStatusText(' Functor = optimize_model (Loop %d/%d) ' % (i+1,niter), 0)
         optimize_model(chain)
         
-    if set.confidence_intervals_flag:
+    if (set.confidence_intervals_flag==True):
         if chain.statusbar: chain.statusbar.SetStatusText(' Functor = confidence_intervals ', 0)
         confidence_intervals(chain)
     
-    if set.cramer_rao_flag:
+    if (set.cramer_rao_flag==True):
         if chain.statusbar: chain.statusbar.SetStatusText(' Functor = cramer_rao_bounds ', 0)
         cramer_rao_bounds(chain)
 

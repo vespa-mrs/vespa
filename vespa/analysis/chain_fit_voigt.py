@@ -13,8 +13,12 @@ import vespa.analysis.functors.funct_fit_voigt    as funct_fit_voigt
 
 from vespa.common.constants import DEGREES_TO_RADIANS as DTOR
 from vespa.analysis.constants import FitLineshapeModel, VoigtDefaultFixedT2, FitMacromoleculeMethod
+from vespa.analysis.constants import FitOptimizeMethod as optmeth
 
 from vespa.analysis.chain_base import Chain
+
+
+LMFIT_METHODS = [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN, optmeth.LMFIT_JACOBIAN_REFINE]
 
 
 class ChainFitVoigt(Chain):
@@ -284,6 +288,27 @@ class ChainFitVoigt(Chain):
         return plot_results
 
 
+    def create_param_labels(self):
+        """  Create list of unique parameter labels """
+
+        plabel = []
+
+        unique_abbr = [item.replace('-', '_') for item in self._dataset.prior_list_unique]
+
+        for item in unique_abbr: plabel.append('area_' + item)
+        for item in unique_abbr: plabel.append('freq_' + item)
+        plabel.append('ta')
+        plabel.append('tb')
+        plabel.append('ph0')
+        plabel.append('ph1')
+
+        if self._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET:
+            plabel.append('mmol_area')
+            plabel.append('mmol_freq')
+
+        return plabel
+
+
     def lorgauss_internal_lmfit_dfunc(self, params, *args, **kwargs):
         """
         This is in the format that LMFIT expects to call in the Minimizer class
@@ -436,114 +461,88 @@ class ChainFitVoigt(Chain):
                                         nobase  = False, 
                                         indiv   = False, 
                                         finalwflg = False)
-        """    
+        """
+        ds  = self._dataset
+        set = self._block.set
+
         # parse input parameters
-        
         if isinstance(a, Parameters):
             v = a.valuesdict()
             a = np.array([item[1] for item in list(v.items())])
         
         # Setup constants and flags
-        
-        dataset = self._dataset
-        
         nmet    = self.nmet
-        npts    = dataset.raw_dims[0]
-        zfmult  = dataset.zero_fill_multiplier
-        nptszf  = int(round(npts * zfmult))
-        sw      = 1.0*dataset.sw
-        td      = 1.0/sw
-        piv     = dataset.ppm2pts(dataset.phase_1_pivot, acq=True)
-        t2fix   = self._block.set.prior_fix_t2
-        
+        npts    = ds.raw_dims[0]
+        nptszf  = int(round(npts * ds.zero_fill_multiplier))
+        td      = 1.0/ds.sw
+        piv     = ds.ppm2pts(ds.phase_1_pivot, acq=True)
         arr1    = np.zeros(int(npts),float) + 1.0
         f       = np.zeros((int(nmet),int(nptszf)),complex)  
         mf      = np.zeros((int(nptszf),),complex)
         
         t = (np.arange(nmet * npts) % npts) * td
         t.shape = nmet, npts
-        mt = np.arange(npts) * td
-    
+
         # get prior max peak ppm vals for metabs which are flagged ON
-        peaks   = np.array(self._block.set.prior_peak_ppm)
+        peaks   = np.array(set.prior_peak_ppm)
             
         # setup Lineshape 
-        if self._block.set.lineshape_model != FitLineshapeModel.GAUSS:
+        if set.lineshape_model != FitLineshapeModel.GAUSS:
             # voigt and lorentzian models
             expo     = t/a[nmet*2] + (t/a[nmet*2+1])**2
             lshape   = util_math.safe_exp(-expo)
         else:
-            # Note. in the case of the Gaussian lineshape, we now allow the user to 
-            # set a fixed T2 value for each metabolite. In the model call (fitt_funct.pro)
-            # we now create a lineshape array that takes each fixed value into account.
-            # BUT! we are still passing in a Tb parameter here, and though that parameter
-            # will be tightly constrained, it should still be in the range of the fixed
-            # physiologic params choosen by the user. At the moment, we have choosen to
-            # just set this parameter to 0.250 sec, which should be a reasonable average
-            # of 1H metabolite T2 values in the brain. It is then allowed to bop plus or
-            # minus 0.001 as set further below.  In the fitting function, we adjust each 
-            # fixed value by the delta from 0.250 so that the pder will fluctuate as the
-            # parameter changes and not confuse the poor optimization routine. In reality,
-            # the 0.250 is never used, just the delta amount of the actual a[nmet*2]
-            # parameter from that value.
+            # Gaussian lineshape - allows user to set a fixed T2 value for each
+            # metabolite stored in a 'T2 lineshape array'. But, this model still
+            # has a Tb parameter, though tightly constrained. We set it to 0.250
+            # +/- 0.001 sec, a reasonable T2 value, to make the search space
+            # happy. The fitting function is adjusted for each metab by the delta
+            # from 0.250.
             
-            ma     = (self.fix_t2_center - a[nmet*2]) + t2fix    # delta for Ta param that is set at 0.25 sec
+            ma     = (self.fix_t2_center - a[nmet*2]) + set.prior_fix_t2    # delta for Ta param that is set at 0.25 sec
             ma     =  t/np.outer(ma, arr1)
             mb     = (t / a[nmet*2+1])**2
             expo   = ma+mb
             lshape = util_math.safe_exp(-expo)            
-        
-        
+
         if finalwflg:  
             finalw = lshape[:,0]
-            finalw = util_spectral.full_width_half_max(np.fft.fft(util_spectral.chop(finalw))/len(finalw)) * dataset.spectral_hpp
+            finalw = util_spectral.full_width_half_max(np.fft.fft(util_spectral.chop(finalw))/len(finalw)) * ds.spectral_hpp
             return finalw
         
         # if FID, then for correct area, first point must be divided by 2
         
-        tmp  = self.basis_mets.copy()  
-        fre  = a[nmet:nmet*2] - self._dataset.ppm2hz(peaks)*2.0*np.pi    # in Radians here
-        fre  = np.exp( 1j * (np.outer(fre, arr1)) * t ) # outer is matrix multiplication
+        fre  = a[nmet:nmet*2] - ds.ppm2hz(peaks)*2.0*np.pi      # shift in Radians from basis center freq
+        fre  = np.exp( 1j * (np.outer(fre, arr1)) * t )         # outer is matrix multiplication
         amp  = np.outer(a[0:nmet], arr1)
         ph0  = np.outer(np.exp(1j * (np.zeros(nmet) + a[nmet*2+2])), arr1)    
-        tmp *= amp * fre * ph0 * lshape
+        tmp  = self.basis_mets.copy() * amp * fre * ph0 * lshape
         f[:,0:npts] = tmp  
-        
-        f[:,0] = f[:,0] / 2.0  
+        f[:,0] = f[:,0] / 2.0
     
         # Calc Phase1 
         phase1 = np.exp(1j * (a[nmet*2+3]*DTOR*(np.arange(nptszf,dtype=float)-piv)/nptszf))
 
-        # Calc Mmol - to include in pders if needed
-        if (self._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET):
-
+        # Calc Mmol - we will calc mmol pders later if needed
+        if (set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET):
             if self.basis_mmol is not None:
-                mfre = a[self.nparam - 1]
-                mdat = self.basis_mmol.copy()
-                chop = ((((np.arange(npts) + 1) % 2) * 2) - 1)
-                mdat *= chop
-                marea = a[self.nparam - 2]
-                fre = mfre  # *2.0*np.pi    # in Radians here
-                fre = np.exp(1j * fre * mt)
-                ph0 = np.exp(1j * a[nmet * 2 + 2])
-
-                mdat *= marea * fre * ph0
+                mdat  = self.basis_mmol.copy() * ((((np.arange(npts) + 1) % 2) * 2) - 1)    # chop the basis fn
+                mamp  = a[self.nparam - 2]
+                mfre  = np.exp(1j * a[self.nparam - 1] * np.arange(npts) * td)    # freq roll shift
+                mph0  = np.exp(1j * a[nmet*2 + 2])                                # global ph0
+                mdat *= mamp * mfre * mph0
                 mf[0:npts] = mdat
                 mf[0] = mf[0] / 2.0
-
-                mind = mf.copy()
+                mind  = mf.copy()       # save copy of indiv mmol basis functions
 
         # Calculate Partial Derivatives
-        #
-        # TODO bjs - if mmol model changes, much more control logic needed below
-        #
         pder = None
         if pderflg:
+
             pder = np.zeros((int(len(a)),int(nptszf)), complex)
-        
             pall = np.sum(f,axis=0)   # all lines added
-        
             pind = f
+
             tt         = np.zeros(int(nptszf),float)
             tt[0:npts] = np.arange(npts,dtype=float) * td
         
@@ -553,8 +552,24 @@ class ChainFitVoigt(Chain):
             pder[nmet*2+0,:]   = (np.fft.fft(     tt     * pall/(a[nmet*2+0]**2))/nptszf) * phase1
             pder[nmet*2+1,:]   = (np.fft.fft(2.0*(tt**2) * pall/(a[nmet*2+1]**3))/nptszf) * phase1
 
-            if self._block.set.lineshape_model == FitLineshapeModel.GAUSS:
-                pder[nmet * 2 + 0, :] *= -1e-6      # empirical from LMFIT tests
+            if set.optimize_method in LMFIT_METHODS:
+                # flags below are set in funct_fit_voigt.py only if both metabs in plabel
+                plabel = self.create_param_labels()
+                if set.optimize_constrain_ppm_naa_naag:
+                    pder[plabel.index('freq_naa')] += pder[plabel.index('freq_naag')]
+                if set.optimize_constrain_ppm_cr_pcr:
+                    pder[plabel.index('freq_cr')] += pder[plabel.index('freq_pcr')]
+                if set.optimize_constrain_ppm_gpc_pcho:
+                    pder[plabel.index('freq_gpc')] += pder[plabel.index('freq_pcho')]
+                if set.optimize_constrain_ppm_cr2_pcr2:
+                    pder[plabel.index('freq_cr2')] += pder[plabel.index('freq_pcr2')]
+                if set.optimize_constrain_ppm_glu_gln:
+                    pder[plabel.index('freq_glu')] += pder[plabel.index('freq_gln')]
+                if set.optimize_constrain_ppm_tau_glc:
+                    pder[plabel.index('freq_tau')] += pder[plabel.index('freq_glc')]
+
+            if set.lineshape_model == FitLineshapeModel.GAUSS:
+                pder[nmet*2+0,:] *= -1e-6      # empirical from LMFIT tests
 
             pder[nmet*2+2,:]   = (np.fft.fft(1j*pall)/nptszf) * phase1
             if self.basis_mmol is not None:
@@ -586,6 +601,230 @@ class ChainFitVoigt(Chain):
                 f = f + self.fit_baseline
     
         # Finish calc of Mmol here and add to full model
+        if (set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET):
+
+            if self.basis_mmol is not None:
+
+                mf = (np.fft.fft(mf)/nptszf) * phase1
+                if f.ndim > 1:
+                    mf.shape = 1,mf.shape[0]
+                    f = np.concatenate([f, mf],axis=0)
+                else:
+                    f = f + mf
+
+                if pderflg:
+                    mtt         = np.zeros(nptszf,float)
+                    mtt[0:npts] = np.arange(npts,dtype=float) * td
+                    pder[nmet*2+4,:] = (np.fft.fft(mind / mamp)/nptszf) * phase1
+                    pder[nmet*2+5,:] = (np.fft.fft(mtt*1j* mind)/nptszf) * phase1
+
+        return f, pder
+
+
+
+    def lorgauss_internal_orig(self, a, pderflg=True,
+                          nobase=False,
+                          indiv=False,
+                          finalwflg=False):
+        """
+        This is ORIGINAL lorgauss_internal from 0.10.x and just starting the
+        version 1.0.0 release. It's here for just-in-case
+
+        =========
+        Arguments
+        =========
+        **a:**         [list][float] parameters for model function
+        **dataset:**   [object][dataset (or subset)] object containing fitting
+                         parameters
+        **pderflg:**   [keyword][bool][default=False] xxxx
+        **nobase:**    [keyword][bool][default=False] flag, do not include
+                        baseline contribs from (*dood).basarr
+        **indiv:**     [keyword][bool][default=False] flag, return individual
+                         metabolites, not summed total of all
+        **finalwflg:** [keyword][float][default=False] xxxx
+
+        ===========
+        Description
+        ===========
+        Returns the parameterized metabolite model function.
+
+        A contains : [[am],[fr],Ta,Tb,ph0,ph1]  - LorGauss complex
+
+        Peak ampls and freqs are taken from the DB info in info,
+        so the values in [am] and [fr] are relative multipliers
+        and additives respectively.  That is why there is only
+        one value for each compound in each array
+
+        If the relfreq flag is ON, then [fr] is a single value that
+        is added to each peak freq equivalently.  Ie. the whole
+        spectrum can shift, but relative ppm separations between
+        all metabolites are maintained exactly.  If the flag is OFF,
+        then metabs may shift independently from one another,
+        however, within groups of peaks belonging to the same
+        metabolite, relative ppm separtaions are maintained.
+
+        am    - peak amplitude
+        fr    - peak frequency offsets in PPM
+        Ta    - T2 decay constant in sec
+        Tb    - T2 star decay const in sec
+        ph0/1 - zero/first order phase in degrees
+
+        coef  - are the spline coefs for the lineshape, knot locations are in info
+
+        ======
+        Syntax
+        ======
+        ::
+
+          f = self.lorgauss_internal(a, pderflg = False,
+                                        nobase  = False,
+                                        indiv   = False,
+                                        finalwflg = False)
+        """
+        # parse input parameters
+
+        if isinstance(a, Parameters):
+            v = a.valuesdict()
+            a = np.array([item[1] for item in list(v.items())])
+
+        # Setup constants and flags
+
+        dataset = self._dataset
+
+        nmet = self.nmet
+        npts = dataset.raw_dims[0]
+        zfmult = dataset.zero_fill_multiplier
+        nptszf = int(round(npts * zfmult))
+        sw = 1.0 * dataset.sw
+        td = 1.0 / sw
+        piv = dataset.ppm2pts(dataset.phase_1_pivot, acq=True)
+        t2fix = self._block.set.prior_fix_t2
+
+        arr1 = np.zeros(int(npts), float) + 1.0
+        f = np.zeros((int(nmet), int(nptszf)), complex)
+        mf = np.zeros((int(nptszf),), complex)
+
+        t = (np.arange(nmet * npts) % npts) * td
+        t.shape = nmet, npts
+        mt = np.arange(npts) * td
+
+        # get prior max peak ppm vals for metabs which are flagged ON
+        peaks = np.array(self._block.set.prior_peak_ppm)
+
+        # setup Lineshape
+        if self._block.set.lineshape_model != FitLineshapeModel.GAUSS:
+            # voigt and lorentzian models
+            expo = t / a[nmet * 2] + (t / a[nmet * 2 + 1]) ** 2
+            lshape = util_math.safe_exp(-expo)
+        else:
+            # Gaussian lineshape - allows user to set a fixed T2 value for each
+            # metabolite stored in a 'T2 lineshape array'. But, this model still
+            # has a Tb parameter, though tightly constrained. We set it to 0.250
+            # +/- 0.001 sec, a reasonable T2 value, to make the search space
+            # happy. The fitting function is adjusted for each metab by the delta
+            # from 0.250.
+
+            ma = (self.fix_t2_center - a[nmet * 2]) + t2fix  # delta for Ta param that is set at 0.25 sec
+            ma = t / np.outer(ma, arr1)
+            mb = (t / a[nmet * 2 + 1]) ** 2
+            expo = ma + mb
+            lshape = util_math.safe_exp(-expo)
+
+        if finalwflg:
+            finalw = lshape[:, 0]
+            finalw = util_spectral.full_width_half_max(
+                np.fft.fft(util_spectral.chop(finalw)) / len(finalw)) * dataset.spectral_hpp
+            return finalw
+
+        # if FID, then for correct area, first point must be divided by 2
+
+        tmp = self.basis_mets.copy()
+        fre = a[nmet:nmet * 2] - self._dataset.ppm2hz(peaks) * 2.0 * np.pi  # in Radians here
+        fre = np.exp(1j * (np.outer(fre, arr1)) * t)  # outer is matrix multiplication
+        amp = np.outer(a[0:nmet], arr1)
+        ph0 = np.outer(np.exp(1j * (np.zeros(nmet) + a[nmet * 2 + 2])), arr1)
+        tmp *= amp * fre * ph0 * lshape
+        f[:, 0:npts] = tmp
+
+        f[:, 0] = f[:, 0] / 2.0
+
+        # Calc Phase1
+        phase1 = np.exp(1j * (a[nmet * 2 + 3] * DTOR * (np.arange(nptszf, dtype=float) - piv) / nptszf))
+
+        # Calc Mmol - to include in pders if needed
+        if (self._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET):
+
+            if self.basis_mmol is not None:
+                mfre = a[self.nparam - 1]
+                mdat = self.basis_mmol.copy()
+                chop = ((((np.arange(npts) + 1) % 2) * 2) - 1)
+                mdat *= chop
+                marea = a[self.nparam - 2]
+                fre = mfre  # *2.0*np.pi    # in Radians here
+                fre = np.exp(1j * fre * mt)
+                ph0 = np.exp(1j * a[nmet * 2 + 2])
+
+                mdat *= marea * fre * ph0
+                mf[0:npts] = mdat
+                mf[0] = mf[0] / 2.0
+
+                mind = mf.copy()
+
+        # Calculate Partial Derivatives
+        #
+        # TODO bjs - if mmol model changes, much more control logic needed below
+        #
+        pder = None
+        if pderflg:
+            pder = np.zeros((int(len(a)), int(nptszf)), complex)
+
+            pall = np.sum(f, axis=0)  # all lines added
+
+            pind = f
+            tt = np.zeros(int(nptszf), float)
+            tt[0:npts] = np.arange(npts, dtype=float) * td
+
+            for i in range(nmet):  # Calc the Ampl and Freq pders
+                pder[i, :] = (np.fft.fft(pind[i, :] / a[i]) / nptszf) * phase1
+                pder[i + nmet, :] = (np.fft.fft(tt * 1j * pind[i, :]) / nptszf) * phase1
+            pder[nmet * 2 + 0, :] = (np.fft.fft(tt * pall / (a[nmet * 2 + 0] ** 2)) / nptszf) * phase1
+            pder[nmet * 2 + 1, :] = (np.fft.fft(2.0 * (tt ** 2) * pall / (a[nmet * 2 + 1] ** 3)) / nptszf) * phase1
+
+            if self._block.set.lineshape_model == FitLineshapeModel.GAUSS:
+                pder[nmet * 2 + 0, :] *= -1e-6  # empirical from LMFIT tests
+
+            pder[nmet * 2 + 2, :] = (np.fft.fft(1j * pall) / nptszf) * phase1
+            if self.basis_mmol is not None:
+                pder[nmet * 2 + 2, :] += (np.fft.fft(1j * mf) / nptszf) * phase1
+
+            pder[nmet * 2 + 3, :] = (np.fft.fft(pall) / nptszf) * (
+                        1j * DTOR * (np.arange(nptszf, dtype=float) - piv) / nptszf) * phase1
+            if self.basis_mmol is not None:
+                pder[nmet * 2 + 3, :] += (np.fft.fft(mf) / nptszf) * (
+                            1j * DTOR * (np.arange(nptszf, dtype=float) - piv) / nptszf) * phase1
+
+        # Do the FFT
+        if indiv:  # return individual lines
+            if nmet != 1:
+                for i in range(nmet):
+                    f[i, :] = (np.fft.fft(f[i, :]) / nptszf) * phase1
+            else:
+                f = (np.fft.fft(f[0, :]) / nptszf) * phase1
+        else:  # return summed spectrum
+            if (nmet) != 1:
+                f = np.sum(f, axis=0)
+                f = (np.fft.fft(f) / nptszf) * phase1
+            else:
+                f = (np.fft.fft(f[0, :]) / nptszf) * phase1
+
+        # Add in baseline unless nobase is True ---
+        if not nobase:
+            if f.ndim > 1:
+                for i in range(len(f)): f[i, :] = f[i, :] + self.fit_baseline
+            else:
+                f = f + self.fit_baseline
+
+        # Finish calc of Mmol here and add to full model
         if (self._block.set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET):
 
             if self.basis_mmol is not None:
@@ -605,23 +844,22 @@ class ChainFitVoigt(Chain):
                 #
                 # mind = mf.copy()
 
-                mf = (np.fft.fft(mf)/nptszf) * phase1
+                mf = (np.fft.fft(mf) / nptszf) * phase1
 
                 if f.ndim > 1:
-                    mf.shape = 1,mf.shape[0]
-                    f = np.concatenate([f, mf],axis=0)
+                    mf.shape = 1, mf.shape[0]
+                    f = np.concatenate([f, mf], axis=0)
                 else:
                     f = f + mf
 
                 if pderflg:
-                    mtt         = np.zeros(nptszf,float)
-                    mtt[0:npts] = np.arange(npts,dtype=float) * td
+                    mtt = np.zeros(nptszf, float)
+                    mtt[0:npts] = np.arange(npts, dtype=float) * td
 
-                    pder[nmet*2+4,:] = (np.fft.fft(mind / marea)/nptszf) * phase1
-                    pder[nmet*2+5,:] = (np.fft.fft(mtt*1j* mind)/nptszf) * phase1
+                    pder[nmet * 2 + 4, :] = (np.fft.fft(mind / marea) / nptszf) * phase1
+                    pder[nmet * 2 + 5, :] = (np.fft.fft(mtt * 1j * mind) / nptszf) * phase1
 
         return f, pder
-
    
    
 def voigt_checkin(nmet, source, dataset):

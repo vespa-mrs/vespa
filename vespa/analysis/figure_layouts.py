@@ -24,7 +24,7 @@ import vespa.common.util.misc as util_misc
 import vespa.common.util.time_ as util_time
 
 from vespa.common.constants import DEGREES_TO_RADIANS as DTOR
-from vespa.analysis.block_quant_identity import BlockQuantIdentity
+
 
 
 def _pretty_space_text(left='', middle='', right='', total_width=77):
@@ -724,7 +724,7 @@ def lcm_multipage_pdf(  dataset,
 
     table_call = dataset.fit_results_in_table
     if quantvals:
-        if 'quant' in list(dataset.blocks.keys()) and not isinstance(dataset.blocks['quant'], BlockQuantIdentity):
+        if 'quant' in list(dataset.blocks.keys()) and not dataset.blocks['quant'].is_identity:
             table_call = dataset.quant_results_in_table
         else:
             quantvals = False

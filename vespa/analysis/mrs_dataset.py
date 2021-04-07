@@ -1,5 +1,5 @@
 # Python modules
-
+import os
 import copy
 import collections
 
@@ -527,7 +527,7 @@ class Dataset(object):
                 try:
                     val = block.measure_time
                 except AttributeError:
-                    val = list(range(raw_dims[1]))
+                    val = list(range(self.raw_dims[1]))
             else:
                 block = self.blocks["prep"]
                 try:
@@ -537,7 +537,7 @@ class Dataset(object):
                     try:
                         val = block.measure_time
                     except AttributeError:
-                        val = list(range(raw_dims[1]))
+                        val = list(range(self.raw_dims[1]))
         return val
 
 

@@ -116,6 +116,12 @@ class ChainQuantWatref(Chain):
         water_fit_block = water_dataset.blocks['fit']
         if type(water_fit_block) is block_fit_identity.BlockFitIdentity:
             return plot_results
+            
+        #FIXME bjs - should use property in class to check identity
+        # water_fit_block = water_dataset.blocks['fit']
+        # if not water_fit_block.is_identity:
+        #     return plot_results
+        
         
         water_areas = water_fit_block.get_fitted_water_area()
         if water_areas is None:
