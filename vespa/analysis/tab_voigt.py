@@ -734,7 +734,12 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
 
         
         val = constants.FitOptimizeMethod.choices[fit.set.optimize_method]
-        self.ComboOptimizeMethod.SetStringSelection(    val )
+        self.ComboOptimizeMethod.SetStringSelection(val )
+        if 'lmfit' in fit.set.optimize_method:
+            self.PanelOptimizeConstraintChecks.Show()
+        else:
+            self.PanelOptimizeConstraintChecks.Hide()
+
         self.CheckOptimizeScalingFlag.SetValue(         fit.set.optimize_scaling_flag)
         self.SpinOptimizeGlobalIterations.SetValue(     fit.set.optimize_global_iterations)
         self.FloatOptimizeStopTolerance.SetValue(       fit.set.optimize_stop_tolerance)
@@ -1006,13 +1011,9 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
         elif flavor == 'image':       # image layout result
         
             ini_name = "voigt_results_output_as_image"
-            default_path = util_analysis_config.get_path(ini_name)
-    
-            filetype_filter = "%s files (*.%s)|*.%s" % (type_.upper(), type_, type_)
-            
-            filename = common_dialogs.save_as(default_path    = default_path,
-                                              filetype_filter = filetype_filter)
-
+            dpath = util_analysis_config.get_path(ini_name)
+            filtr = "%s files (*.%s)|*.%s" % (type_.upper(), type_, type_)
+            filename = common_dialogs.save_as(default_path=dpath, filetype_filter=filtr)
             voxel = self._tab_dataset.voxel
 
             if layout == 'lcm':
@@ -1023,7 +1024,7 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
             elif layout == 'lcm_multi':
                 fig_call = figure_layouts.lcm_multipage_pdf
                 nobase = False
-                fixphase = False
+                fixphase = True
                 dpi = 300
             elif layout == '2plot':
                 fig_call = figure_layouts.analysis_plot2
@@ -1765,11 +1766,16 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
         self.block.set.macromol_single_basis_dataset_limit_max = max
 
 
-
     def on_optimize_method(self, event): 
         index = event.GetEventObject().GetSelection()
         value = list(constants.FitOptimizeMethod.choices.keys())[index]
         self.block.set.optimize_method = value
+        if 'lmfit' in value:
+            self.PanelOptimizeConstraintChecks.Show()
+        else:
+            self.PanelOptimizeConstraintChecks.Hide()
+        self.PanelOptimization.Layout()
+        self.PanelOptimization.Refresh()
 
     def on_optimize_scaling_flag(self, event): 
         val = event.GetEventObject().GetValue()

@@ -200,8 +200,11 @@ class ViewIdsWatref(common_menu.IdContainer):
     explicit references.
     """
     #OUTPUT_RESULTS_TEXT     = "replace me"
-    OUTPUT_CURRENT_VOXEL_CSV = "replace me"
-    OUTPUT_ALL_VOXELS_CSV    = "replace me"
+    RESULTS_CSV_CURRENT       = "replace me"
+    RESULTS_CSV_ALL           = "replace me"
+    RESULTS_LCM_PDF           = "replace me"
+    RESULTS_LCM_PDF_MULTI     = "replace me"
+    RESULTS_LCM_PNG           = "replace me"
         
     
 
@@ -760,18 +763,18 @@ def _get_menu_data(main):
                   ("Current Voxel", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_CSV_CURRENT),
                   ("All Voxels",    main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_CSV_ALL))),
                 ("LCM Layout", (
-                  ("PDF Format",            main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_LCM_PDF),
-                  ("PDF Format Multi-page", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_LCM_PDF_MULTI),
-                  ("PNG Format",            main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_LCM_PNG))),
+                  ("PDF Format (Ph0/1 corr)",            main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_LCM_PDF),
+                  ("PDF Format Multi-page (Ph0/1 corr)", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_LCM_PDF_MULTI),
+                  ("PNG Format (Ph0/1 corr)",            main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_LCM_PNG))),
                 ("Analysis BRP Layout", (
-                  ("PNG 512 Format",  main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_BRP512_PNG),
-                  ("PNG 1024 Format", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_BRP1024_PNG))),
+                  ("PNG 512 Format (Ph0/1 corr)",  main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_BRP512_PNG),
+                  ("PNG 1024 Format (Ph0/1 corr)", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_BRP1024_PNG))),
                 ("Analysis 2-Plot Layout", (
-                  ("PDF Format", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_2PLOT_PDF),
-                  ("PNG Format", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_2PLOT_PNG))),
+                  ("PDF Format (Ph0/1 corr)", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_2PLOT_PDF),
+                  ("PNG Format (Ph0/1 corr)", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_2PLOT_PNG))),
                 ("Analysis 4-Plot Layout", (
-                  ("PDF Format", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_4PLOT_PDF),
-                  ("PNG Format", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_4PLOT_PNG)))
+                  ("PDF Format (Ph0/1 corr)", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_4PLOT_PDF),
+                  ("PNG Format (Ph0/1 corr)", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsVoigt.RESULTS_4PLOT_PNG)))
                 )
             ),
             ("Debug", (
@@ -823,9 +826,16 @@ def _get_menu_data(main):
            
     view_watref = (
             ("Results to File", (
-                ("Text-CSV Layout -> Current Voxel", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsWatref.OUTPUT_CURRENT_VOXEL_CSV),
-                ("Text-CSV Layout -> All Voxels",    main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsWatref.OUTPUT_ALL_VOXELS_CSV),
-                       )
+                # ("Text-CSV Layout -> Current Voxel", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsWatref.OUTPUT_CURRENT_VOXEL_CSV),
+                # ("Text-CSV Layout -> All Voxels",    main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsWatref.OUTPUT_ALL_VOXELS_CSV),
+                ("Text-CSV Layout", (
+                    ("Current Voxel", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsWatref.RESULTS_CSV_CURRENT),
+                    ("All Voxels", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsWatref.RESULTS_CSV_ALL))),
+                ("LCM Layout", (
+                    ("PDF Format (Ph0/1 corr)", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsWatref.RESULTS_LCM_PDF),
+                    ("PDF Format Multi-page (Ph0/1 corr)", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsWatref.RESULTS_LCM_PDF_MULTI),
+                    ("PNG Format (Ph0/1 corr)", main.on_menu_view_results, wx.ITEM_NORMAL, ViewIdsWatref.RESULTS_LCM_PNG))),
+            )
             ),
            )
     

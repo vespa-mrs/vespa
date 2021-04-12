@@ -185,9 +185,11 @@ def lcm_like(   dataset,
     # Process 'fit' block to get results --------------------------------------
 
     key = 'fit'
+    nmet = 1
     if key in list(dataset.blocks.keys()):
         block = dataset.blocks[key]
         results = block.chain.run([voxel,], entry='output_refresh')
+        nmet = block.chain.nmet
 
         lw    = results['fitted_lw']
         lwmin = results['minmaxlw'][0]
@@ -216,8 +218,8 @@ def lcm_like(   dataset,
 
     if fixphase:
         x,y,z = voxel
-        ph0  = -block.fit_results[-2,x,y,z]
-        ph1  = -block.fit_results[-1,x,y,z]
+        ph0  = -block.fit_results[nmet*2+2,x,y,z]
+        ph1  = -block.fit_results[nmet*2+3,x,y,z]
         piv  = (dim0/2.0) - (dataset.frequency*(dataset.phase_1_pivot - dataset.resppm)/(dataset.sw/dim0))
         arr1 = (np.arange(dim0) - piv)/dim0
         ph0  = ph0 * DTOR
@@ -462,9 +464,11 @@ def lcm_square( dataset,
     # Process 'fit' block to get results --------------------------------------
 
     key = 'fit'
+    nmet = 1
     if key in list(dataset.blocks.keys()):
         block = dataset.blocks[key]
         results = block.chain.run([voxel,], entry='output_refresh')
+        nmet = block.chain.nmet
 
         lw    = results['fitted_lw']
         lwmin = results['minmaxlw'][0]
@@ -493,8 +497,8 @@ def lcm_square( dataset,
 
     if fixphase:
         x,y,z = voxel
-        ph0  = -block.fit_results[-2,x,y,z]
-        ph1  = -block.fit_results[-1,x,y,z]
+        ph0  = -block.fit_results[nmet*2+2,x,y,z]
+        ph1  = -block.fit_results[nmet*2+3,x,y,z]
         piv  = (dim0/2.0) - (dataset.frequency*(dataset.phase_1_pivot - dataset.resppm)/(dataset.sw/dim0))
         arr1 = (np.arange(dim0) - piv)/dim0
         ph0  = ph0 * DTOR
@@ -747,9 +751,11 @@ def lcm_multipage_pdf(  dataset,
     # Process 'fit' block to get results --------------------------------------
 
     key = 'fit'
+    nmet = 1
     if key in list(dataset.blocks.keys()):
         block = dataset.blocks[key]
         results = block.chain.run([voxel,], entry='plot_refresh')          # NB. DIFFERENT FROM OTHER FIGURE CALLS
+        nmet = block.chain.nmet
 
         lw    = results['fitted_lw']
         lwmin = results['minmaxlw'][0]
@@ -786,8 +792,8 @@ def lcm_multipage_pdf(  dataset,
 
     if fixphase:
         x,y,z = voxel
-        ph0  = -block.fit_results[-2,x,y,z]
-        ph1  = -block.fit_results[-1,x,y,z]
+        ph0  = -block.fit_results[nmet*2+2,x,y,z]
+        ph1  = -block.fit_results[nmet*2+3,x,y,z]
         piv  = (dim0/2.0) - (dataset.frequency*(dataset.phase_1_pivot - dataset.resppm)/(dataset.sw/dim0))
         arr1 = (np.arange(dim0) - piv)/dim0
         ph0  = ph0 * DTOR
@@ -987,9 +993,11 @@ def analysis_plot2( dataset,
     # Process 'fit' block to get results --------------------------------------
 
     key = 'fit'
+    nmet = 1
     if key in list(dataset.blocks.keys()):
         block = dataset.blocks[key]
         results = block.chain.run([voxel,], entry='output_refresh')
+        nmet = block.chain.nmet
 
         lw    = results['fitted_lw']
         lwmin = results['minmaxlw'][0]
@@ -1017,8 +1025,8 @@ def analysis_plot2( dataset,
 
     if fixphase:
         x,y,z = voxel
-        ph0  = -block.fit_results[-2,x,y,z]
-        ph1  = -block.fit_results[-1,x,y,z]
+        ph0  = -block.fit_results[nmet*2+2,x,y,z]
+        ph1  = -block.fit_results[nmet*2+3,x,y,z]
         piv  = (dim0/2.0) - (dataset.frequency*(dataset.phase_1_pivot - dataset.resppm)/(dataset.sw/dim0))
         arr1 = (np.arange(dim0) - piv)/dim0
         ph0  = ph0 * DTOR
@@ -1276,9 +1284,11 @@ def analysis_plot4( dataset,
     # Process 'fit' block to get results --------------------------------------
 
     key = 'fit'
+    nmet = 1
     if key in list(dataset.blocks.keys()):
         block = dataset.blocks[key]
         results = block.chain.run([voxel,], entry='output_refresh')
+        nmet = block.chain.nmet
 
         lw    = results['fitted_lw']
         lwmin = results['minmaxlw'][0]
@@ -1306,8 +1316,8 @@ def analysis_plot4( dataset,
 
     if fixphase:
         x,y,z = voxel
-        ph0  = -block.fit_results[-2,x,y,z]
-        ph1  = -block.fit_results[-1,x,y,z]
+        ph0  = -block.fit_results[nmet*2+2,x,y,z]
+        ph1  = -block.fit_results[nmet*2+3,x,y,z]
         piv  = (dim0/2.0) - (dataset.frequency*(dataset.phase_1_pivot - dataset.resppm)/(dataset.sw/dim0))
         arr1 = (np.arange(dim0) - piv)/dim0
         ph0  = ph0 * DTOR
@@ -1586,9 +1596,11 @@ def analysis_brp_generic(   dataset,
     # Process 'fit' block to get results --------------------------------------
 
     key = 'fit'
+    nmet = 1
     if key in list(dataset.blocks.keys()):
         block = dataset.blocks[key]
         results = block.chain.run([voxel,], entry='output_refresh')
+        nmet = block.chain.nmet
 
         lw    = results['fitted_lw']
         lwmin = results['minmaxlw'][0]
@@ -1618,8 +1630,8 @@ def analysis_brp_generic(   dataset,
 
     if fixphase:
         x,y,z = voxel
-        ph0  = -block.fit_results[-2,x,y,z]
-        ph1  = -block.fit_results[-1,x,y,z]
+        ph0  = -block.fit_results[nmet*2+2,x,y,z]
+        ph1  = -block.fit_results[nmet*2+3,x,y,z]
         piv  = (dim0/2.0) - (dataset.frequency*(dataset.phase_1_pivot - dataset.resppm)/(dataset.sw/dim0))
         arr1 = (np.arange(dim0) - piv)/dim0
         ph0  = ph0 * DTOR
@@ -1917,9 +1929,11 @@ def debug_plot4(dataset,
     # Process 'fit' block to get results --------------------------------------
 
     key = 'fit'
+    nmet = 1
     if key in list(dataset.blocks.keys()):
         block = dataset.blocks[key]
         results = block.chain.run([voxel,], entry='plot_refresh')          # NB. DIFFERENT FROM OTHER FIGURE CALLS
+        nmet = block.chain.nmet
 
         lw    = results['fitted_lw']
         lwmin = results['minmaxlw'][0]
@@ -1953,8 +1967,8 @@ def debug_plot4(dataset,
 
     if fixphase:
         x,y,z = voxel
-        ph0  = -block.fit_results[-2,x,y,z]
-        ph1  = -block.fit_results[-1,x,y,z]
+        ph0  = -block.fit_results[nmet*2+2,x,y,z]
+        ph1  = -block.fit_results[nmet*2+3,x,y,z]
         piv  = (dim0/2.0) - (dataset.frequency*(dataset.phase_1_pivot - dataset.resppm)/(dataset.sw/dim0))
         arr1 = (np.arange(dim0) - piv)/dim0
         ph0  = ph0 * DTOR
@@ -2249,9 +2263,11 @@ def debug_multipage_pdf(dataset,
     # Process 'fit' block to get results --------------------------------------
 
     key = 'fit'
+    nmet = 1
     if key in list(dataset.blocks.keys()):
         block = dataset.blocks[key]
         results = block.chain.run([voxel,], entry='plot_refresh')          # NB. DIFFERENT FROM OTHER FIGURE CALLS
+        nmet = block.chain.nmet
 
         lw    = results['fitted_lw']
         lwmin = results['minmaxlw'][0]
@@ -2288,8 +2304,8 @@ def debug_multipage_pdf(dataset,
 
     if fixphase:
         x,y,z = voxel
-        ph0  = -block.fit_results[-2,x,y,z]
-        ph1  = -block.fit_results[-1,x,y,z]
+        ph0  = -block.fit_results[nmet*2+2,x,y,z]
+        ph1  = -block.fit_results[nmet*2+3,x,y,z]
         piv  = (dim0/2.0) - (dataset.frequency*(dataset.phase_1_pivot - dataset.resppm)/(dataset.sw/dim0))
         arr1 = (np.arange(dim0) - piv)/dim0
         ph0  = ph0 * DTOR

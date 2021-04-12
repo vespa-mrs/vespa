@@ -284,7 +284,7 @@ def initialize_for_fit(chain):
     if set.optimize_method == optmeth.CONSTRAINED_LEVENBERG_MARQUARDT:
         pass        # no changes needed
 
-    elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN, optmeth.LMFIT_JACOBIAN_REFINE]:
+    elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN]:
         for i in range(len(a)):
             wig = 0.02       # global wiggle amount in PPM
                 
@@ -513,7 +513,7 @@ def optimize_model(chain):
             for i,item in enumerate(v.keys()):
                 a[item].set(value=a0[i])
 
-        elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN, optmeth.LMFIT_JACOBIAN_REFINE]:
+        elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN]:
 
             chain.data_scale = data
 
@@ -532,8 +532,6 @@ def optimize_model(chain):
                 result = min1.least_squares()
             elif set.optimize_method == optmeth.LMFIT_JACOBIAN:
                 result = min1.least_squares(jac=dfunc)
-            elif set.optimize_method == optmeth.LMFIT_JACOBIAN_REFINE:
-                result = min1.least_squares(jac=dfunc) if iter < niter else min1.least_squares()
 
             wchis, chis = chain.lorgauss_internal_lmfit(result.params, report_stats=True)
             badfit = 0 if result.success else 1

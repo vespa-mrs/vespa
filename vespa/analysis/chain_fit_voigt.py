@@ -18,7 +18,7 @@ from vespa.analysis.constants import FitOptimizeMethod as optmeth
 from vespa.analysis.chain_base import Chain
 
 
-LMFIT_METHODS = [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN, optmeth.LMFIT_JACOBIAN_REFINE]
+LMFIT_METHODS = [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN]
 
 
 class ChainFitVoigt(Chain):

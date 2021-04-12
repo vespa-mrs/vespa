@@ -2,6 +2,7 @@
 import os
 import io as StringIO
 import base64
+import datetime
 
 # 3rd party modules
 import wx
@@ -12,6 +13,7 @@ import vespa.analysis.tab_base as tab_base
 import vespa.analysis.constants as constants
 import vespa.analysis.util_menu as util_menu
 import vespa.analysis.prefs as prefs_module
+import vespa.analysis.figure_layouts as figure_layouts
 import vespa.analysis.util_analysis_config as util_analysis_config
 import vespa.analysis.dialog_dataset_browser as dialog_dataset_browser
 import vespa.analysis.auto_gui.watref as watref
@@ -20,6 +22,7 @@ import vespa.common.wx_gravy.util as wx_util
 import vespa.common.wx_gravy.common_dialogs as common_dialogs
 import vespa.common.util.misc as util_misc
 
+from matplotlib.backends.backend_pdf import PdfPages
 
 #------------------------------------------------------------------------------
 
@@ -113,8 +116,7 @@ class TabWatref(tab_base.Tab, watref.PanelWatrefUI):
         # this method is done. So setting the sash position here does no
         # good. We use wx.CallAfter() to (a) set the sash position and
         # (b) fake an EVT_SPLITTER_SASH_POS_CHANGED.
-        wx.CallAfter(self.SplitterWindow.SetSashPosition,
-                     self._prefs.sash_position_main, True)
+        wx.CallAfter(self.SplitterWindow.SetSashPosition, self._prefs.sash_position_main, True)
         wx.CallAfter(self.on_splitter)
 
 
@@ -227,17 +229,162 @@ class TabWatref(tab_base.Tab, watref.PanelWatrefUI):
 
     def on_menu_view_option(self, event):
           pass
-          
 
     def on_menu_view_output(self, event):
         event_id = event.GetId()
-#        if event_id == util_menu.ViewIdsWatref.OUTPUT_RESULTS_TEXT:
-#            pass
+        #        if event_id == util_menu.ViewIdsWatref.OUTPUT_RESULTS_TEXT:
+        #            pass
         if event_id == util_menu.ViewIdsWatref.OUTPUT_CURRENT_VOXEL_CSV:
-            self._output_csv( event, all_voxels=False)
+            self._output_csv(event, all_voxels=False)
         elif event_id == util_menu.ViewIdsWatref.OUTPUT_ALL_VOXELS_CSV:
-            self._output_csv( event, all_voxels=True)
-        
+            self._output_csv(event, all_voxels=True)
+
+    def on_menu_view_results(self, event):
+        """
+        Options for saving results to files.
+
+        Two main flavors : Text (csv) and Images (PDF and PNG)
+
+        Text output can be for current voxel, or all voxels in the dataset. This
+        is a pretty simplistic method. It outputs whatever is in the results
+        array, zeros or whatever.
+
+        Image output come in one layout - LCModel-like
+
+        """
+
+        # map menu items to file types
+        EVENT_TO_TYPE = { util_menu.ViewIdsWatref.RESULTS_CSV_CURRENT   : ("text","current","csv"),
+                          util_menu.ViewIdsWatref.RESULTS_CSV_ALL       : ("text","all","csv"),
+                          util_menu.ViewIdsWatref.RESULTS_LCM_PDF       : ("image","lcm","pdf"),
+                          util_menu.ViewIdsWatref.RESULTS_LCM_PDF_MULTI : ("image","lcm_multi","pdf"),
+                          util_menu.ViewIdsWatref.RESULTS_LCM_PNG       : ("image","lcm","png"),
+                        }
+
+        flavor, layout, type_ = EVENT_TO_TYPE[event.GetId()]
+
+        if flavor == 'text':
+
+            ini_name = "watref_output_as_csv"
+            default_path_name = util_analysis_config.get_path(ini_name)
+            default_path, default_fname = os.path.split(default_path_name)
+
+            if type_ == 'csv':
+                filetype_filter = "CSV files (*.csv)|*.csv|TXT files (*.txt)|*.txt"
+            else:
+                filetype_filter = "%s files (*.%s)|*.%s" % (type_.upper(), type_, type_)
+
+            filename = common_dialogs.save_as(default_path=default_path,
+                                              filetype_filter=filetype_filter,
+                                              default_filename=default_fname)
+            if filename:
+                try:
+                    if layout == 'current':
+                        voxels = [self._tab_dataset.voxel, ]
+                    else:
+                        voxels = self.dataset.all_voxels
+
+                    self.output_results_to_csv(voxels, filename)
+
+                except IOError:
+                    msg = """I can't write the file "%s".""" % filename
+                    common_dialogs.message(msg, style=common_dialogs.E_OK)
+                else:
+                    # We saved results, so we write the path to the INI file.
+                    util_analysis_config.set_path(ini_name, filename)
+            # else:
+            # User clicked cancel on the "save as" dialog
+
+
+        elif flavor == 'image':  # image layout result
+
+            ini_name = "watref_results_output_as_image"
+            voxel    = self._tab_dataset.voxel
+            dpath    = util_analysis_config.get_path(ini_name)
+            filtr    = "%s files (*.%s)|*.%s" % (type_.upper(), type_, type_)
+            filename = common_dialogs.save_as(default_path=dpath, filetype_filter=filtr)
+
+            if layout == 'lcm':
+                fig_call = figure_layouts.lcm_like
+                nobase = False
+                fixphase = True
+                dpi = 300
+            elif layout == 'lcm_multi':
+                fig_call = figure_layouts.lcm_multipage_pdf
+                nobase = False
+                fixphase = True
+                dpi = 300
+
+            if filename:
+
+                viffpath = 'Analysis - Quant Tab'
+                vespa_version = util_misc.get_vespa_version()
+                timestamp = ''  # fig_call will provide
+                minplot = 0.1
+                maxplot = 4.9
+                fontname = 'Courier New'  # 'DejaVu Sans'  #'Ariel'  #'Courier New'
+
+                figure = fig_call(self.dataset,
+                                  viffpath=viffpath,
+                                  vespa_version=vespa_version,
+                                  timestamp=timestamp,
+                                  fontname=fontname,
+                                  minplot=minplot,
+                                  maxplot=maxplot,
+                                  nobase=nobase,
+                                  extfig=None,
+                                  fixphase=fixphase,
+                                  verbose=False,
+                                  debug=False,
+                                  quantvals=True,
+                                  voxel=voxel)
+
+                if len(figure) == 1:
+                    try:
+                        figure[0].savefig(filename,
+                                          dpi=dpi,
+                                          pad_inches=0.1,
+                                          facecolor=figure[0].get_facecolor(),
+                                          edgecolor='none')
+                    except IOError:
+                        msg = """I can't write the file "%s".""" % filename
+                        common_dialogs.message(msg, style=common_dialogs.E_OK)
+                    else:
+                        path, _ = os.path.split(filename)
+                        util_analysis_config.set_path(ini_name, path)
+                else:
+                    try:
+                        if os.path.splitext(filename)[-1].lower() != '.pdf':
+                            filename += '.pdf'
+
+                        # Create the PdfPages object to which we will save the pages:
+                        # The with statement makes sure that the PdfPages object is closed properly at
+                        # the end of the block, even if an Exception occurs.
+                        with PdfPages(filename) as pdf:
+                            for fig in figure:
+                                pdf.savefig(fig)
+
+                            # We can also set the file's metadata via the PdfPages object:
+                            today = datetime.date.today()
+                            d = pdf.infodict()
+                            d['Title'] = 'Vespa Multi-page LCM-like Output'
+                            d['Author'] = 'Brian J. Soher'
+                            d['Subject'] = 'Vespa results output'
+                            d['Keywords'] = 'PdfPages multipage Vespa output lcm-like'
+                            d['CreationDate'] = datetime.datetime(today.year, today.month, today.day)
+                            d['ModDate'] = datetime.datetime.today()
+                            # print "Testing completed successfully ... returning."
+
+                    except IOError:
+                        msg = """I can't write the multi-page PDF file "%s".""" % filename
+                        common_dialogs.message(msg, style=common_dialogs.E_OK)
+                    else:
+                        path, _ = os.path.split(filename)
+                        util_analysis_config.set_path(ini_name, path)
+
+        else:
+            msg = 'this flavor of results output is not recognized'
+
 
 
     #=======================================================
