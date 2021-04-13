@@ -183,7 +183,7 @@ def correction_correlation_vespa(raw, chain):
     min1, max1 = int(ds.ppm2pts(2.75)), int(ds.ppm2pts(3.6))  # prior.auto_phase1_range_start, prior.auto_phase1_range_end
     pts4 = [max0 * newzf, min0 * newzf, max1 * newzf, min1 * newzf]
 
-    tmp = np.zeros([ds.raw_shape[-1]*newzf,])
+    tmp = np.zeros([ds.raw_shape[-1]*newzf,], dtype=np.complex)
 
     for i in range(nfids):
 
