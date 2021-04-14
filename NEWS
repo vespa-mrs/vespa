@@ -1,59 +1,76 @@
-Version 1.0.0rc4 - 18 September, 2020
+Version 1.0.0rc7 - 14 April, 2021
 ------------------------------------------------------------------------------
+NOTE - Backwards Incompatibility Notice !!!! Read below.
+
 First release from new GitHub location.
 
-Due to an unfortunate server crash, the vespa project has been relocated to
+Due to an unfortunate server crash, the Vespa project has been relocated to
 GitHub at:
 
-https://github.com/vespa-mrs/vespa
+https://github.com/vespa-mrs/vespa      (Vespa source repository)
 
 Vespa documentation (installation, user manuals and development topics) have
 their own GitHub repository and GitHub Pages site as well, at:
 
-https://github.com/vespa-mrs/vespa.io   (Vespa repository)
+https://github.com/vespa-mrs/vespa.io   (Vespa docs repository)
 https://vespa-mrs.github.io/vespa.io/   (Vespa Pages web site)
 
 The Vespa repository remains primarily a resource for developers as the Vespa
 package can still be installed from PyPI under the name of Vespa-Suite:
 
-https://pypi.org/search/?q=vespa-suite
+https://pypi.org/project/Vespa-Suite/
 
 Please note that the PyGAMMA/GAMMA package, one of Vespa's dependencies, has
 also relocated to GitHub with the following locations:
 
-https://github.com/pygamma-mrs/gamma/     (PyGAMMA/GAMMA source repo)
-https://github.com/pygamma-mrs/gamma.io/  (PyGAMMA/GAMMA docs repo)
+https://github.com/pygamma-mrs/gamma/     (PyGAMMA/GAMMA source repository)
+https://github.com/pygamma-mrs/gamma.io/  (PyGAMMA/GAMMA docs repository)
 https://pygamma-mrs.github.io/gamma.io/   (PyGAMMA/GAMMA GitHub Pages web site)
 
-
-
-Version 1.0.0rc3 - 18 September, 2020
-------------------------------------------------------------------------------
-NOTE - Backwards Incompatibility Notice !!!! Read below.
+Application Changes
+============================
 
 Due to a lot of free time during the COVID-19 pandemic, Vespa has been rewritten,
 refactored, and redesigned to work under Python 3.x. Due to numerous changes in 
-the Vespa code, this version does not work in Python 2.7.x anymore. But,
-the overall program is backwards compatible at the database and VIFF and other
-saved file formats. Ie. it should read in your old *.xml results sets just
-fine. 
+the Vespa code, this version does NOT work in Python 2.7.x anymore. But, the
+overall program is backwards compatible at the database and VIFF and other saved
+file formats. Ie. it should read in your old *.xml results sets just fine.
 
 We have bumped a major version number to 1.0.0 to reflect this change. There
 may still be a few bugs under the hood from all the coding 'improvements' but
 we are working diligently to squash them all as reported.
 
-Major Changes
+Analysis
 --------------
-
 - added algorithms to Preprocess tab for more Coil combination, Data Exclusion,
   B0 and Phase Correction, and more ways to display and review results.
 - added standard data parsers for Philips DICOM MRS files, Siemens Twix sLASER
-  files from CMRR, Siemens Twix svs_se files, Siemens Twix svs_se_edit WIP529
-  files.
-- moved HLSVDPro water removal into Python code
+  files from CMRR, Siemens Twix svs_se and Twix svs_se_edit WIP529 files.
 - moved wavelet filter baseline code into Python code
-- Vespa now uses most-ish recent wxPython, matplotlib, numpy, scipy, pydicom 
-  and other dependencies modules.
-- renamed the Priorset application to DataSim for better clarity of purpose.
+- moved HLSVDPro water removal into Python code
+- HLSVDPro results from the Analysis 'Spectral' sub-tab can now be output for
+  use in other applications or user's projects.
+- added LMFIT optimizaton to Analysis to allow users to set inequality constraints
+  on metabolite frequencies to better separate small peaks from larger ones to
+  which they are adjacent.
+- there is a single and multi-page results output called 'LCM Layout' that can
+  be sent to PDF or PNG. This simulates a layout similar to LCModel.
+
+Simulation
+-------------
+- slight change to default plot layouts in the Experiment-Visualize sub-tab.
+  Windows are set up at tabs on first plot. User can then move the tabs into
+  a more side-by-side layout if they desire.
+
+DataSim
+-------------
+- The previous 'Priorset' app has been renamed to 'DataSim' for better clarity
+  (otherwise know as a 'marketing decision' :)
+- Separated the 'Baseline' tab into two separate tabs now called 'Baseline' and
+  'Macromolecules'. This allows users to create these two signal contributions
+  separately using either Gaussian or Lorentzian lineshapes.
+- HSLVDPro fitting results from the Analysis 'Spectral' sub-tab can be read
+  into the 'Macromolecules' tab and turned on/off to create a simulated MMol
+  signal contribution.
 
 

@@ -17,7 +17,7 @@ Vespa is an integrated, open source, open development platform that contains fou
 	
 1. Pulse      - for RF pulse design
 2. Simulation - allows spectral simulation and prototyping
-3. DataSim    - an application for creating 'fake' MRS data sets 
+3. DataSim    - an application for creating synthetic MRS data sets 
 4. Analysis   - interactive spectral data processing and analysis
 
 These applications can be run separately, but can also communicate via a shared database of objects/results. Integration allows one application to use the output from another as input. For example, Simulation can make use of an RF pulse designed in Pulse to create a more realistic MR simulation.

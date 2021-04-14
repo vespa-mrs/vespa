@@ -17,7 +17,7 @@ research and data analysis. Applications in the Vespa package include:
 
 Simulation - for spectral simulation (using the PyGAMMA/GAMMA library)
 Pulse - for RF pulse design and analysis
-DataSim - used to create ‘fake' MRS data sets from Simulation results 
+DataSim - used to create synthetic MRS data sets from Simulation results 
 Analysis - spectral data processing and analysis
 
 The Vespa project addresses previous software limitations, including: non-standard data access,
@@ -48,7 +48,7 @@ LICENSE = "http://creativecommons.org/licenses/BSD/"
 PLATFORMS = 'Linux, OS X, Windows, POSIX'
 KEYWORDS = "mri, mrs, pygamma, spectral simulation, rf pulses, magnetic resonance spectroscopy, fitting, time domain, frequency domain"
 
-packages = setuptools.find_packages()
+packages = setuptools.find_packages(exclude=("*interfaces*",))
 
 setuptools.setup(name=NAME,
                  version=VERSION,

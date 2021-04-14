@@ -4,9 +4,9 @@ Email:   bsoher@briansoher.com
 Licence: BSD, specifically a "three-clause" BSD license
 
 For the most up-to-date information regarding installation, usage, 
-technical details, and the complete list of developers see the wiki:
+technical details, and the complete list of developers see the Pages at:
 
-http://scion.duhs.duke.edu/vespa/project/wiki
+https://vespa-mrs.github.io/vespa.io
 
 #----------------------------------------------------------------------------#
 
@@ -15,12 +15,12 @@ DESCRIPTION:
 Vespa stands for Versatile Simulation, Pulses, and Analysis. It is an 
 integrated, open source, open development platform that contains four magnetic 
 resonance spectroscopy (MRS) software applications, written in Python, called: 
-	
+    
   Pulse      - RF pulse design
   Simulation - spectral simulation and prototyping
-  Priorset   - application for creating 'fake' MRS data sets 
+  DataSim    - application for creating synthetic MRS data sets 
   Analysis   - spectral data processing and analysis
-	
+    
 The Vespa project addresses previous software limitations, of non-standard data
 access, closed source and multiple language software that complicates algorithm 
 extension, and a lack of integration between programs by porting all the code 
@@ -48,6 +48,6 @@ COMPATIBILITY:
 Vespa has been tested and is certified to run on the following systems: 
 Windows, Macintosh OSX, and Linux. 
 
-However, it should run on any system that supports python and wxpython.
+However, it should run on any system that supports python 3.x and wxpython.
 
 #----------------------------------------------------------------------------#

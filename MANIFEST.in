@@ -8,3 +8,4 @@ include vespa/requirements.txt
 # OS X .DS_Store would be included if it appears in any directory included
 # with a * like the include of "doc/*" above.
 global-exclude  .DS_Store
+
