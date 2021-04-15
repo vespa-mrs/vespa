@@ -4,9 +4,9 @@ This XML file is in Vespa Interchange File Format (VIFF). You can download
 applications that read and write VIFF files and learn more about VIFF here:
 https://github.com/vespa-mrs/vespa/tree/main/vespa
 
-It was created with Vespa version 0.9.3.
+It was created with Vespa version 1.0.0.
 -->
-	<timestamp>2016-09-23T18:44:26</timestamp>
+	<timestamp>2021-04-15T13:54:24</timestamp>
 	<comment />
 	<pulse_design id="719af627-9b07-47e0-b8a1-c79ce45e8a0d" version="1.0.0">
 		<name>Example - BASSI 1H</name>
@@ -1513,12 +1513,12 @@ def dwell_bandwidth_interconvert(dtb, sharpness_mu, cycles, time_points):
 			</result>
 		</transform>
 	</pulse_design>
-	<pulse_design id="a5d731aaa7-de2e-7146-b060-07a00e7be9z9" version="1.0.0">
-		<name>Example - Matpulse SLR</name>
-		<created>2017-09-21T13:03:16</created>
-		<creator>bjs</creator>
-		<comment>Example of using the Matpulse SLR kernel to design a 90 degree excite pulse</comment>
-		<calc_resolution>5000</calc_resolution>
+	<pulse_design id="ac2e3973-365d-4ce1-838e-24f8ede16ff2" version="1.0.0">
+		<name>Example - Matpulse SLR py3</name>
+		<created>2021-04-15T10:48:29</created>
+		<creator>Brian J Soher</creator>
+		<comment>Example of using the Matpulse SLR kernel to design a 90 degree excite pulse. This has been updated to use the Matpulse SLR kernel re-written for Python 3.x in Vespa version 1.0.0</comment>
+		<calc_resolution>2500</calc_resolution>
 		<pulse_bandwidth_type>half_height</pulse_bandwidth_type>
 		<gyromagnetic_nuclei>1H</gyromagnetic_nuclei>
 		<machine_specs version="1.0.0">
@@ -1533,20 +1533,19 @@ def dwell_bandwidth_interconvert(dtb, sharpness_mu, cycles, time_points):
 			<gradient_maximum>24.0</gradient_maximum>
 		</machine_specs>
 		<transform version="1.0.0">
-			<transform_kernel id="22a8q380-f835-471u-982d-0764b3324b55" version="1.0.0">
+			<transform_kernel id="fe28f55f-d0d9-4cd9-8b4e-511d33eb14b2" version="1.0.0">
 				<type>Create Transform</type>
 				<name>Matpulse SLR</name>
 				<menu_label>Matpulse - SLR</menu_label>
-				<created>2017-09-20T18:33:52</created>
+				<created>2021-04-15T09:26:08</created>
 				<creator>bjs</creator>
 				<comment>This version fixes a bug where an index value was calculated as a float.  Newer Numpy versions treat this as an exception, while earlier versions treated it as a deprecation warning.
 
 Cloned 23 September, 2016 16:49:37 from ffc9c755-ad1f-4d37-af19-cb5993bb525d (Matpulse SLR)
-Cloned 20 September, 2017 18:33:52 from 9f7f9bae-8d38-49ca-8df0-ea71d9deea2c (Matpulse SLR multinuc)
-
-Modified 7 March, 2001 for version 1.0.0 release
+Cloned 20 September, 2017 18:33:52 from 9f7f9bae-8d38-49ca-8df0-ea71d9deea2c (Matpulse SLR multinuc) - Modified 7 March, 2001 for version 1.0.0 release
     original name:       Matpulse SLR multinuc v2
     original menu label: Matpulse SLR multinuc v2
+    update scipy - converted sp.fftpack to sp.fft lines
 </comment>
 				<hide_file1>true</hide_file1>
 				<hide_file2>true</hide_file2>
@@ -2316,7 +2315,7 @@ def linear_filter(fr, mag, wts, na, use_remez, mmgresol):
 
     yhat[:] = np.real(np.transpose(wm) * xhat)
     
-    gg = sp.fft(yhat)
+    gg = sp.fft.fft(yhat)
     theta = np.imag(gg)
     
     y = x * np.exp(1j*theta)
@@ -2669,8 +2668,6 @@ def inverse_slr(na, mpldtmu, mpgaa, mpgbb, gamma):
     
     return b1
     
-                
-    
     
 </algorithm_code>
 			</transform_kernel>
@@ -2692,7 +2689,7 @@ def inverse_slr(na, mpldtmu, mpgaa, mpgbb, gamma):
 			<transform_parameter version="1.0.0">
 				<variable>bandwidth</variable>
 				<type>(Double)</type>
-				<value>1.0</value>
+				<value>1.5</value>
 			</transform_parameter>
 			<transform_parameter version="1.0.0">
 				<variable>separation</variable>
@@ -2725,9 +2722,9 @@ def inverse_slr(na, mpldtmu, mpgaa, mpgbb, gamma):
 				<value>1.0</value>
 			</transform_parameter>
 			<result version="1.0.0">
-				<created>2017-09-21T13:03:29</created>
-				<rf_waveform data_type="complex128" encoding="xdr zlib base64">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</rf_waveform>
-				<rf_xaxis data_type="float64" encoding="xdr zlib base64">eNotk3tYzXccx9MekyLRXGoRVpoQCSHrnRVC6SLd75fTOd1P535PI00zt5Z5NNXcb4/atEWEHuqJNCtKmrnkOuSWJyaZ8T7/nOec8zvf7+fzfr9eRkYfXzCq6ymtfLwOFny3cpSILW4HYSw/272qzO8UPsVEfj8l0jnMPeZ3TOPv06+3FjYecMcMPuc6tFD774QyzOHzbp6BSQ4/98dX/B9kFr4rRgvhwf/Pb0m2Pu0jwNc8x/PRQvMrpiPhxfMW9rc37qpvwCKe6z3mk57+q9VYzPOXzLr10MZzMpbyHh+/09ddjK7Bl/ctE5a2LK5ZDz/e6+9xsrPcfSz8eX+A79So6uLXCOAcgWHb2+reNCOQ8ywXmAc0h+/Hcs4VlK07f+3oKgRxvhX6xwsejIpCMOcMLog82a2YiRDOG7Klcc67VnOEcu7QnW5HzGbcQxjnDys/4DRi8ymEc4/wE9Z7xz3/ERHcJ6Jh7fgpAWJEcq/Iy6+LZ5cvRhT3i7olGuE15AtEc8/orisb/NJ7EcN9Y954m4Y3XkIs9479pqPWZXgrYrl/nKmlYfZZT8Qxh7gNS+e5Sw8jjnnEj8h97WVng3jmEl987LfFLfmIZz4J459L/HJfIoE5JexznLZiehwSmFfi1LjH4TcvIJG5JVZu3R+7cS4SmV+S25/JAo/dSGKOSbUD7VKfDoOAeQq8PW6KS/QQMFdBk3K7YtkjJDPf5KDyCG1fKJKZc/LV+6NyD52BkHkL42wv50c5Q8jchfdCNn0/6CeImL8ofb3f5uMDIWIPohf1g7amypDCPlJUfQ0l1reQwl5SjWbl7Tznh1T2k5qX4blfVY1U9pQ2aLdR+cQvkca+0jZdO1F5pRBp7C3dari6Ot8I6ewvvcTX9bRrGtLZY4b9qu66u+3IYJ8ZB45XNBYtQAZ7zXTuzmheUIFM9ptZNXlS20tbZLLnLNsPDyCLfWfF+zY/29eLLPaetUtUIV1ZgSz2n3V/9fqeMCHE5EA8qSxD7TwGYvIgzjjh89bkEsTkQlzRPslwowBi8iHufmlqXOWBbHKSPdvi/xORTV6yNZPrTZIPIZvcZNd47ypAArLJj6Rf4irzkVaQkCOJV078hq6LkJAnyZri+ZZ1eZCQK8m5Ktui7fMgIV/SwS19VrIXkJIzqf+Tv4p990JK3qSFZtW29jGQkjtpm8PWsrefQUr+ZNaeSrtL5yEjh7KomOA9B3MhI4+yUs1Mx1WukJFLWecWy0MRXZCTT/mEX55Pc9kJOTmVi5ou/moWDjl5lR/85/DMTgvIya386afrqo7VQ0F+FS7j09w2aaEgxwq5+5KaFBcoyLPiaPjE+fMfQEGuFb3yAWesSqAk30psvLvwWTCU5Fz5/qGGBjMoybvybMMOn9JaKMm9yuTOyj+USqjIv8qnX2ygvxNU9EC1frT7ZYfbUNEHVfOc0SHvtkFFL9TDg95cbQuAmn6oQ7OuRh0eADU9UW/7rupGXg3U9EX9994tCdESaOiNZtwZ2d1ZjtDQH03ijSDR4OvQ0CPNnt7pD+8UQUOfNA9HDX2PILT0Suvk8uTZD8bQ0i+t2K9JmnYUWnqmPZJ6sMcrE1r6pu1ZU6C2sYeO3unm7hD1vuiAjv7pdCe9Dec3QUcPdac6HIx3LIKOPuo/xNwHPb3ULxp22yTwCPT0U7/WqbbAMQV6eqq/sKTM3Hgc9PTVYCEwbGhvhYHeGpbnRltWrIOB/hrew1z0rScM9NjQfuxzq9jXMNDnHPOU3iabUOTQ65yprx4NyXdBDv3OCcjr8O82R85Hz/8DmkiSgg==</rf_xaxis>
+				<created>2021-04-15T10:49:06</created>
+				<rf_waveform data_type="complex128" encoding="npy zlib base64">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</rf_waveform>
+				<rf_xaxis data_type="float64" encoding="npy zlib base64">eNqdk/s/1Xccx0/2aImSsi5MUaMTSSFRmhcjUeSS+/1wHOdwHOd+v8gkyxrJtB5ZWPfbI7ZsSqk8ioeSNYpkrYuuq3TTQy1pau+/YN9fzuN8L5/P+/N6PZ9b1kSFhMWNYcgZGiY7Q5IuZi6zZS7neDKdbJmcXLFUzBKk5IrZGR/uB7D4kozR+xIuS5gx+n+eq7uLk4OTrc72f18mDLo2PamvHmph4L9fc0TeMRdJHC3pvy2ecfuL6l/b0X0H/JbiHeeSuICeL4L3wfby7huu9N5i1Mz9R1s+2YPeX4qxPzEzIvy86LsvwZ0ZFWIuA33vA07wGavMLl9a5ytMN7lqFvDYj9bzR1vrgJH92ABadyXU68cOfTIrkNYPgpOf9aPbS1bRPqtxneF240xoMO0XgpKmoK5q7hraNxS23rX9p3zCaP8wvKlsTFoYEk5zhKPzbUvPjrgImicCB+I7w804a2mutSg4dv2CThxJ80UiacbDFU/0UTRnNNwVg6cSi6Np3hiYdb9f2r41huaOxf3Fpke9dsXS/HE4vWWa88HaODpHPH54MXuf1cl4Ok8CROEL5mxsS6BzJSKo1rPyzZVEOl8SvpjkP413O4nOmYzhnNDSqwPJdN4UXG6PNwl8m0LnTkX3VLfmvq9T6fyp8DvnabAwYVEOLByRei9fXcqiPFiwtvN/kz8tjXJJQ1FX0K/HK9MonzS8yg+VvJiTTjmlg+UatchxfzrllY6Lt+KfsBayKTc2lm1OPbCtnk35sbHHh5P5h1cG5ZiBKc+y7cY3Z1CeHOirRLd8AjmUKweP1yh2KDs4lG8mYke0CbWRmZRzJs4ezp/x4Fom5c2FS1LRFRsWl3Ln4scJ35XF3OdS/jyMP7EltCSHRz3wIMveNqH1JY/6yMJtq6q2EVUW9ZKF0PO7CpcwsqmfbDSqDvgJCrOpp2zMc6hl7JnAp774KL9af/J6GZ9644NR1KieaplD/eWA73HGI6Qqh3rMQe+9lsECewH1KcCKiva6EwcF1KsAdSs6BYMuudRvLmxe9cx3asilnnPx8bGNkPoWYnj/886QNCH1LkTdOmkdb7eQ+heCGzdUsv6BkDgQYZaLWlAzX0Q8iHDZ+F3wSYGIuBCh+KZhfm+diPgQwafByOTVoIg4EePDauaeYuJFjMOZxq1OGjFxI0Y6incHNomJHzEsp5sVsMdIiCMJLg2UpuX5S4gnCQpbLHwrN0iIKwmW76iwaTgvIb4keCmzHOmaKCXOpNgXUvnn0zAp8SZFir1No2m5lLiT4rN3NduYPVLiT4oLl+2UflYy4lCG/EN7o1OSZMSjDB4Fju6aahlxKcNAwmGLrf0y4lOOXW6LXvw8V06cyhFv+sulDp6ceJXDvN/9yN+H5MStHK3HGzZ9+kxO/CqgLfPiz3FTEMcKuGU1rfKWK4hnBR76+jrEH1MQ1wpUWZ4dJx9WEN9KRD8PuLcZSuJcCdO2ttFXlcS7Es3VwTvbzimJeyWUyt/X3TVWEf8qOIdFpI4JVpEHKtxhXvGeWaIiH1TY/j5m5tJOFXmhQnjPtbeRU9XkhxrjjiRdE8aqyRM1mgpvNny7XU2+qCFJTt+67y81eaOB45J7srOzNeSPBjcm8iJvsjXkkQYVdx+5Du/VkE8ajMI3ecYjDXmlhdH3z5+6OWvJLy2O8aUdoSIteaZFrv/QoeyjWvJNC3trdfGGIS15p0Pfy2HezmU68k+HsguGwFM6HXmow8qdRsy+0zryUYeRj0HryUs9jkYY35myUk9+6pHlWNzsvFFPnuox28isZtVFPfmqR3dvqYFjbiBvDdhUZ5Gcv9ZA/hrg903FKNIG8tiAN6mWnx/vNZDPBsRadwxnmeWR13lwK5r0+PXCPPI7D2aDYX2F4XnkeR7+BQKtrgQ=</rf_xaxis>
 			</result>
 		</transform>
 	</pulse_design>

@@ -1,44 +1,23 @@
-Version 1.0.0rc7 - 14 April, 2021
+Version 1.0.0 - 14 April, 2021
 ------------------------------------------------------------------------------
-NOTE - Backwards Incompatibility Notice !!!! Read below.
 
-First release from new GitHub location.
+!!! Major Application Change - not backwards compatible !!!
+--------------------------------------------------------------
 
-Due to an unfortunate server crash, the Vespa project has been relocated to
-GitHub at:
-
-https://github.com/vespa-mrs/vespa      (Vespa source repository)
-
-Vespa documentation (installation, user manuals and development topics) have
-their own GitHub repository and GitHub Pages site as well, at:
-
-https://github.com/vespa-mrs/vespa.io   (Vespa docs repository)
-https://vespa-mrs.github.io/vespa.io/   (Vespa Pages web site)
-
-The Vespa repository remains primarily a resource for developers as the Vespa
-package can still be installed from PyPI under the name of Vespa-Suite:
-
-https://pypi.org/project/Vespa-Suite/
-
-Please note that the PyGAMMA/GAMMA package, one of Vespa's dependencies, has
-also relocated to GitHub with the following locations:
-
-https://github.com/pygamma-mrs/gamma/     (PyGAMMA/GAMMA source repository)
-https://github.com/pygamma-mrs/gamma.io/  (PyGAMMA/GAMMA docs repository)
-https://pygamma-mrs.github.io/gamma.io/   (PyGAMMA/GAMMA GitHub Pages web site)
-
-Application Changes
-============================
-
-Due to a lot of free time during the COVID-19 pandemic, Vespa has been rewritten,
-refactored, and redesigned to work under Python 3.x. Due to numerous changes in 
-the Vespa code, this version does NOT work in Python 2.7.x anymore. But, the
-overall program is backwards compatible at the database and VIFF and other saved
-file formats. Ie. it should read in your old *.xml results sets just fine.
+Due to a lot of free time during the COVID-19 pandemic, Vespa has been 
+rewritten, refactored, and redesigned to work under Python 3.x. Due to numerous 
+changes in the Vespa code, this version does NOT work in Python 2.7.x anymore. 
+But, the overall program is backwards compatible at the level of the Vespa 
+database and VIFF and other saved file formats. Ie. it should read in your old 
+*.xml results sets just fine.
 
 We have bumped a major version number to 1.0.0 to reflect this change. There
 may still be a few bugs under the hood from all the coding 'improvements' but
 we are working diligently to squash them all as reported.
+
+Note. To use Vespa 1.0.0 you MUST do a 'new' install into a Python 3.7 
+environment. If you have a previous Vespa installation, the new version should 
+find and make use of your existing Vespa database. 
 
 Analysis
 --------------
@@ -72,5 +51,31 @@ DataSim
 - HSLVDPro fitting results from the Analysis 'Spectral' sub-tab can be read
   into the 'Macromolecules' tab and turned on/off to create a simulated MMol
   signal contribution.
+
+Vespa is now on GitHub!
+---------------------------------------------
+This is the first release from Vespa's new GitHub repository. Due to an 
+unfortunate (or fortuitous) server crash, the Vespa project and documentation 
+(installation, user manuals and development topics) have relocated to GitHub:
+
+https://github.com/vespa-mrs/vespa      (Vespa source repository)
+https://vespa-mrs.github.io/vespa.io/   (Vespa Pages web site)
+
+The Vespa repository remains primarily a resource for developers as the Vespa
+package should still be installed from PyPI under the name of Vespa-Suite:
+
+https://pypi.org/project/Vespa-Suite/
+
+Please note that the PyGAMMA/GAMMA package, one of Vespa's dependencies, has
+also been updated to Python 3.x and relocated to GitHub at:
+
+https://github.com/pygamma-mrs/gamma/     (PyGAMMA/GAMMA source repository)
+https://pygamma-mrs.github.io/gamma.io/   (PyGAMMA/GAMMA GitHub Pages web site)
+
+Please note that both Pages sites are still in the process of being translated
+from Trac, so there may be typos, broken links, poor formatting, etc. We 
+appreciate your patience during this process.
+
+
 
 

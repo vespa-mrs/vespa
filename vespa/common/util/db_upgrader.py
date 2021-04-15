@@ -19,9 +19,6 @@ import vespa.common.util.import_ as util_import
 import vespa.common.util.logging_ as util_logging
 import vespa.common.rfp_machine_specs as rfp_machine_specs
 
-# deprecated import vespa.common.rfp_machine_settings as rfp_machine_settings
-# deprecated from vespa.common.rfp_pulse_design import _convert_project_to_design
-
 
 """
 This very specialized module is an extension of our standard database module
@@ -917,7 +914,7 @@ class DatabaseUpgrader(db_module.Database):
         self.commit()
 
         #
-        # 2. Mark out-of-date tranform kernels as deprecated = True
+        # 2. Mark out-of-date TRANSFORM KERNELS (ONLY) as deprecated = True
         #
         
         # set the deprecate field to True on a number of transform_kernels. Some had bugs
@@ -971,10 +968,98 @@ class DatabaseUpgrader(db_module.Database):
         # Bump the version number
         self.update_version(12)
 
-        self.commit()        
-        
+        self.commit()
 
-    ##################     Helper  functions    ######################
+
+        def _upgrade_12(self, logger):
+            # Upgrades the database from version 11 to 12
+            #
+            # - Database version 11 was first used in Vespa 0.9.4
+            # - Database version 12 was first used in Vespa 0.9.5
+            #
+            # The change from 11 ==> 12 was where we made Pulse transform kernels
+            #  able to be deprecated. Which required an additional entry in the
+            #  transform_kernels table.
+            #
+            # The change from 11 ==> 12 was to fix a bug in a pulse kernel that
+            # caused an error in the latest version of Python/Numpy. Previous
+            # versions of numpy threw a warning for this bug, but newer version
+            # throws an exception. So I had to fix an exisiting transform_kernel
+            # that was 'public' and figure some way to swap this out. I decided
+            # to create a 'deprecated' field in the transform_kernels table that
+            # would allow the dialog for browsing kernels to choose whether to
+            # display the 'deprecated' kernels or not. This leaves the older or
+            # buggier kernel in the database, but keeps the GUI from being
+            # messy.
+
+            #
+            # 1. Import new entry into transform_kernels table
+            #
+
+            self.begin_transaction()
+
+            logger.info("Adding column deprecated to transform_kernels table ...")
+            sql = """ALTER TABLE transform_kernels
+                        ADD COLUMN
+                            deprecated BOOLEAN NOT NULL  DEFAULT '0'
+                  """
+            self._execute(sql)
+
+            self.commit()
+
+            #
+            # 2. Mark out-of-date tranform kernels as deprecated = True
+            #
+
+            # set the deprecate field to True on a number of transform_kernels. Some had bugs
+            #   but most were just pre-multinuc. This does not delete them, just allows the
+            #   gui to know if they should be displayed or not.
+
+            logger.info("Setting deprecate flag on pulse transform kernels ...")
+
+            uuid_list = ["a22733d0-3d45-44fa-a0fd-4cff8239784c",  # Example Simple Sinc for Python 3 update
+                         "a615de37-01a0-4c82-be67-88b850bdcdaa",  # GOIA WURST Dinesh for Python 3 update
+                         "a615de37-01a0-4c82-be67-88b850bdcdaa",  # Import from File no Gradient for Python 3 update
+                         "22a8q380-f835-471u-982d-0764b3324b55",  # Matpulse SLR for Python 3 update
+                         ]
+
+            for id_ in uuid_list:
+                self.begin_transaction()
+
+                sql = """UPDATE
+                            transform_kernels
+                         SET
+                            deprecated = 1
+                         WHERE
+                            id = ?
+                         """
+                self._execute(sql, id_, _Fetch.NONE)
+
+                self.commit()
+
+            #
+            # 3. Import updated Pulse kernels and updated example files
+            #
+
+            self.begin_transaction()
+
+            logger.info("Importing example pulse designs ...")
+            filename = os.path.join(RESOURCES_PATH, "12_to_13_pulse_designs.xml")
+            importer = util_import.PulseDesignImporter(filename, self)
+            importer.go(False)
+
+            logger.info("Importing pulse transform kernels ...")
+            filename = os.path.join(RESOURCES_PATH, "12_to_13_transform_kernels.xml")
+            importer = util_import.TransformKernelImporter(filename, self)
+            importer.go(False)
+
+            # Bump the version number
+            self.update_version(13)
+
+            self.commit()
+
+
+            ##################     Helper  functions    ######################
 
 
     # def _insert_machine_settings_templates(self, filename):
