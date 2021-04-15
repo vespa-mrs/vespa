@@ -128,18 +128,6 @@ def create_database(target_filename, logger):
     importer = util_import.ExperimentImporter(filename, db)
     importer.go(False)
 
-#   As of version 0.8.6 Pulse replaced RFPulse and did PulseProject conversions
-#   As of version 1.0.0 (Py3 and refactor) there is no support for PulseProject conversion
-#
-#    logger.info("Importing machine settings...")
-#    filename = os.path.join(resources_path, "machine_settings_templates.xml")
-#    _insert_machine_settings_templates(db, filename)
-#
-#    logger.info("Importing pulse projects...")
-#    filename = os.path.join(resources_path, "pulse_projects.xml")
-#    importer = util_import.PulseProjectImporter(filename, db)
-#    importer.go(False)
-
     # I create indices last -- inserts go faster without indices to update.
     logger.info("Executing create_indices.sql...")
     filename = os.path.join(resources_path, "create_indices.sql")

@@ -400,7 +400,8 @@ CREATE TABLE 'transform_kernels' (
 'hide_tip_angle' BOOLEAN NOT NULL ,
 'hide_bandwidth' BOOLEAN NOT NULL ,
 'tip_angle' TEXT DEFAULT NULL,
-'bandwidth' TEXT DEFAULT NULL
+'bandwidth' TEXT DEFAULT NULL,
+'deprecated' BOOLEAN NOT NULL  DEFAULT '0'
 );
 
 CREATE TABLE 'transform_parameters' (

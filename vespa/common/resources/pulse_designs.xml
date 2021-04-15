@@ -1535,8 +1535,8 @@ def dwell_bandwidth_interconvert(dtb, sharpness_mu, cycles, time_points):
 		<transform version="1.0.0">
 			<transform_kernel id="fe28f55f-d0d9-4cd9-8b4e-511d33eb14b2" version="1.0.0">
 				<type>Create Transform</type>
-				<name>Matpulse SLR</name>
-				<menu_label>Matpulse - SLR</menu_label>
+				<name>Matpulse SLR py3</name>
+				<menu_label>Matpulse - SLR py3</menu_label>
 				<created>2021-04-15T09:26:08</created>
 				<creator>bjs</creator>
 				<comment>This version fixes a bug where an index value was calculated as a float.  Newer Numpy versions treat this as an exception, while earlier versions treated it as a deprecation warning.

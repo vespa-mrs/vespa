@@ -580,8 +580,8 @@ def run(trans_desc):
 	</transform_kernel>
 	<transform_kernel id="6436c74c-c509-4dd2-8387-606a4f78b539" version="1.0.0">
 		<type>Create Transform</type>
-		<name>Example Simple Sinc</name>
-		<menu_label>Example Simple Sinc</menu_label>
+		<name>Example Simple Sinc py3</name>
+		<menu_label>Example Simple Sinc py3</menu_label>
 		<created>2021-04-15T08:40:52</created>
 		<creator>Brian J Soher</creator>
 		<comment>Cloned 23 September, 2016 15:51:31 from c1960e53-0ef7-422c-8600-f457c033b107 (Example Simple Sinc)
@@ -767,8 +767,8 @@ def run(trans_desc):
 	</transform_kernel>
 	<transform_kernel id="b27e4c9d-39ae-4f87-b649-d0aa0ede2e11" version="1.0.0">
 		<type>Create Transform</type>
-		<name>GOIA WURST - Dinesh CMRR</name>
-		<menu_label>GOIA WURST - Dinesh</menu_label>
+		<name>GOIA WURST - Dinesh CMRR py3</name>
+		<menu_label>GOIA WURST - Dinesh py3</menu_label>
 		<created>2021-04-15T09:13:55</created>
 		<creator>Brian J Soher</creator>
 		<comment>    Based on Matlab code from Dinesh Deelchand, CMRR, 14 September 2015
@@ -1105,8 +1105,8 @@ def run(trans_desc):
 	</transform_kernel>
 	<transform_kernel id="fd67a488-0e67-4270-b759-ed216222588c" version="1.0.0">
 		<type>Create Transform</type>
-		<name>Import from File no Gradient</name>
-		<menu_label>Import from File</menu_label>
+		<name>Import from File no Gradient py3</name>
+		<menu_label>Import from File py3</menu_label>
 		<created>2021-04-15T09:20:30</created>
 		<creator>bjs</creator>
 		<comment>Cloned 08 December, 2016 11:47:46 from 814e1d0e-7068-4583-9110-72f0ccf4914e (Import from File no Gradient)
@@ -2223,8 +2223,8 @@ def rescale(b1b2, angle, dwell_time, gamma):
 	</transform_kernel>
 	<transform_kernel id="fe28f55f-d0d9-4cd9-8b4e-511d33eb14b2" version="1.0.0">
 		<type>Create Transform</type>
-		<name>Matpulse SLR</name>
-		<menu_label>Matpulse - SLR</menu_label>
+		<name>Matpulse SLR py3</name>
+		<menu_label>Matpulse - SLR py3</menu_label>
 		<created>2021-04-15T09:26:08</created>
 		<creator>bjs</creator>
 		<comment>This version fixes a bug where an index value was calculated as a float.  Newer Numpy versions treat this as an exception, while earlier versions treated it as a deprecation warning.

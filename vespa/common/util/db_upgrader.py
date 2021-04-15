@@ -971,73 +971,92 @@ class DatabaseUpgrader(db_module.Database):
         self.commit()
 
 
-        def _upgrade_12(self, logger):
-            # Upgrades the database from version 12 to 13
-            #
-            # - Database version 12 was first used in Vespa 0.9.5
-            # - Database version 13 was first used in Vespa 1.0.0
-            #
-            # The change from 12 ==> 13 was where we totally refactored Vespa
-            # and moved to Python 3.
-            #
-            # The main reason to update the database here is to force the
-            # upgrade to create a backup of the v0.x.x database just in case
-            # there are issues with the v1.0.0 install.
-            #
-            # The other change from 12 ==> 13 was to fix Pulse kernels and
-            # design examples that have Python 3.x incompatible code in them.
-            #
-            # FYI, no issues with pulse sequence and experiment exampls.
+    def _upgrade_12(self, logger):
+        # Upgrades the database from version 12 to 13
+        #
+        # - Database version 12 was first used in Vespa 0.9.5
+        # - Database version 13 was first used in Vespa 1.0.0
+        #
+        # The change from 12 ==> 13 was where we totally refactored Vespa
+        # and moved to Python 3.
+        #
+        # The main reason to update the database here is to force the
+        # upgrade to create a backup of the v0.x.x database just in case
+        # there are issues with the v1.0.0 install.
+        #
+        # The other change from 12 ==> 13 was to fix Pulse kernels and
+        # design examples that have Python 3.x incompatible code in them.
+        #
+        # FYI, no issues with pulse sequence and experiment exampls.
 
-            #
-            # 1. Mark out-of-date tranform kernels as deprecated = True
-            #
+        #----------------------------------------------------------------------
+        # 1. There's a chance 'deprecated' column not in v12 databases, add if needed
+        #
 
-            # set the deprecate field to True on a number of transform_kernels.
-            # Most are due to Python 3 incompatible code.
+        sql = """select * from transform_kernels"""
+        tmp = self._execute(sql, None, fetch=_Fetch.CURSOR)
+        col_names = [i[0] for i in tmp.description]
 
-            logger.info("Setting deprecate flag on pulse transform kernels ...")
-
-            uuid_list = ["a22733d0-3d45-44fa-a0fd-4cff8239784c",  # Example Simple Sinc for Python 3 update
-                         "a615de37-01a0-4c82-be67-88b850bdcdaa",  # GOIA WURST Dinesh for Python 3 update
-                         "a615de37-01a0-4c82-be67-88b850bdcdaa",  # Import from File no Gradient for Python 3 update
-                         "22a8q380-f835-471u-982d-0764b3324b55",  # Matpulse SLR for Python 3 update
-                         ]
-
-            for id_ in uuid_list:
-                self.begin_transaction()
-
-                sql = """UPDATE
-                            transform_kernels
-                         SET
-                            deprecated = 1
-                         WHERE
-                            id = ?
-                         """
-                self._execute(sql, id_, _Fetch.NONE)
-
-                self.commit()
-
-            #
-            # 2. Import updated Pulse kernels and updated Design example files
-            #
-
+        if not 'deprecated' in col_names:
             self.begin_transaction()
 
-            logger.info("Importing example pulse designs ...")
-            filename = os.path.join(RESOURCES_PATH, "12_to_13_pulse_designs.xml")
-            importer = util_import.PulseDesignImporter(filename, self)
-            importer.go(False)
-
-            logger.info("Importing pulse transform kernels ...")
-            filename = os.path.join(RESOURCES_PATH, "12_to_13_transform_kernels.xml")
-            importer = util_import.TransformKernelImporter(filename, self)
-            importer.go(False)
-
-            # Bump the version number
-            self.update_version(13)
+            logger.info("In _upgrade_12(), no 'deprecated' column found, adding column deprecated to transform_kernels table ...")
+            sql = """ALTER TABLE transform_kernels
+                        ADD COLUMN
+                            deprecated BOOLEAN NOT NULL  DEFAULT '0'
+                  """
+            self._execute(sql)
 
             self.commit()
+
+        #----------------------------------------------------------------------
+        # 2. Mark out-of-date transform kernels as deprecated = True
+        #
+        #    Set the deprecate field ON for transform_kernels with Python 3
+        #    incompatible code.
+
+        logger.info("Setting deprecate flag on pulse transform kernels ...")
+
+        uuid_list = ["a22733d0-3d45-44fa-a0fd-4cff8239784c",  # Example Simple Sinc for Python 3 update
+                     "a615de37-01a0-4c82-be67-88b850bdcdaa",  # GOIA WURST Dinesh for Python 3 update
+                     "dc5fea03-368e-49f0-a60c-ddac09244bac",  # Import from File no Gradient for Python 3 update
+                     "22a8q380-f835-471u-982d-0764b3324b55",  # Matpulse SLR for Python 3 update
+                     ]
+
+        for id_ in uuid_list:
+            self.begin_transaction()
+
+            sql = """UPDATE
+                        transform_kernels
+                     SET
+                        deprecated = 1
+                     WHERE
+                        id = ?
+                     """
+            self._execute(sql, id_, _Fetch.NONE)
+
+            self.commit()
+
+        #----------------------------------------------------------------------
+        # 3. Import updated Pulse kernels and updated Design example files
+        #
+
+        self.begin_transaction()
+
+        logger.info("Importing example pulse designs ...")
+        filename = os.path.join(RESOURCES_PATH, "12_to_13_pulse_designs.xml")
+        importer = util_import.PulseDesignImporter(filename, self)
+        importer.go(False)
+
+        logger.info("Importing pulse transform kernels ...")
+        filename = os.path.join(RESOURCES_PATH, "12_to_13_transform_kernels.xml")
+        importer = util_import.TransformKernelImporter(filename, self)
+        importer.go(False)
+
+        # Bump the version number
+        self.update_version(13)
+
+        self.commit()
 
 
             ##################     Helper  functions    ######################

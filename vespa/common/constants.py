@@ -7,7 +7,7 @@ import math
 
 # DATABASE_VERSION is an int that describes the database format used by
 # this code.
-DATABASE_VERSION = 12
+DATABASE_VERSION = 13
 
 DEGREES_TO_RADIANS = math.pi / 180
 RADIANS_TO_DEGREES = 180 / math.pi
