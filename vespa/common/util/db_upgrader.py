@@ -972,48 +972,29 @@ class DatabaseUpgrader(db_module.Database):
 
 
         def _upgrade_12(self, logger):
-            # Upgrades the database from version 11 to 12
+            # Upgrades the database from version 12 to 13
             #
-            # - Database version 11 was first used in Vespa 0.9.4
             # - Database version 12 was first used in Vespa 0.9.5
+            # - Database version 13 was first used in Vespa 1.0.0
             #
-            # The change from 11 ==> 12 was where we made Pulse transform kernels
-            #  able to be deprecated. Which required an additional entry in the
-            #  transform_kernels table.
+            # The change from 12 ==> 13 was where we totally refactored Vespa
+            # and moved to Python 3.
             #
-            # The change from 11 ==> 12 was to fix a bug in a pulse kernel that
-            # caused an error in the latest version of Python/Numpy. Previous
-            # versions of numpy threw a warning for this bug, but newer version
-            # throws an exception. So I had to fix an exisiting transform_kernel
-            # that was 'public' and figure some way to swap this out. I decided
-            # to create a 'deprecated' field in the transform_kernels table that
-            # would allow the dialog for browsing kernels to choose whether to
-            # display the 'deprecated' kernels or not. This leaves the older or
-            # buggier kernel in the database, but keeps the GUI from being
-            # messy.
+            # The main reason to update the database here is to force the
+            # upgrade to create a backup of the v0.x.x database just in case
+            # there are issues with the v1.0.0 install.
+            #
+            # The other change from 12 ==> 13 was to fix Pulse kernels and
+            # design examples that have Python 3.x incompatible code in them.
+            #
+            # FYI, no issues with pulse sequence and experiment exampls.
 
             #
-            # 1. Import new entry into transform_kernels table
+            # 1. Mark out-of-date tranform kernels as deprecated = True
             #
 
-            self.begin_transaction()
-
-            logger.info("Adding column deprecated to transform_kernels table ...")
-            sql = """ALTER TABLE transform_kernels
-                        ADD COLUMN
-                            deprecated BOOLEAN NOT NULL  DEFAULT '0'
-                  """
-            self._execute(sql)
-
-            self.commit()
-
-            #
-            # 2. Mark out-of-date tranform kernels as deprecated = True
-            #
-
-            # set the deprecate field to True on a number of transform_kernels. Some had bugs
-            #   but most were just pre-multinuc. This does not delete them, just allows the
-            #   gui to know if they should be displayed or not.
+            # set the deprecate field to True on a number of transform_kernels.
+            # Most are due to Python 3 incompatible code.
 
             logger.info("Setting deprecate flag on pulse transform kernels ...")
 
@@ -1038,7 +1019,7 @@ class DatabaseUpgrader(db_module.Database):
                 self.commit()
 
             #
-            # 3. Import updated Pulse kernels and updated example files
+            # 2. Import updated Pulse kernels and updated Design example files
             #
 
             self.begin_transaction()
