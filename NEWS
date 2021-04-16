@@ -1,9 +1,13 @@
 Version 1.0.0 - 14 April, 2021
 ------------------------------------------------------------------------------
 
-!!! Major Application Change - not backwards compatible !!!
---------------------------------------------------------------
+!!! Backwards compatibility warning !!!
 
+This is a Major udate to the Vespa package. The two most important changes are:
+
+ 1) the Vespa code base has been updated to Python 3. 
+ 2. the Vespa code repository and docs have moved to GitHub and GitHub Pages
+ 
 Due to a lot of free time during the COVID-19 pandemic, Vespa has been 
 rewritten, refactored, and redesigned to work under Python 3.x. Due to numerous 
 changes in the Vespa code, this version does NOT work in Python 2.7.x anymore. 
@@ -40,16 +44,21 @@ Simulation
 - slight change to default plot layouts in the Experiment-Visualize sub-tab.
   Windows are set up at tabs on first plot. User can then move the tabs into
   a more side-by-side layout if they desire.
+- updated example Pulse Sequence and Experiments to Python 3
+
+Pulse
+-------------
+- updated example Pulse Designs and Transform Kernels to Python 3
 
 DataSim
 -------------
 - The previous 'Priorset' app has been renamed to 'DataSim' for better clarity
-  (otherwise know as a 'marketing decision' :)
+  (otherwise known as a 'marketing decision' :)
 - Separated the 'Baseline' tab into two separate tabs now called 'Baseline' and
   'Macromolecules'. This allows users to create these two signal contributions
   separately using either Gaussian or Lorentzian lineshapes.
 - HSLVDPro fitting results from the Analysis 'Spectral' sub-tab can be read
-  into the 'Macromolecules' tab and turned on/off to create a simulated MMol
+  in to the 'Macromolecules' tab and turned on/off to create a simulated MMol
   signal contribution.
 
 Vespa is now on GitHub!

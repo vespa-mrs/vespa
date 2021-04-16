@@ -117,7 +117,7 @@ class ChainPrepFidsum(Chain):
             else:
                 if self.freq_raw is None:
                     self.freq_raw = self.freq_current.copy() * 0
-                print(' error - chain_pref_fidsum, no external dataset coil_combine values')
+#                print(' error - chain_pref_fidsum, no external dataset coil_combine values')
                 plot_results = { 'freq_current'  : self.freq_current.copy(),
                                  'freq_summed'   : self.freq_current.copy() * 0,
                                  'freq_adjusted' : self.freq_adjusted.copy() * 0,

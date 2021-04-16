@@ -537,7 +537,7 @@ def optimize_model(chain):
             badfit = 0 if result.success else 1
             a = result.params.copy()
 
-            print('\niter: ' + str(iter) + '   nfev: ' + str(result.nfev))
+#            print('\niter: ' + str(iter) + '   nfev: ' + str(result.nfev))
 
         chain.fit_results  = a
         chain.fit_stats    = np.array([chis, wchis, badfit])
