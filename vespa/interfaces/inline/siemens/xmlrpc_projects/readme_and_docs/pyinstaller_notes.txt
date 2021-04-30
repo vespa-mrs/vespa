@@ -1,0 +1,129 @@
+Original file snagged from:  D:\Users\bsoher\code\repository_svn\siemens\realtime
+
+
+The basic info from Philip still stands.
+
+1. Install PyInstaller (need 2.1 or later to make RtView and Listener work)
+2. Install PyWin32 (a PyInstaller dependency)
+
+From here the steps differ since various thing have changed/improved since
+Philip laboured over this ...
+
+From the Installation Section of the User Manual
+
+  The complete installation places these commands on the execution path:
+
+  - pyinstaller is the main command to build a bundled application. See Using PyInstaller.
+  - pyi-makespec is used to create a spec file. See Using Spec Files.
+  - pyi-build is used to execute a spec file that already exists. See Using Spec Files.
+  - pyi-archive_viewer is used to inspect a bundled application. See Inspecting Archives.
+  - pyi-bindepend is used to display dependencies of an executable. See Inspecting Executables.
+  - pyi-grab_version is used to extract a version resource from a Windows executable. See Capturing Version Data.
+  - pyi-make_comserver is used to build a Windows COM server. See Windows COM Server Support.
+
+  If you do not perform the complete installation (setup.py or installing via 
+  pip), these commands will not exist as commands. However you can still execute 
+  all the functions documented below by running Python scripts found in the 
+  distribution folder. 
+  
+  The equivalent of the pyinstaller command is pyinstaller-folder /pyinstaller.py. 
+  The other commands are found in pyinstaller-folder /cliutils/ with obvious names (makespec.py, etc.)
+
+To create listener.exe
+-------------------------------------------------------------------------------
+1. I opened a Console in siemens/realtime folder.
+2. Ran pyi-makespec --onefile listener.py
+3. Edited the spec file to include a path to twix_parser.py
+
+Original .spec file =
+
+  a = Analysis(['listener.py'],
+               pathex=['C:\\Users\\bsoher\\code\\repository_svn\\siemens\\realtime'],
+               hiddenimports=[], hookspath=None, runtime_hooks=None)
+
+Edited .spec file =
+
+  a = Analysis(['listener.py', os.path.abspath(os.path.join("..", "core", "twix_parser.py"))],
+               pathex=['C:\\Users\\bsoher\\code\\repository_svn\\siemens\\realtime'],
+               hiddenimports=[], hookspath=None, runtime_hooks=None)
+
+4. Added lines to include the Vespa VERSION file needed by util_misc/util_export
+
+  a.datas += [('VERSION', "C:\\Users\\bsoher\\code\\repository_svn\\vespa\\VERSION", 'DATA')]
+
+5. Ran pyi-build listener.spec
+6. This created a directory 'dist' and dist/listener.exe file
+
+
+To create rtview.exe
+-------------------------------------------------------------------------------
+Note. RtView needs to start a listener. The best answer I came up with for this
+was to create a listener.exe package as above. Then I include this in the 
+rtview.exe package. The method that runs a listener now checks to see if there
+is a "frozen" attribute which would indicate that we are in a pyinstaller 
+mode rather than a pure python development environment. Thus, the subprocess
+Popen() call runs the 'local' listener.exe application rather than doing so
+using Popen() with "python","listener.py".
+
+1. I opened a Console in siemens/realtime folder.
+2. Ran pyi-makespec --onefile rtview.py
+3. Edited the spec file to include a path to twix_parser.py
+
+Original .spec file =
+
+  a = Analysis(['rtview.py'],
+               pathex=['C:\\Users\\bsoher\\code\\repository_svn\\siemens\\realtime'],
+               hiddenimports=[], hookspath=None, runtime_hooks=None)
+
+Edited .spec file =
+
+  a = Analysis(['rtview.py', os.path.abspath(os.path.join("..", "core", "twix_parser.py"))],
+               pathex=['C:\\Users\\bsoher\\code\\repository_svn\\siemens\\realtime'],
+               hiddenimports=[], hookspath=None, runtime_hooks=None)
+
+4. Added lines to include the Vespa VERSION file needed by util_misc/util_export 
+
+  a.datas += [('VERSION', "C:\\Users\\bsoher\\code\\repository_svn\\vespa\\VERSION", 'DATA')]
+  
+5. Added lines to include the splash screen PNG file 
+
+  a.datas += [('realtime_welcome.png', "..\\realtime\\realtime_welcome.png", 'DATA')]  
+
+6. Added lines to include the listener.exe binary 
+
+  listen_path = os.path.abspath(os.path.join("..", "realtime","dist","listener.exe"))
+  if not os.path.exists(listen_path): raise RuntimeError("Unable to find listener.exe at %s" % listen_path)
+  a.binaries += [('listener.exe', listen_path, 'BINARY')]
+
+6. Ran pyi-build rtview.spec
+7. This created a directory 'dist' and dist/rtview.exe file
+
+
+
+
+
+
+
+
+===============================================================================
+Everything below here is from Philip's original set of notes
+===============================================================================
+
+How I Built a Standalone EXE using PyInstaller
+
+I built a standlone EXE version of listener.py using PyInstaller in July 2012. 
+The EXE didn't require any extra files, not even the Python runtime. Here's 
+how I did it. FYI, this was under Windows XP using Python 2.7.
+
+1. Installed PyInstaller.
+2. Installed PyWin32 (a PyInstaller dependency)
+3. ran 'python c:\pyinstaller\Configure.py' (as their manual instructs)
+4. ran 'python Makespec.py --onefile listener.py' which created listener.spec
+
+I hand-edited listener.spec to accommodate some Vespa-specific quirks. 
+
+Once I had the spec file I wanted, it ran this to generate dist/listener.exe:
+python c:\pyinstaller\Build.py listener.spec
+
+That's it!
+ 

@@ -1,0 +1,106 @@
+
+This README file originally part of:  D:\Users\bsoher\code\repository_svn\siemens\docs
+
+
+Compiling XMLRPC-C for use on Siemens MRIR Linux box
+-----------------------------------------------------
+
+Used Ubuntu 64-bit 8.04 on VMWare virtual machine
+ 
+ - created by Philip on VirtualBox and ported to VMWare
+ - has curl package installed and compiled
+ 
+XMLRPC was checked out of SVN repository 
+
+ - http://xmlrpc-c.svn.sourceforge.net/svnroot/xmlrpc-c/release_number/01.19.00
+ - checked out onto my Windows box, exported to empty dir
+ - copied clean export onto the Ubuntu VM desktop, renamed xmlrpc-c.1.19.00_bjs
+ - needed to add -fPIC flag to the xmlrpc_client.a compilation
+ - modified the common.mk file in top directory
+ 
+   old ...
+ 
+   $(TARGET_MODS:%=%.o):%.o:%.c
+         (CC) -c -o $@ $(CFLAGS_ALL) $<
+   new ...
+ 
+   $(TARGET_MODS:%=%.o):%.o:%.c
+         $(CC) -c -o $@ $(CFLAGS_ALL) $(CFLAGS_SHLIB) $<    
+         
+ - ran typical make steps, as in docs/INSTALL
+ 
+    ./configure
+    make
+    Note. did not run make install 
+    
+ - did a search for all '.a' files and copied these to Siemens windows VM
+ 
+    libxmlrpc.a
+    libxmlrpc_client.a
+    libxmlrpc_util.a
+    libxmlrpc_xmlparse.a
+    libxmlrpc_xmltok.a
+    
+On PySiemens Windows XP VM ...
+
+ - I've been working in C:\MIDEA\N4_VB17A_LATEST_20090307\n4\pkg\MrServers\MrVista\Ice\IceIdeaFunctors\IceSpectroXmlrpc
+ - I static link all the relevant XMLRPC-C code into my ICE program *.so file
+ - In Makefile.imk I added this code ... note, the order is VERY important for correct linking
+ 
+    WIN_EXTRA_LINK = -L.
+    WIN_EXTRA_LINK += xmlrpc.lib
+    WIN_EXTRA_LINK += wininet.lib
+
+    LINUX_EXTRA_LINK = -L.
+    LINUX_EXTRA_LINK += -lxmlrpc_client
+    LINUX_EXTRA_LINK += -lxmlrpc
+    LINUX_EXTRA_LINK += -lxmlrpc_xmlparse
+    LINUX_EXTRA_LINK += -lxmlrpc_xmltok
+    LINUX_EXTRA_LINK += -lxmlrpc_util
+    LINUX_EXTRA_LINK += -lcurl
+    LINUX_EXTRA_LINK += -lrt
+    LINUX_EXTRA_LINK += -lpthread
+    
+ - To get XXX_EXTRA_LINK to work I modified the base make file
+ - Which is C:\MIDEA\N4_VB17A_LATEST_20090307\n4\pkg\MrApplications\MrIDEA\utils\MkIce.mk
+ 
+   line 194 was
+
+    $(PROD_BIN_WIN)/$(TARGET_DLL) : $(PROD_LIB_WIN)/$(TARGET_LIB) $(MAKEFILE_CHAIN)
+        @ $(ECHO) -e "\n+++ Win R Linking RELEASE: $@\n"
+        @ mkdir -p $(PROD_DIR_WIN)
+        $(SHRLD) $(SHRLDFLAGS_RELEASE) $(WIN_OBJECTS) $(LateObjects) $(LDLIBS_WIN_R) $(EXTLDLIBS) $(PROD_LIB_WIN)/$(TARGET_EXP) -implib:$(PROD_LIB_WIN)/$(TARGET_LIB) -out:$@
+        @ $(ECHO) -e   "+++ Linked: $@\n\n"
+   
+ 
+   line 194 became
+   
+    $(PROD_BIN_WIN)/$(TARGET_DLL) : $(PROD_LIB_WIN)/$(TARGET_LIB) $(MAKEFILE_CHAIN)
+        @ $(ECHO) -e "\n+++ Win R Linking RELEASE: $@\n"
+        @ mkdir -p $(PROD_DIR_WIN)
+        $(SHRLD) $(SHRLDFLAGS_RELEASE) $(WIN_OBJECTS) $(LateObjects) $(WIN_EXTRA_LINK) $(LDLIBS_WIN_R) $(EXTLDLIBS) $(PROD_LIB_WIN)/$(TARGET_EXP) -implib:$(PROD_LIB_WIN)/$(TARGET_LIB) -out:$@
+        @ $(ECHO) -e   "+++ Linked: $@\n\n"
+
+   line 223 was
+
+    $(PROD_BIN_WIN)/$(TARGET_DLLD) : $(PROD_LIB_WIN)/$(TARGET_LIBD) $(MAKEFILE_CHAIN)
+        @ $(ECHO) -e "\n+++ Win D Linking DEBUG: $@\n"
+        @ mkdir -p $(PROD_BIN_WIN)
+        $(SHRLD) $(SHRLDFLAGS_RELEASE) $(WIN_OBJECTS_D) $(LateObjects) $(LDLIBS_WIN_D) $(EXTLDLIBS) $(PROD_LIB_WIN)/$(TARGET_EXPD) -implib:$(PROD_LIB_WIN)/$(TARGET_LIBD) -out:$@
+        @ $(ECHO) -e   "+++ Linked: $@\n\n"
+   
+   line 223 became
+   
+    $(PROD_BIN_WIN)/$(TARGET_DLLD) : $(PROD_LIB_WIN)/$(TARGET_LIBD) $(MAKEFILE_CHAIN)
+        @ $(ECHO) -e "\n+++ Win D Linking DEBUG: $@\n"
+        @ mkdir -p $(PROD_BIN_WIN)
+        $(SHRLD) $(SHRLDFLAGS_RELEASE) $(WIN_OBJECTS_D) $(LateObjects) $(WIN_EXTRA_LINK) $(LDLIBS_WIN_D) $(EXTLDLIBS) $(PROD_LIB_WIN)/$(TARGET_EXPD) -implib:$(PROD_LIB_WIN)/$(TARGET_LIBD) -out:$@
+        @ $(ECHO) -e   "+++ Linked: $@\n\n"
+
+ - the -L. at the start of XXX_EXTRA_LINK causes the linker to seach the ICE program directory
+ - very convenient
+ - I compile Linux library with 'mi so' command
+ 
+ - note. the DLL for simulator on pysiemens Windows XP VM uses xmlrpc-c version 1.16.42
+ - this was last version that was MS Visual C++ 6.0 compatible, I think.
+ - Anyway, I may try to compile 1.19.00 on VC++ 6 if I can find time ...
