@@ -190,12 +190,14 @@ class VespaInlineSettings:
         self.png_apply_phase = False
         self.png_remove_base = False
         self.png_fontname    = 'Courier New'
-        self.png_dpi         = 300
+        self.png_dpi         = 100
         self.png_pad_inches  = 0.5
+        self.png_size_inches = 10.24
 
         # Note. The PNG settings also determine the DICOM output. The PNG
-        #   Figure is defined to be 10.24 x 10.24 inches, so a png_dpi = 100
-        #   would result in a 1024x1024 DICOM image resolution.
+        #   Figure is defined to be png_size_inches * png_dpi sod if the 
+		#   png_size_inches=10.24 the image will be 10.24 10.24 inches, and
+		#   a png_dpi = 100 would result in a 1024x1024 DICOM image resolution.
 
         # Error reporting output settings
         # - These also affect the size of a DICOM image, just a debug readout.
@@ -204,6 +206,7 @@ class VespaInlineSettings:
 
         self.err_dpi         = 300
         self.err_pad_inches  = 0.5
+        self.err_size_inches = 10.24
 
         # Generic flag for other debug actions. Setting to True will output
         # the PNG buffer, that becomes the DICOM result, into a numpy save file

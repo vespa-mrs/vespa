@@ -11,10 +11,16 @@ from scipy.spatial.transform import Rotation
 import vespa.analysis.fileio.raw_reader as raw_reader
 import vespa.common.util.config as util_config
 import vespa.common.util.misc as util_misc
-from vespa.analysis.fileio.dicom_browser_dialog import PhilipsMrsBrowser
 from vespa.analysis.fileio.util_exceptions import IncompleteHeaderParametersError
 from vespa.common.mrs_data_raw import DataRaw, DataRawFidsum
 from vespa.common.constants import Deflate
+
+# need for inline processing - no wx
+try:
+    import wx       # just a test here
+    from vespa.analysis.fileio.dicom_browser_dialog import PhilipsMrsBrowser
+except:
+    PhilipsMrsBrowser = None
 
 """
 Here is a primer on how data is taken and what a 'dynamic' means ...
@@ -69,14 +75,18 @@ class RawReaderDicomPhilips(raw_reader.RawReader):
         if not os.path.exists(default_path):
             default_path = util_misc.get_documents_dir()
 
-        dialog = PhilipsMrsBrowser(multi_select=self.multiple,
-                                   default_path=default_path,
-                                   show_tags=False,
-                                   preview_size=None)
-        dialog.ShowModal()
-        self.filenames = dialog.filenames
+        if PhilipsMrsBrowser is not None:
 
-        if dialog.filenames:
+            dialog = PhilipsMrsBrowser(multi_select=self.multiple,
+                                       default_path=default_path,
+                                       show_tags=False,
+                                       preview_size=None)
+            dialog.ShowModal()
+            self.filenames = dialog.filenames
+        else:
+            self.filenames = []
+
+        if self.filenames:
             config = util_config.VespaConfig()
             config["general"]["last_dicom_browse_path"] = dialog.path
             config.write()

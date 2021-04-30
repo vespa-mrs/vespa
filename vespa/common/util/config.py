@@ -3,8 +3,13 @@
 import os
 
 # 3rd party modules
-import wx
-import matplotlib.colors
+
+# need for inline processing - no wx
+try:
+    import wx
+except:
+    wx = None
+
 
 # Our modules
 import vespa.common.configobj as configobj
@@ -143,11 +148,15 @@ class BaseConfig(configobj.ConfigObj):
         top = self[window_name].as_float("top")
         width = self[window_name].as_float("width")
         height = self[window_name].as_float("height")
-        
-        # I sanity check these numbers. No part of the window should be
-        # off the screen
-        screen_width = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_X)
-        screen_height = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_Y)
+
+        if wx is None:
+            screen_width  = 1024
+            screen_height = 720
+        else:
+            # I sanity check these numbers. No part of the window should be
+            # off the screen
+            screen_width = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_X)
+            screen_height = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_Y)
                 
         # Ensure left & top are non-negative
         left = max(left, 0)
