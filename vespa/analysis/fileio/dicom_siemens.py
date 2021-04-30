@@ -13,10 +13,18 @@ import numpy as np
 import vespa.analysis.fileio.raw_reader as raw_reader
 import vespa.common.util.config as util_config
 import vespa.common.util.misc as util_misc
-from vespa.analysis.fileio.dicom_browser_dialog import SiemensMrsBrowser
 from vespa.common.base_transform import transformation_matrix
 from vespa.common.mrs_data_raw import DataRaw, DataRawFidsum
 from vespa.common.constants import Deflate
+
+# need for inline processing - no wx
+try:
+    import wx   # just a test here
+    from vespa.analysis.fileio.dicom_browser_dialog import SiemensMrsBrowser
+except:
+    SiemensMrsBrowser = None
+
+
 
 # DICOM standard tags
 TAG_SOP_CLASS_UID = (0x0008, 0x0016)
@@ -38,14 +46,17 @@ class RawReaderDicomSiemens(raw_reader.RawReader):
         if not os.path.exists(default_path):
             default_path = util_misc.get_documents_dir()
 
-        dialog = SiemensMrsBrowser(multi_select=self.multiple,
-                                   default_path=default_path,
-                                   show_tags=False,
-                                   preview_size=None)
-        dialog.ShowModal()
+        if SiemensMrsBrowser is not None:
+            dialog = SiemensMrsBrowser(multi_select=self.multiple,
+                                       default_path=default_path,
+                                       show_tags=False,
+                                       preview_size=None)
+            dialog.ShowModal()
+            self.filenames = dialog.filenames
+        else:
+            self.filenames = []
 
-        self.filenames = dialog.filenames
-        if dialog.filenames:
+        if self.filenames:
             config = util_config.VespaConfig()
             config["general"]["last_dicom_browse_path"] = dialog.path
             config.write()

@@ -1,14 +1,11 @@
 # Python modules
-
 import logging
 import os
 
 # 3rd party modules
-import wx
 
 # Our modules
 import vespa.common.util.time_ as util_time
-import vespa.common.util.xml_ as util_xml
 import vespa.common.util.misc as util_misc
 
 # Set up the app-wide logger

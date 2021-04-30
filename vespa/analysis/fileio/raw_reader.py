@@ -8,10 +8,13 @@ import copy
 # Our modules
 from vespa.analysis.block_prep_fidsum import BlockPrepFidsum
 from vespa.common.mrs_data_raw import DataRaw, DataRawFidsum
-from vespa.common.wx_gravy.common_dialogs import pickfile
 import vespa.analysis.fileio.util_exceptions as util_exceptions
 
-
+# need for inline processing - no wx
+try:
+    from vespa.common.wx_gravy.common_dialogs import pickfile
+except:
+    pickfile = None
 
 class RawReader(object):
     """
@@ -33,13 +36,15 @@ class RawReader(object):
 
 
     def pickfile(self, default_path=""):
-        self.filenames = pickfile( filetype_filter=self.filetype_filter,
-                                   multiple=self.multiple,
-                                   default_path=default_path)
-        if not self.multiple:
-            # If select one file, we get a string back. Turn it into a list.
-            self.filenames = [self.filenames,] if self.filenames else []
-
+        if pickfile is not None:
+            self.filenames = pickfile( filetype_filter=self.filetype_filter,
+                                       multiple=self.multiple,
+                                       default_path=default_path)
+            if not self.multiple:
+                # If select one file, we get a string back. Turn it into a list.
+                self.filenames = [self.filenames,] if self.filenames else []
+        else:
+            self.filenames = []
         return bool(self.filenames)
 
 

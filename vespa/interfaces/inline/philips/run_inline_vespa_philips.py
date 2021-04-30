@@ -138,21 +138,26 @@ def run(settings, verbose=True):
 
         params = [fdatasets, fpresets, fbasis_mmol, settings]
         png_buf, pdf_buf, _ = vie.analysis_kernel( params, verbose=verbose )
-        buf_shape = int(10.24 * settings.png_dpi), int(10.24 * settings.png_dpi), 3
+        xyside = int(settings.png_size_inches * settings.png_dpi)
+        buf_shape = xyside, xyside, 3
 
     except VespaInlineError as e:
 
-        if verbose: print('Exception: VespaInlineError - see error report')
+        if verbose:
+            print('Exception: VespaInlineError - see error report  ', str(e))
         trace = ''      # returned in the VespaInlineError msg
         png_buf = do_error_processing(e, fdatasets, fpresets, trace, settings)
-        buf_shape = int(10.24 * settings.err_dpi), int(10.24 * settings.err_dpi), 3
+        xyside = int(settings.err_size_inches * settings.err_dpi)
+        buf_shape = xyside, xyside, 3
 
     except Exception as e:
 
-        if verbose: print('Exception: GeneralException - see error report')
+        if verbose:
+            print('Exception: GeneralException - see error report')
         trace = traceback.format_exc()
         png_buf = do_error_processing(e, fdatasets, fpresets, trace, settings)
-        buf_shape = int(10.24 * settings.err_dpi), int(10.24 * settings.err_dpi), 3
+        xyside = int(settings.err_size_inches * settings.err_dpi)
+        buf_shape = xyside, xyside, 3
 
     # ----------------------------------------------------------
     # 4.  dump dcm_buf to a DICOM RGB file ....
@@ -315,8 +320,8 @@ if __name__ == '__main__':
     settings.output_dir = os.path.join(settings.base_path, 'output')
     settings.debug_dir = os.path.join(settings.base_path, 'debug')
 
-    #settings.dataformat = 'philips_press28_dicom'
-    settings.dataformat = 'philips_slaser30_cmrr_spar'
+    settings.dataformat = 'philips_press28_dicom'
+    #settings.dataformat = 'philips_slaser30_cmrr_spar'
 
     settings.save_err = True
     settings.save_xml = True
