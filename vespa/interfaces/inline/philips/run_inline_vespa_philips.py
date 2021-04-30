@@ -113,8 +113,12 @@ def run(settings, verbose=True):
                 raise VespaInlineError(msg)
 
             fname_metab_preset, fname_water_preset, fname_ecc_preset, fname_coil_preset = None, None, None, None
-            fname_metab_preset = os.path.join(settings.preset_dir,'preset_philips_slaser30_cmrr_spar_metab.xml')
-            fname_water_preset = os.path.join(settings.preset_dir,'preset_philips_slaser30_cmrr_spar_water.xml')
+            fname_metab_preset = os.path.join(settings.preset_dir,'preset_philips_berrington_spar_metab01.xml')
+            fname_water_preset = os.path.join(settings.preset_dir,'preset_philips_berrington_spar_water01.xml')
+#            fname_metab_preset = os.path.join(settings.preset_dir,'preset_philips_slaser30_cmrr_spar_metab.xml')
+#            fname_water_preset = os.path.join(settings.preset_dir,'preset_philips_slaser30_cmrr_spar_water.xml')
+            
+            fname_mmol_basis = os.path.join(settings.preset_dir,'basis_mmol_simulated_from_seadMM2014_philips_128mhz_dataset.xml')
 
             dcm_cur = ''
 
@@ -131,7 +135,7 @@ def run(settings, verbose=True):
         fpresets['ecc']   = fname_ecc_preset
         fpresets['coil']  = fname_coil_preset
 
-        fbasis_mmol = None       # mmol   fbase+'\\basis_mmol_dataset_seadMM2014_truncat2048pts_normScale100dc015.xml'
+        fbasis_mmol = fname_mmol_basis      # None       
 
         # ----------------------------------------------------------
         # 3. Run the processing
@@ -176,7 +180,8 @@ def do_error_processing(e, fdatasets, fpresets, trace, settings):
                                          fontname='Courier New',
                                          dpi=settings.err_dpi)
     dcm_buf = fig[0].canvas.tostring_rgb()
-    dcm_buf = np.fromstring(dcm_buf, dtype=np.uint8)
+#    dcm_buf = np.fromstring(dcm_buf, dtype=np.uint8)
+    dcm_buf = np.frombuffer(dcm_buf, dtype=np.uint8)
 
     if settings.save_err:
         fname, _ = os.path.splitext(settings.err_fname)

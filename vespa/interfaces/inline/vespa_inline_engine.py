@@ -609,6 +609,7 @@ def analysis_kernel(params, verbose=False, process_id='single', exception_as_lis
         msg = 'begin loading mmol basis'
         if fbasis_mmol is not None:
             basis_mmol, msg = util_file_import.open_viff_dataset_file([fbasis_mmol,])
+            basis_mmol = basis_mmol[0]
         else:
             basis_mmol = None
 
