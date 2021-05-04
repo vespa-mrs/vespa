@@ -79,6 +79,8 @@ def run(settings, verbose=True):
             fname_metab_preset = os.path.join(settings.preset_dir,'preset_philips_dicom_press28_metab.xml')
             fname_water_preset = os.path.join(settings.preset_dir,'preset_philips_dicom_press28_water.xml')
 
+            fname_mmol_basis = None
+
             dcm_cur = dcmread(fname_metab)
 
         elif settings.dataformat == 'philips_slaser30_cmrr_spar':
@@ -142,8 +144,7 @@ def run(settings, verbose=True):
 
         params = [fdatasets, fpresets, fbasis_mmol, settings]
         png_buf, pdf_buf, _ = vie.analysis_kernel( params, verbose=verbose )
-        xyside = int(settings.png_size_inches * settings.png_dpi)
-        buf_shape = xyside, xyside, 3
+        buf_shape = 10.24*settings.png_dpi, 10.24*settings.png_dpi, 3
 
     except VespaInlineError as e:
 
@@ -151,8 +152,7 @@ def run(settings, verbose=True):
             print('Exception: VespaInlineError - see error report  ', str(e))
         trace = ''      # returned in the VespaInlineError msg
         png_buf = do_error_processing(e, fdatasets, fpresets, trace, settings)
-        xyside = int(settings.err_size_inches * settings.err_dpi)
-        buf_shape = xyside, xyside, 3
+        buf_shape = 10.24*settings.png_dpi, 10.24*settings.png_dpi, 3
 
     except Exception as e:
 
@@ -160,8 +160,7 @@ def run(settings, verbose=True):
             print('Exception: GeneralException - see error report')
         trace = traceback.format_exc()
         png_buf = do_error_processing(e, fdatasets, fpresets, trace, settings)
-        xyside = int(settings.err_size_inches * settings.err_dpi)
-        buf_shape = xyside, xyside, 3
+        buf_shape = 10.24*settings.png_dpi, 10.24*settings.png_dpi, 3
 
     # ----------------------------------------------------------
     # 4.  dump dcm_buf to a DICOM RGB file ....
@@ -366,10 +365,10 @@ if __name__ == '__main__':
     settings.png_apply_phase = False
     settings.png_remove_base = False
     settings.png_fontname = 'Courier New'
-    settings.png_dpi = 100  # gives 2048x2048 image
+    settings.png_dpi = 100  
     settings.png_pad_inches = 0.5
 
-    settings.err_dpi = 200
+    settings.err_dpi = 100
     settings.err_pad_inches = 0.5
 
     settings.debug = False
