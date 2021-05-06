@@ -184,7 +184,6 @@ def do_error_processing(e, fdatasets, fpresets, trace, settings):
                                          fontname='Courier New',
                                          dpi=settings.err_dpi)
     dcm_buf = fig[0].canvas.tostring_rgb()
-#    dcm_buf = np.fromstring(dcm_buf, dtype=np.uint8)
     dcm_buf = np.frombuffer(dcm_buf, dtype=np.uint8)
 
     if settings.save_err:

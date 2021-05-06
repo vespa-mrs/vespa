@@ -52,7 +52,8 @@ def null_call(  dataset,
                 verbose=False,
                 debug=False,
                 quantvals=False,
-                voxel=None):
+                voxel=None,
+                dpi=None):
     return []
 
 
@@ -151,7 +152,8 @@ def lcm_like(   dataset,
                 verbose=False,
                 debug=False,
                 quantvals=False,
-                voxel=None):
+                voxel=None,
+                dpi=None):
     """
     Some typical save type formats = 'svg' 'eps' 'pdf' 'png' 'raw' 'rgba' 'ps' 'pgf' etc.
     Typical fontnames  'Consolas' 'Calibri' 'Courier New' 'Times New Roman'
@@ -708,7 +710,8 @@ def lcm_multipage_pdf(  dataset,
                         verbose=False,
                         debug=False,
                         quantvals=False,
-                        voxel=None):
+                        voxel=None,
+                        dpi=None):
     """
     Some typical save type formats = 'svg' 'eps' 'pdf' 'png' 'raw' 'rgba' 'ps' 'pgf' etc.
     Typical fontnames  'Consolas' 'Calibri' 'Courier New' 'Times New Roman'
@@ -958,7 +961,8 @@ def analysis_plot2( dataset,
                     verbose=False,
                     debug=False,
                     quantvals=False,
-                    voxel=None):
+                    voxel=None,
+                    dpi=None):
     """
     Some typical save type formats = 'svg' 'eps' 'pdf' 'png' 'raw' 'rgba' 'ps' 'pgf' etc.
     Typical fontnames  'Consolas' 'Calibri' 'Courier New' 'Times New Roman'
@@ -1250,7 +1254,8 @@ def analysis_plot4( dataset,
                     verbose=False,
                     debug=False,
                     quantvals=False,
-                    voxel=None):
+                    voxel=None,
+                    dpi=None):
     """
     Some typical save type formats = 'svg' 'eps' 'pdf' 'png' 'raw' 'rgba' 'ps' 'pgf' etc.
     Typical fontnames  'Consolas' 'Calibri' 'Courier New' 'Times New Roman'
@@ -1885,7 +1890,8 @@ def debug_plot4(dataset,
                 verbose=False, 
                 debug=False,
                 quantvals=False,
-                voxel=None):
+                voxel=None,
+                dpi=None):
     """
     Some typical save type formats = 'svg' 'eps' 'pdf' 'png' 'raw' 'rgba' 'ps' 'pgf' etc.
     Typical fontnames  'Consolas' 'Calibri' 'Courier New' 'Times New Roman'
@@ -2220,7 +2226,8 @@ def debug_multipage_pdf(dataset,
                         verbose=False,
                         debug=False,
                         quantvals=False,
-                        voxel=None):
+                        voxel=None,
+                        dpi=None):
     """
     Some typical save type formats = 'svg' 'eps' 'pdf' 'png' 'raw' 'rgba' 'ps' 'pgf' etc.
     Typical fontnames  'Consolas' 'Calibri' 'Courier New' 'Times New Roman'
