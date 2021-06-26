@@ -9,7 +9,6 @@ Data is returned in a DataRaw object populated with the file's data.
 
 # Python modules
 from __future__ import division
-import os.path
 import collections
 
 # 3rd party modules
