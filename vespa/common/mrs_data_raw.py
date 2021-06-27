@@ -12,12 +12,12 @@ Most basic 1D subclass (original class, actually):
     DataRaw : shape = [1, 1, ndatasets, spectral_points] - ie. load multiple datasets 'into the screen'
 
 2D/3D data subclasses:
-    DataRawFidsum : shape = [1, 1,     navg, spectral_points]
-    DataRawFidsum : shape = [1, ncoil,    1, spectral_points]
-    DataRawFidsum : shape = [1, ncoil, navg, spectral_points]
+    DataRawFidsum : shape = [1, 1,     nfids, npts]
+    DataRawFidsum : shape = [1, ncoil,     1, npts]
+    DataRawFidsum : shape = [1, ncoil, nfids, npts]
 
 4D data subclasses:
-    mrs_data_raw_edit_fidsum : shape = [ndataset, ncoil, navg, spectral_points]
+    mrs_data_raw_edit_fidsum : shape = [ndataset, ncoil, nfids, npts]
     - typically processed into N (ndatasets) 2D/3D files with their own Dataset Tabs
 
 """

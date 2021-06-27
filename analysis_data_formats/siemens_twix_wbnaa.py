@@ -67,17 +67,8 @@ class RawReaderSiemensTwixWbnaa(raw_reader.RawReader):
 
         d = self._get_parameters(twix.current, index='scan')
 
-        # scans, evps = twix_parser.read(filename)
-        # d = _extract_parameters(evps)
-        # d["data_source"] = filename
-        # # Read data, too, if the caller wants me to do so.
-        # dims = d["dims"]
-        # shape = dims[::-1]
-        # del d["dims"]
-        # datas = _read_data(scans)
-
         # Create a DataRawWbnaa out of the first set of data in the list.
-        datas = d["data"]
+        datas = d["data"]       # this is a list of numpy arrays [1,ncoil,nfids,npts]
 
         d["data"] = datas[0]
         d["data_source"] = filename
@@ -85,7 +76,7 @@ class RawReaderSiemensTwixWbnaa(raw_reader.RawReader):
         
         # Concatenate the remainder onto the first.
         for data in datas[1:]:
-            data.shape = shape
+            # data.shape = shape
             d["data"] = data
             raw.concatenate(DataRawWbnaa(d))
 
@@ -156,12 +147,10 @@ class RawReaderSiemensTwixWbnaa(raw_reader.RawReader):
         elif index == 'echo':
             data, prep = twix.get_data_numpy_echo_coil_avg_npts_order(return_prep=True)
         elif index == 'scan':
-            data, prep = twix.get_data_numpy_channel_scan_order_with_prep()
+            data = twix.get_data_numpy_scan_channel_order()     # differs from Siemens twix regular
             while len(data.shape) < 4:
                 data = np.expand_dims(data, axis=0)
-            if prep is not None:
-                while len(prep.shape) < 4:
-                    prep = np.expand_dims(prep, axis=0)
+            prep = None
         else:
             data, prep = twix.get_data_numpy_rep_coil_avg_npts_order(return_prep=True)
 
@@ -175,30 +164,24 @@ class RawReaderSiemensTwixWbnaa(raw_reader.RawReader):
         if prep is not None:
             prep = prep[:, :, :, fid_str:fid_str + acqdim0].copy()
 
+        # these next bits are WBNAA specific ------------------------------
 
-
-
-
-
-        nscans = int(len(data) / 2)
+        nscans = int(data.shape[2] / 2)
         datas = []
 
         for i in range(nscans):
-            dat1 = np.array(data[i * 2].data)
-            dat2 = np.array(data[i * 2 + 1].data)
-            data = np.conjugate(dat1 - dat2)
-            datas.append(data)
+            dat1 = data[:,:,i*2,:]
+            dat2 = data[:,:,i*2+1,:]
+            tmp = np.conjugate(dat1 - dat2)
+            while len(tmp.shape) < 4:
+                tmp = np.expand_dims(tmp, axis=0)
+            datas.append(tmp)
 
         ## comment out the code above and uncomment below to see all scans
         ## rather than doing difference paired data
 
         #    for scan in scans:
         #        datas.append(np.conjugate(np.array(scan.data)))
-
-
-
-
-
 
         # get header info -----------------------------------
 
@@ -272,7 +255,7 @@ class RawReaderSiemensTwixWbnaa(raw_reader.RawReader):
                   'voxel_dimensions' : voxel_size,
                   'header'      : clean_header,
                   'transform'   : tform,
-                  'data'        : data,
+                  'data'        : datas,
                   'prep'        : prep  }
 
         # d["readout_os"] = float(self._get_xprot(evps[0][1], "ReadoutOS", 1.0))

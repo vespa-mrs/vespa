@@ -70,7 +70,7 @@ class RawReaderSiemensTwixSvsSeUncomb(raw_reader.RawReader):
         measurement = twix_parser.TwixRaid()
         measurement.populate_from_file(filename)
 
-        dat = twix_sort.TwixSort(measurement).get_data_numpy_scan_channel_order()
+        dat = twix_sort.TwixSort(measurement).get_data_numpy_scan_channel_order()  # FIXME bjs - this was nfid,ncoil,npts order, now ncoil,nfid,npts 6/2021
         
         # Fill a dictionary with the minimum necessary parameters needed from
         # the twix file in order to create the DataRawUncomb object.
@@ -98,7 +98,7 @@ class RawReaderSiemensTwixSvsSeUncomb(raw_reader.RawReader):
         
         d["data"] = dat
         d["data_source"] = filename
-        raw = mrs_data_raw_uncomb.DataRawUncomb(d)
+        raw = mrs_data_raw_uncomb.DataRawUncomb(d)  # FIXME bjs - this has become just DataRaw??
         
         return [raw, ]
 

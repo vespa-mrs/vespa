@@ -667,13 +667,13 @@ class TwixRaid(object):
 
         nfid = int(nscan / ncha)
 
-        nparr = np.zeros([nfid, ncha, npts], np.complex)
+        nparr = np.zeros([ncha, nfid, npts], np.complex)
 
         for j in range(nfid):
             for i in range(ncha):
                 scan = self.scans[i + j * ncha]
                 icha = scan.channel_id
-                nparr[j, icha, :] = np.array(scan.data)
+                nparr[icha, j, :] = np.array(scan.data)
 
         return nparr
 

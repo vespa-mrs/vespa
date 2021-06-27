@@ -978,17 +978,72 @@ class TwixMeasurement(object):
             to use an enumeration to fill the icha index
 
         """
+        npts  = self.scans[0].scan_header.samples_in_scan
+        nscan = len(self.scans)
+        ncha  = self.scans[0].scan_header.used_channels
+        nparr = np.zeros([ncha, nscan, npts], np.complex)
+
+        for i, scan in enumerate(self.scans):
+            for j, chan in enumerate(scan.channels):
+                nparr[j, i, :] = np.array(chan[1])
+
+        return nparr
+
+
+    def get_data_numpy_channel_scan_order_with_prep(self):
+        """
+        Sort all scans into numpy array in [fid, channel_id, spectral points] order.
+
+        This does not require unique dimensions. It does require that total
+        number of scans divided by number of channels is an integer. It is
+        assumed that all channels for a given FID follow one after the other
+        in the scan list.
+
+        """
         npts = self.scans[0].scan_header.samples_in_scan
         nscan = len(self.scans)
         ncha = self.scans[0].scan_header.used_channels
 
-        nparr = np.zeros([nscan, ncha, npts], np.complex)
+        nrep = self.dims[SCAN_INDICES.index('repetition')]  # number of repetitions, may be 1
+        nset = self.dims[SCAN_INDICES.index('set')]  # number of FIDs for spectroscopy
+        ncha2 = self.dims[SCAN_INDICES.index('channel_id')]  # number of channels, may be 1
 
-        for i, scan in enumerate(self.scans):
-            for j, chan in enumerate(scan.channels):
-                nparr[i, j, :] = np.array(chan[1])
 
-        return nparr
+        if (nscan % ncha) > 0:
+            msg = "Number of scans not divisible by number of channels, inconsistent array size, returning.."
+            raise ValueError(msg)
+
+        nfid = int(nscan / ncha)
+
+        header = _parse_protocol_data(self.evps[3][1])
+        nprep_hdr = int(header['sSpecPara.lPreparingScans']) if 'sSpecPara.lPreparingScans' in header.keys() else 0
+        nprep = nfid - nrep * nset
+        if nprep_hdr != nprep: print('Warning: get_data_numpy_scan_channel_order_with_prep() - nprep_hdr != nprep')
+
+        # I have seen in CMRR sLASER data that the scan.set value does not increment
+        # while the prep scans are taken. We get around this empirically. We know
+        # how many Averages are being taken, multiply by NCha and subtract from the
+        # total number of scans and divide by NCha and we know how many prep averages
+        # there will be.  I calc the iset index below using this sort of math. Just
+        # in case someday it start to increment, I make allowances for that case too.
+
+        prep_arr = None
+        if nprep != 0:
+            prep_arr = np.zeros([ncha, nprep, npts], np.complex)
+            for iscan, scan in enumerate(self.scans[0:int(nprep * ncha)]):
+                ifid = iscan // ncha
+                icha = scan.channel_id
+                prep_arr[icha, ifid, :] = np.array(scan.data)
+
+        nparr = np.zeros([ncha, nfid-nprep, npts], np.complex)
+
+        for iscan, scan in enumerate(self.scans[int(nprep * ncha):]):
+            ifid = iscan // ncha
+            icha = scan.channel_id
+            nparr[icha, ifid, :] = np.array(scan.data)
+
+        return nparr, prep_arr
+
 
     def get_data_numpy_rep_coil_avg_npts_order(self, return_prep=False):
         return self.get_data_numpy_rep_channel_set_order(return_prep=return_prep)

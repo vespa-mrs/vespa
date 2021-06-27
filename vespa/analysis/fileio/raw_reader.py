@@ -7,7 +7,9 @@ import copy
 
 # Our modules
 from vespa.analysis.block_prep_fidsum import BlockPrepFidsum
+from vespa.analysis.block_prep_wbnaa import BlockPrepWbnaa
 from vespa.common.mrs_data_raw import DataRaw, DataRawFidsum
+from vespa.common.mrs_data_raw_wbnaa import DataRawWbnaa
 import vespa.analysis.fileio.util_exceptions as util_exceptions
 
 # need for inline processing - no wx
@@ -189,11 +191,11 @@ class RawReader(object):
         raw1 = open_dataset.blocks["prep"]
 
         new_is_fidsum = False
-        if isinstance(raw0, DataRawFidsum) and not type(raw0) == DataRaw:
+        if isinstance(raw0, (DataRawFidsum, DataRawWbnaa)) and not type(raw0) == DataRaw:
             new_is_fidsum = True
 
         open_is_fidsum = False
-        if isinstance(raw1, BlockPrepFidsum):
+        if isinstance(raw1, (BlockPrepFidsum, BlockPrepWbnaa)):
             open_is_fidsum = True
 
         if not (new_is_fidsum == open_is_fidsum):
