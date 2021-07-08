@@ -48,7 +48,7 @@ class ChainPrepWbnaa(Chain):
             self.freq_current   = np.zeros(raw_dim0, complex)
 
 
-    def run(self, voxels, entry='all', do_calculate=False):
+    def run(self, voxels, entry='all', freq_raw=False):
         """
         Run is typically called every time a processing setting is changed
         in the parent (block) object. Run processes a single voxel at a time.
@@ -59,13 +59,10 @@ class ChainPrepWbnaa(Chain):
         The 'entry' keyword adds flexibility to Block-Chain-View relationship.
 
         """
-        self.calculate_flag = do_calculate
-        
 
         # Note. in this case we are processing all raw data into the data 
         #   attribute, so despite having multiple raw FIDs, we are really 
         #   only processing one voxel, so no for loop
-
 
         # local reference to input data
         self.raw = self._dataset.get_source_data('prep')

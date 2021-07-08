@@ -563,9 +563,7 @@ class TabPrepWbnaa(tab_base.Tab, fidsum_wbnaa.PanelPrepWbnaaUI):
         tab_base.Tab.process(self, entry)
 
         voxel = self.fid_index
-        self.plot_results = self.block.chain.run([voxel], 
-                                                 entry=entry, 
-                                                 do_calculate=do_calculate)
+        self.plot_results = self.block.chain.run([voxel], entry=entry)
 
         nfids = self.block.chain.raw.shape[2]
         if self.block.set.apply_data_exclusion:

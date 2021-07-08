@@ -319,7 +319,8 @@ class BlockPrepWbnaa(block_prep_identity.BlockPrepIdentity):
                 self.behave_as_preset = util_xml.BOOLEANS[val]
 
             # Quacks like an ElementTree.Element
-            self.set = _Settings(source.find("settings"))
+            val_set = source.find("settings")
+            self.set = _Settings(val_set)
 
             if not self.behave_as_preset:
 
