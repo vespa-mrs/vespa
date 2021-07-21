@@ -330,13 +330,13 @@ class Main(wx.Frame):
 
                     # refresh chain in each block for new preset values
                     chain_outputs = {}
-                    chain_outputs['raw']   = dataset.blocks['raw'].chain.run([(0,0,0)], entry='all')
-                    chain_outputs['prep']  = dataset.blocks['prep'].chain.run([(0,0,0)], entry='all', freq_raw=True)
+                    chain_outputs['raw']      = dataset.blocks['raw'].chain.run([(0,0,0)], entry='all')
+                    chain_outputs['prep']     = dataset.blocks['prep'].chain.run([(0,0,0)], entry='all', freq_raw=True)
                     chain_outputs['spectral'] = dataset.blocks['spectral'].chain.run([(0, 0, 0)], entry='all')
-                    chain_outputs['fit']   = dataset.blocks['fit'].chain.run([(0, 0, 0)], entry='initial_only')
+                    chain_outputs['fit']      = dataset.blocks['fit'].chain.run([(0, 0, 0)], entry='initial_only')
                     chain_outputs['spectral'] = dataset.blocks['spectral'].chain.run([(0, 0, 0)], entry='all')
-                    chain_outputs['fit']   = dataset.blocks['fit'].chain.run([(0, 0, 0)], entry='initial_only')
-                    chain_outputs['quant'] = dataset.blocks['quant'].chain.run([(0, 0, 0)], entry='initial_only')
+                    chain_outputs['fit']      = dataset.blocks['fit'].chain.run([(0, 0, 0)], entry='initial_only')
+                    chain_outputs['quant']    = dataset.blocks['quant'].chain.run([(0, 0, 0)], entry='initial_only')
 
                     # Get the active dataset tab to update itself
                     self.notebook_datasets.on_preset_loaded()
