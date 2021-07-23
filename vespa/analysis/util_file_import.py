@@ -245,9 +245,9 @@ def get_datasets_cli(datafnames, section_name, open_dataset=None):
     """
     if (sys.version_info > (3, 0)):
         # Python 3 code in this block
-        fname = os.path.join(util_misc.get_data_dir(), "analysis_import_menu_additions_py3.ini")
-    else:
         fname = os.path.join(util_misc.get_data_dir(), "analysis_import_menu_additions.ini")
+    else:
+        fname = os.path.join(util_misc.get_data_dir(), "analysis_import_menu_additions_py2.ini")
     classes, full_cfg, msg = set_import_data_classes(filename=fname)
 
     if section_name not in list(classes.keys()):

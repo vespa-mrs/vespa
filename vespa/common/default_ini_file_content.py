@@ -585,7 +585,7 @@ zero_line_top = False
 #    ini_file_name=import_xyz
 #
 #[siemens_twix_wbnaa]
-#path=D:/miniconda3/envs/python37/Lib/site-packages/vespa/analysis/fileio/siemens_twix_wbnaa.py
+#path=C:/miniconda3/envs/python37/Lib/site-packages/vespa/analysis/fileio/siemens_twix_wbnaa.py
 #class_name=RawReaderSiemensTwixWbnaa
 #menu_item_text=Siemens Twix WBNAA
 #ini_file_name=import_siemens_twix_wbnaa

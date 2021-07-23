@@ -96,9 +96,9 @@ class Main(wx.Frame):
         # TODO - FIXME - bjs this is a hack for 2to3 convert ... rethink in future
         if (sys.version_info > (3, 0)):
             # Python 3 code in this block
-            fname = os.path.join(util_misc.get_data_dir(), "analysis_import_menu_additions_py3.ini")
-        else:
             fname = os.path.join(util_misc.get_data_dir(), "analysis_import_menu_additions.ini")
+        else:
+            fname = os.path.join(util_misc.get_data_dir(), "analysis_import_menu_additions_py2.ini")
         classes, full_cfg, msg = util_file_import.set_import_data_classes(filename=fname)
         if msg:
             # some class was not found ... but we continue
