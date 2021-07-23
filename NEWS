@@ -1,3 +1,15 @@
+Version 1.0.2 - 23 July, 2021
+------------------------------------------------------------------------------
+This is mainly a bugfix release - thanks to our users for the feedback
+
+Analysis
+- Changed code so that the User Defined Parser file in AppData/Local/Vespa 
+expects the original name of analysis_import_menu_additions.ini rather than
+analysis_import_menu_additions_py3.ini used as a hack during upgrade to Py3.
+The default behavior was to create a file called 'analysis_import_menu_additions.ini'
+on installation, so that (hopefully) won't mess users up too much.
+
+
 Version 1.0.1 - 23 July, 2021
 ------------------------------------------------------------------------------
 This is mainly a bugfix release - thanks to our users for the feedback
