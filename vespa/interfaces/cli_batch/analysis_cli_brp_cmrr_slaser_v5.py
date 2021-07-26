@@ -286,7 +286,7 @@ def analysis_cli(datasets,  preset_metab,
                 data = f.readlines()
                 if len(data)>1:
                     nlast = len(data[-1].split(','))
-                    if nlast == len(hdr): hdr_flag = False
+                    if nlast == len(hdr.split(',')): hdr_flag = False
 
         with open(outcsv, 'a') as f:
             if hdr_flag:
