@@ -4,7 +4,7 @@ import os
 import sys
 import collections
 import tempfile
-import subprocess 
+import subprocess  
 
 # This script is meant to be run before Vespa is installed, so you must *not* import any
 # Vespa modules.
