@@ -1,9 +1,21 @@
+"""
+Command line interface to batch process MRS data in Vespa-Analysis. 
+ 
+User must provide a list of Data filenames, the preset file name, the output
+directory name, and an optional prefix label that will be added to each output
+filename (to help differentiate processing runs). 
+  
+Note. You have to enclose data/preset/output strings in double quotation marks 
+for them to process properly. And it is best if they do not have spaces or odd
+characters in them.
+
+"""
 # Python modules
 
 import os
 import sys
-import multiprocessing
 import datetime
+import multiprocessing
 
 # 3rd party modules
 from matplotlib.backends.backend_pdf import PdfPages
@@ -13,8 +25,8 @@ import vespa.analysis.util_import as util_import
 import vespa.analysis.util_file_import as util_file_import
 import vespa.analysis.figure_layouts as figure_layouts
 
-import vespa.common.util.export as util_export
 import vespa.common.util.time_ as util_time
+import vespa.common.util.export as util_export
 
 
 #
@@ -23,23 +35,18 @@ import vespa.common.util.time_ as util_time
 #  More specifically, this is for reading the Siemens Twix
 #
 
-# Change to True to enable the assert() statements sprinkled through the code
-ASSERTIONS_ENABLED = False
+FILES = [
+        'D:\\Users\\bsoher\\tmp\\oded_test\\Subject_Name_01_oddData\\meas_MID00202_FID120571_fid_WBNAA.dat',
+        'D:\\Users\\bsoher\\tmp\\oded_test\\Subject_Name_02\\meas_MID00202_FID120571_fid_WBNAA.dat',
+        ]
+PRESET   = 'D:\\Users\\bsoher\\tmp\\oded_test\\vespa_analysis_preset_vd_ve_bjs_v3.xml'
+OUTDIR   = 'D:\\Users\\bsoher\\tmp\\oded_test\\results_v01\\'     
+OUTLABEL = 'try1_'
+SINGLECORE = True      # note - multicore processing may result in random order of CSV results
 
 
 
 
-DESC =  \
-"""
- Command line interface to process MRS data in Vespa-Analysis. 
- Data filename, preset file name, data type string and CSV output 
- file name values are all required for this command to function 
- properly.
-  
- Note. You may have to enclose data/preset/output strings in double 
- quotation marks for them to process properly if they have  
- spaces or other special characters embedded in them.
-"""
 
 class CliError(Exception):
     """Basic exception for errors when applying preset object"""
@@ -52,11 +59,6 @@ class CliError(Exception):
         msg += '\n'
         msg += 'BaseErrorMessage: '+str(e)
         super(CliError, self).__init__(msg)
-
-
-def clean_header(header):
-    """ converts all values in ICE dict into a long string"""
-    return "need to write"
 
 
 def analysis_cli(datasets,  preset_metab,
@@ -393,7 +395,7 @@ def analysis_kernel(param):
     
     try:
         
-        datafname, fbase, out_base, fpreset_coil, fpreset_ecc, fpreset_water, fpreset_metab, fbasis_mmol, out_label, out_set, dformat = param
+        datafname, out_base, fpreset_coil, fpreset_ecc, fpreset_water, fpreset_metab, fbasis_mmol, out_label, out_set, dformat = param
         
         debug   = False
         verbose = True
@@ -459,7 +461,7 @@ def do_main():
 
     debug          = False
     verbose        = True
-    single_process = True
+    single_process = SINGLECORE
     nprocess       = 4
 
     out_set = { 'savetype' : 'lcm_multi',
@@ -471,20 +473,14 @@ def do_main():
                 'pad_inches' : 0.5
              }
 
-    fbase = "D:\\Users\\bsoher\\projects\\2013_oded_wbnaa\\data\\2021_ve11_test\\"
-    fdata = [
-            fbase+"Subject_Name_01_oddData\\meas_MID00202_FID120571_fid_WBNAA.dat",
-            fbase+"Subject_Name_02\\meas_MID00202_FID120571_fid_WBNAA.dat",
-            ]
-
-
-    out_base  = fbase + 'a_results_v01\\'     # picked this so ends at top of dir hierarchy
-    out_label = 'twix_'
+    fdata = FILES
+    out_base  = OUTDIR
+    out_label = OUTLABEL
 
     fpreset_coil  = ''
     fpreset_ecc   = ''
     fpreset_water = ''
-    fpreset_metab = fbase + 'vespa_analysis_preset_vd_ve_bjs_v3.xml'
+    fpreset_metab = PRESET
     fbasis_mmol   = ''
 
     datafiles = fdata
@@ -510,12 +506,12 @@ def do_main():
     if len(datafiles) == 1 or single_process:
 
         for datafile in datafiles:
-            params = [datafile, fbase, out_base, fpreset_coil, fpreset_ecc, fpreset_water, fpreset_metab, fbasis_mmol, out_label, out_set, dformat]
+            params = [datafile, out_base, fpreset_coil, fpreset_ecc, fpreset_water, fpreset_metab, fbasis_mmol, out_label, out_set, dformat]
             analysis_kernel(params)
     else:
         params = []
         for datafile in datafiles:
-            params.append([datafile, fbase, out_base, fpreset_coil, fpreset_ecc, fpreset_water, fpreset_metab, fbasis_mmol, out_label, out_set, dformat])
+            params.append([datafile, out_base, fpreset_coil, fpreset_ecc, fpreset_water, fpreset_metab, fbasis_mmol, out_label, out_set, dformat])
             
         pool = multiprocessing.Pool(processes=nprocess)
         results = pool.map(analysis_kernel, params)
