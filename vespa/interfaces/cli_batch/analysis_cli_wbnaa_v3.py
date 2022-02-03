@@ -14,6 +14,7 @@ characters in them.
 
 import os
 import sys
+import time
 import datetime
 import multiprocessing
 
@@ -457,6 +458,7 @@ def get_time():
 
 def do_main():
 
+    start_time = time.perf_counter()
     print("Start Time - "+get_time()+"\n")
 
     debug          = False
@@ -516,7 +518,9 @@ def do_main():
         pool = multiprocessing.Pool(processes=nprocess)
         results = pool.map(analysis_kernel, params)
     
+    end_time = time.perf_counter()
     print("\nEnd Time - "+get_time())
+    print("\nTotal Time [sec] - "+str(end_time-start_time))
         
 
 
