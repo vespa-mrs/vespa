@@ -96,9 +96,9 @@ class Main(wx.Frame):
         # TODO - FIXME - bjs this is a hack for 2to3 convert ... rethink in future
         if (sys.version_info > (3, 0)):
             # Python 3 code in this block
-            fname = os.path.join(util_misc.get_data_dir(), "analysis_import_menu_additions_py3.ini")
-        else:
             fname = os.path.join(util_misc.get_data_dir(), "analysis_import_menu_additions.ini")
+        else:
+            fname = os.path.join(util_misc.get_data_dir(), "analysis_import_menu_additions_py2.ini")
         classes, full_cfg, msg = util_file_import.set_import_data_classes(filename=fname)
         if msg:
             # some class was not found ... but we continue
@@ -330,13 +330,13 @@ class Main(wx.Frame):
 
                     # refresh chain in each block for new preset values
                     chain_outputs = {}
-                    chain_outputs['raw']   = dataset.blocks['raw'].chain.run([(0,0,0)], entry='all')
-                    chain_outputs['prep']  = dataset.blocks['prep'].chain.run([(0,0,0)], entry='all', freq_raw=True)
+                    chain_outputs['raw']      = dataset.blocks['raw'].chain.run([(0,0,0)], entry='all')
+                    chain_outputs['prep']     = dataset.blocks['prep'].chain.run([(0,0,0)], entry='all', freq_raw=True)
                     chain_outputs['spectral'] = dataset.blocks['spectral'].chain.run([(0, 0, 0)], entry='all')
-                    chain_outputs['fit']   = dataset.blocks['fit'].chain.run([(0, 0, 0)], entry='initial_only')
+                    chain_outputs['fit']      = dataset.blocks['fit'].chain.run([(0, 0, 0)], entry='initial_only')
                     chain_outputs['spectral'] = dataset.blocks['spectral'].chain.run([(0, 0, 0)], entry='all')
-                    chain_outputs['fit']   = dataset.blocks['fit'].chain.run([(0, 0, 0)], entry='initial_only')
-                    chain_outputs['quant'] = dataset.blocks['quant'].chain.run([(0, 0, 0)], entry='initial_only')
+                    chain_outputs['fit']      = dataset.blocks['fit'].chain.run([(0, 0, 0)], entry='initial_only')
+                    chain_outputs['quant']    = dataset.blocks['quant'].chain.run([(0, 0, 0)], entry='initial_only')
 
                     # Get the active dataset tab to update itself
                     self.notebook_datasets.on_preset_loaded()

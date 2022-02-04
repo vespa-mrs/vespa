@@ -48,7 +48,8 @@ LICENSE = "http://creativecommons.org/licenses/BSD/"
 PLATFORMS = 'Linux, OS X, Windows, POSIX'
 KEYWORDS = "mri, mrs, pygamma, spectral simulation, rf pulses, magnetic resonance spectroscopy, fitting, time domain, frequency domain"
 
-packages = setuptools.find_packages(exclude=("*interfaces*",))
+#packages = setuptools.find_packages(exclude=("*interfaces*",))
+packages = setuptools.find_packages()
 
 setuptools.setup(name=NAME,
                  version=VERSION,

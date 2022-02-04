@@ -189,11 +189,11 @@ def constrained_levenberg_marquardt(y, w, a, limits, function=None,
             indxb = np.where(a[no_zero] < limits[0,no_zero])[0]
             indxt = np.where(a[no_zero] > limits[1,no_zero])[0]
 
-            if indxb:
+            if len(indxb) > 0:
                 a[no_zero[indxb]]   = limits[0,no_zero[indxb]] * (1.0+eps)
                 inc[no_zero[indxb]] = limits[0,no_zero[indxb]] * eps
 
-            if indxt:
+            if len(indxt) > 0:
                 a[no_zero[indxt]]   = limits[1,no_zero[indxt]] * (1.0-eps)
                 inc[no_zero[indxt]] = limits[1,no_zero[indxt]] * eps
 
