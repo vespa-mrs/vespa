@@ -5,10 +5,10 @@ https://docs.python.org/2/library/simplexmlrpcserver.html
 
 
 """
-from __future__ import division
 
-from SimpleXMLRPCServer import SimpleXMLRPCServer
-from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+
+from xmlrpc.server import SimpleXMLRPCServer
+from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 # Restrict to a particular path.
 class RequestHandler(SimpleXMLRPCRequestHandler):

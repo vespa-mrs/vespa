@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 # Python imports
-from __future__ import division
+
 
 import os
 import sys
-import xmlrpclib
-from SimpleXMLRPCServer import SimpleXMLRPCServer
+import xmlrpc.client
+from xmlrpc.server import SimpleXMLRPCServer
 
 
 # _EXIT_TIMER_DELAY defines a recommended delay between when client calls 
@@ -20,7 +20,7 @@ _EXIT_TIMER_DELAY = 0.1
 
 def adder_function(x,y):
     """A minimalist method for testing."""
-    print "test_xmlrpc_server: adder_function() --"
+    print("test_xmlrpc_server: adder_function() --")
     val = x+y
     return val
 
@@ -48,12 +48,12 @@ class ListenRequestHandler(object):
 
     def div(self, x, y):
         """A minimalist method for testing - div()."""
-        if self.verbose: print "test_xmlrpc_server: div() --"
+        if self.verbose: print("test_xmlrpc_server: div() --")
         return x // y
     
     def add(self, x, y):
         """A minimalist method for testing - add()."""
-        if self.verbose: print "test_xmlrpc_server: add() --"
+        if self.verbose: print("test_xmlrpc_server: add() --")
         return x + y
 
     def bump2(self, x, y):
@@ -64,7 +64,7 @@ class ListenRequestHandler(object):
         to parse a known return value set.
          
         '''
-        if self.verbose: print "test_xmlrpc_server: bump2() --"
+        if self.verbose: print("test_xmlrpc_server: bump2() --")
         return x+1, y+1
 
     def is_available(self):
@@ -74,7 +74,7 @@ class ListenRequestHandler(object):
         To be called when the scanner is initializing the ICE program and
         wants to check if there is an XML-RPD server listening for it.
         """
-        if self.verbose: print "test_simple_server: is_available() --"
+        if self.verbose: print("test_simple_server: is_available() --")
         pass
 
     def quit(self):
@@ -86,7 +86,7 @@ class ListenRequestHandler(object):
         a new listener until at least that amount of time has elapsed.
         
         """
-        if self.verbose: print "listener: quit() --"
+        if self.verbose: print("listener: quit() --")
         #
         # I would like to call sys.exit() directly here, but an XMLRPC call 
         # has to return, otherwise xmlrpclib raises an error. So instead I set
@@ -107,9 +107,9 @@ class MyXmlRpcServer(SimpleXMLRPCServer):
     def serve_until_quit(self):
         self.quit = False
         while not self.quit:
-            print "MyXmlRpcServer: handling next request"
+            print("MyXmlRpcServer: handling next request")
             self.handle_request()
-        print "MyXmlRpcServer: self.quit set, exiting..."
+        print("MyXmlRpcServer: self.quit set, exiting...")
 
 
 
@@ -125,9 +125,9 @@ server.register_instance(rh)
 server.register_function(kill_server)
 server.register_function(adder_function, 'adder_function')
 
-print "listener is listening..."
+print("listener is listening...")
 server.serve_until_quit()
-print "listener is exiting."
+print("listener is exiting.")
 
    
 

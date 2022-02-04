@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import xmlrpclib
-from SimpleXMLRPCServer import SimpleXMLRPCServer
+import xmlrpc.client
+from xmlrpc.server import SimpleXMLRPCServer
 
 
 # Create server
@@ -19,15 +19,15 @@ server.register_function(adder_function, 'add')
 class MyFuncs:
     
     def div(self, x, y):
-        print "test_simple_server: div() --"
+        print("test_simple_server: div() --")
         return x // y
     
     def add(self, x, y):
-        print "test_simple_server: add() --"
+        print("test_simple_server: add() --")
         return x + y
 
     def bump2(self, x, y):
-        print "test_simple_server: bump2() --"
+        print("test_simple_server: bump2() --")
         return x + 1, y+1
 
     def is_available(self):
@@ -37,17 +37,17 @@ class MyFuncs:
         To be called when the scanner is initializing the ICE program and
         wants to check if there is an XML-RPD server listening for it.
         """
-        print "test_simple_server: is_available() --"
+        print("test_simple_server: is_available() --")
         pass
 
 server.register_instance(MyFuncs())
 
 # Run the server's main loop
 try:
-    print 'Use Control-C to exit'
+    print('Use Control-C to exit')
     server.serve_forever()
 
 except KeyboardInterrupt:
-    print 'Exiting'
+    print('Exiting')
 
 

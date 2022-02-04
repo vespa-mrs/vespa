@@ -1,6 +1,6 @@
-from __future__ import division
 
-import xmlrpclib
+
+import xmlrpc.client
 import socket
 
 
@@ -9,28 +9,28 @@ class TestConnection(object):
     def __init__(self):
         
         self.address = "http://127.0.0.1:8000"
-        self._server = xmlrpclib.ServerProxy(self.address)
+        self._server = xmlrpc.client.ServerProxy(self.address)
         
 
     def call_server_with_startup(self):
-        a = xmlrpclib.ServerProxy(self.address)
+        a = xmlrpc.client.ServerProxy(self.address)
         try:
             a._()   # Call a fictive method.
-        except xmlrpclib.Fault:
+        except xmlrpc.client.Fault:
             # connected to the server and the method doesn't exist which is expected.
             pass
         except socket.error:
             # Not connected ; socket error mean that the service is unreachable.
-            print "call_server_with_startup : connect failed"
+            print("call_server_with_startup : connect failed")
 
 
     def call_server_already_running(self):
         try:
             self._server._()
-        except xmlrpclib.Fault:
+        except xmlrpc.client.Fault:
             pass
         except socket.error:
-            print "call_server_already_running : connect failed"
+            print("call_server_already_running : connect failed")
 
     
 
