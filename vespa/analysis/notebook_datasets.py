@@ -14,7 +14,9 @@ import vespa.analysis.tab_dataset as tab_dataset
 import vespa.analysis.block_prep_fidsum as block_prep_fidsum
 import vespa.analysis.block_raw_probep as block_raw_probep
 import vespa.analysis.block_prep_wbnaa as block_prep_wbnaa
+import vespa.analysis.block_raw_edit as block_raw_edit
 import vespa.analysis.block_raw_cmrr_slaser as block_raw_cmrr_slaser
+import vespa.analysis.block_raw_edit as block_raw_edit
 import vespa.analysis.block_raw_edit_fidsum as block_raw_edit_fidsum
 import vespa.analysis.block_prep_timeseries as block_prep_timeseries
 
@@ -117,7 +119,8 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
         event will also fire.  event.GetPageCound()
 
         """
-        assoc_classes = (block_raw_edit_fidsum.BlockRawEditFidsum,
+        assoc_classes = (block_raw_edit.BlockRawEdit,
+                         block_raw_edit_fidsum.BlockRawEditFidsum,
                          block_raw_cmrr_slaser.BlockRawCmrrSlaser,
                          block_raw_probep.BlockRawProbep)
         
@@ -269,38 +272,18 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
         """
         Here is the list of object classes that we polling for associated tabs:
         
+          block_raw_edit.BlockRawEdit
           block_raw_edit_fidsum.BlockRawEditFidsum
           block_raw_cmrr_slaser.BlockRawCmrrSlaser  
         
         
         """
-        assoc_classes = (block_raw_edit_fidsum.BlockRawEditFidsum,
+        assoc_classes = (block_raw_edit.BlockRawEdit,
+                         block_raw_edit_fidsum.BlockRawEditFidsum,
                          block_raw_cmrr_slaser.BlockRawCmrrSlaser,
                          block_raw_probep.BlockRawProbep)
         tabs = []
         raw = dataset.blocks['raw']
-
-        # if isinstance(raw, block_raw_edit_fidsum.BlockRawEditFidsum):
-        #     ids = [raw.data_on.id, raw.data_off.id, raw.data_sum.id, raw.data_dif.id]
-        #     for label in list(self.top.datasets.keys()):
-        #         tab = self.get_tab_by_label(label)
-        #         if tab.dataset.id in ids and tab.dataset.id != dataset.id:
-        #             tabs.append(tab)
-        #
-        # elif isinstance(raw, block_raw_probep.BlockRawProbep):
-        #     ids = [raw.data_on.id, raw.data_off.id, raw.data_sum.id, raw.data_dif.id]
-        #     for label in list(self.top.datasets.keys()):
-        #         tab = self.get_tab_by_label(label)
-        #         if tab.dataset.id in ids and tab.dataset.id != dataset.id:
-        #             tabs.append(tab)
-        #
-        # elif isinstance(raw, block_raw_cmrr_slaser.BlockRawCmrrSlaser):
-        #     ids = [raw.data_coil_combine, raw.data_ecc1, raw.data_water1, raw.data_metab64, raw.data_ecc2, raw.data_water2]
-        #     ids = [item.id for item in ids if item is not None]
-        #     for label in list(self.top.datasets.keys()):
-        #         tab = self.get_tab_by_label(label)
-        #         if tab.dataset.id in ids and tab.dataset.id != dataset.id:
-        #             tabs.append(tab)
 
         if isinstance(raw, assoc_classes):
             ids = raw.get_associated_datasets()
@@ -643,6 +626,11 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
                     names.append("Probe%d.Metab" % count)
                 else:
                     names.append("Probe%d.Unknown" % count)
+
+        elif isinstance(dataset.blocks['raw'], block_raw_edit.BlockRawEdit):
+            base = "Edit%d." % count
+            names = [base+"On", base+"Off", base+"Sum", base+"Dif"]
+            count += 1
 
         elif isinstance(dataset.blocks['raw'], block_raw_edit_fidsum.BlockRawEditFidsum):
             base = "Edit%d." % count

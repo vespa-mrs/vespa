@@ -12,6 +12,7 @@ import vespa.analysis.constants as constants
 import vespa.analysis.block_raw as block_raw
 import vespa.analysis.block_raw_probep as block_raw_probep
 import vespa.analysis.block_raw_cmrr_slaser as block_raw_cmrr_slaser
+import vespa.analysis.block_raw_edit as block_raw_edit
 import vespa.analysis.block_raw_edit_fidsum as block_raw_edit_fidsum
 import vespa.analysis.block_prep_identity as block_prep_identity
 import vespa.analysis.block_prep_fidsum as block_prep_fidsum
@@ -158,6 +159,7 @@ _XML_TAG_TO_SLOT_CLASS_MAP = {
     "block_raw"                 : ("raw", block_raw.BlockRaw),
     "block_raw_probep"          : ("raw", block_raw_probep.BlockRawProbep),
     "block_raw_cmrr_slaser"     : ("raw", block_raw_cmrr_slaser.BlockRawCmrrSlaser),
+    "block_raw_edit"            : ("raw", block_raw_edit.BlockRawEdit),
     "block_raw_edit_fidsum"     : ("raw", block_raw_edit_fidsum.BlockRawEditFidsum),
     "block_prep_identity"       : ("prep", block_prep_identity.BlockPrepIdentity),
     "block_prep_fidsum"         : ("prep", block_prep_fidsum.BlockPrepFidsum),

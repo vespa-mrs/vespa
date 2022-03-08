@@ -480,3 +480,18 @@ class DataRawEditFidsum(DataRawFidsum):
         elif flavor == Deflate.DICTIONARY:
             return self.__dict__.copy()
 
+
+class DataRawEdit(DataRaw):
+    """ subclass that exists to differentiate summed raw from summed edit FID data """
+    XML_VERSION = "1.0.0"
+
+    def __init__(self, attributes=None, transform=None):
+        super().__init__(attributes=attributes, transform=transform)
+
+    def deflate(self, flavor=Deflate.ETREE, tag='', version=''):
+
+        if flavor == Deflate.ETREE:
+            return super().deflate(flavor, tag='raw_edit', version=self.XML_VERSION)
+        elif flavor == Deflate.DICTIONARY:
+            return self.__dict__.copy()
+

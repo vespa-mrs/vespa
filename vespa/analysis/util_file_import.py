@@ -191,6 +191,17 @@ STANDARD_CLASSES_LOFL = [
     'menu_item_text=VASF Sum FIDs (*.rsd/rsp)',
     'ini_file_name=import_vasf_fidsum',
 '[separator101]',
+'[import_siemens_dicom_cmrr_mpress]',
+    'path=vespa.analysis.fileio.dicom_siemens_cmrr_mpress',
+    'class_name=RawReaderDicomSiemensXaMpress',
+    'menu_item_text=SiemensXA DICOM CMRR MPress',
+    'ini_file_name=import_siemens_dicom_cmrr_mpress',
+'[import_siemens_dicom_cmrr_mpress_fidsum]',
+    'path=vespa.analysis.fileio.dicom_siemens_cmrr_mpress',
+    'class_name=RawReaderDicomSiemensFidsumXaMpress',
+    'menu_item_text=SiemensXA DICOM CMRR MPress Fidsum',
+    'ini_file_name=import_siemens_dicom_cmrr_mpress_fidsum',
+'[separator102]',
 ]
 
 
@@ -313,6 +324,8 @@ def get_datasets(reader, open_dataset=None):
             # these associate multiple files in the Raw block (e.g. On/Off/Sum/Dif for edited data)
             if raw_class == 'DataRawProbep':
                 d["raw"] = getattr(importlib.import_module('vespa.analysis.block_raw_probep'), 'BlockRawProbep')
+            elif raw_class == 'DataRawEdit':
+                d["raw"] = getattr(importlib.import_module('vespa.analysis.block_raw_edit'), 'BlockRawEdit')
             elif raw_class == 'DataRawEditFidsum':
                 d["raw"] = getattr(importlib.import_module('vespa.analysis.block_raw_edit_fidsum'), 'BlockRawEditFidsum')
             elif raw_class == 'DataRawCmrrSlaser':
@@ -345,6 +358,8 @@ def get_datasets(reader, open_dataset=None):
 
             # Edited SVS Object - four datasets, acquisition ON/OFF and calculated SUM/DIFF.
             if type(raws[0]).__name__ == 'DataRawEditFidsum':
+                dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1], datasets[2], datasets[3]])
+            if type(raws[0]).__name__ == 'DataRawEdit':
                 dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1], datasets[2], datasets[3]])
 
             # CMRR sLASER - 3 or 6 datasets:

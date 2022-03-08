@@ -16,7 +16,8 @@ import vespa.analysis.fileio.raw_reader as raw_reader
 import vespa.common.util.config as util_config
 import vespa.common.util.misc as util_misc
 from vespa.common.base_transform import transformation_matrix
-from vespa.common.mrs_data_raw import DataRaw, DataRawFidsum
+from vespa.common.mrs_data_raw import DataRawEdit, DataRawEditFidsum
+
 from vespa.common.constants import Deflate
 
 # need for inline processing - no wx
@@ -33,7 +34,7 @@ TAG_SOP_CLASS_UID = (0x0008, 0x0016)
 
 
 
-class RawReaderDicomSiemens(raw_reader.RawReader):
+class RawReaderDicomSiemensXaMpress(raw_reader.RawReader):
     """ Read a single Siemens DICOM file into an DataRaw object. """
 
     def __init__(self):
@@ -92,22 +93,95 @@ class RawReaderDicomSiemens(raw_reader.RawReader):
 
         d["data_source"] = filename
 
-        return [DataRaw(attributes=d),]
+        data = d['data']
+
+        dat_on  = data[0, :, :, :].copy()
+        dat_off = data[1, :, :, :].copy()
+        dat_sum = (dat_on+dat_off).copy()
+        dat_dif = (dat_on-dat_off).copy()
+
+        # Create a DataRawEditFidsum objects for the four different states
+        # of the data ON, OFF, SUM and DIFFERENCE.
+
+        d["data"] = dat_on
+        d["data_source"] = filename+'.EditON'
+        raw1 = DataRawEdit(attributes=d)
+
+        d["data"] = dat_off
+        d["data_source"] = filename+'.EditOFF'
+        raw2 = DataRawEdit(attributes=d)
+
+        d["data"] = dat_sum
+        d["data_source"] = filename+'.Sum'
+        raw3 = DataRawEdit(attributes=d)
+
+        d["data"] = dat_dif
+        d["data_source"] = filename+'.Diff'
+        raw4 = DataRawEdit(attributes=d)
+
+        return [raw1, raw2, raw3, raw4]
 
 
 
-
-class RawReaderDicomSiemensFidsum(RawReaderDicomSiemens):
+class RawReaderDicomSiemensFidsumXaMpress(RawReaderDicomSiemensXaMpress):
     """ Read multiple Siemens DICOMs file into a DataRawFidsum object """
 
     def __init__(self):
-        RawReaderDicomSiemens.__init__(self)
+        RawReaderDicomSiemensXaMpress.__init__(self)
 
     def read_raw(self, filename, ignore_data=False, *args, **kwargs):
-        """ base class read_raw() returns DataRaw, we convert to DataRawFidsum """
-        raw = super().read_raw(filename, ignore_data)[0]
-        raw = DataRawFidsum(raw.deflate(Deflate.DICTIONARY))
-        return [raw, ]
+        """
+        Given Siemens DICOM filename, return populated DataRawEditFidsum objects
+
+        The sop_class_uid flags if this is the older proprietary Siemens hack
+        format or the newer DICOM standard MR Spectroscopy Storage object.
+
+        Ignore data has no effect on this parser
+
+        """
+
+        # the .IMA format is a DICOM standard, but Siemens stores a lot of
+        # information inside a private and very complicated header with its own
+        # data storage format, we have to get that information out along with
+        # the data. we start by reading in the DICOM file completely
+        dataset = pydicom.dicomio.read_file(filename)
+
+        sop_class_uid = pydicom.uid.UID(str(dataset['SOPClassUID'].value.upper()))
+
+        if sop_class_uid.name == 'MR Spectroscopy Storage':
+            d = _get_parameters_dicom_sop(dataset)
+        else:
+            d = _get_parameters_siemens_proprietary(dataset)
+
+        d["data_source"] = filename
+
+        data = d['data']
+
+        dat_on = data[0, :, :, :].copy()
+        dat_off = data[1, :, :, :].copy()
+        dat_sum = (dat_on+dat_off).copy()
+        dat_dif = (dat_on-dat_off).copy()
+
+        # Create a DataRawEditFidsum objects for the four different states
+        # of the data ON, OFF, SUM and DIFFERENCE.
+
+        d["data"] = dat_on
+        d["data_source"] = filename+'.EditON'
+        raw1 = DataRawEditFidsum(d)
+
+        d["data"] = dat_off
+        d["data_source"] = filename+'.EditOFF'
+        raw2 = DataRawEditFidsum(d)
+
+        d["data"] = dat_sum
+        d["data_source"] = filename+'.Sum'
+        raw3 = DataRawEditFidsum(d)
+
+        d["data"] = dat_dif
+        d["data_source"] = filename+'.Diff'
+        raw4 = DataRawEditFidsum(d)
+
+        return [raw1, raw2, raw3, raw4]
 
 
 ####################    Internal functions start here     ###############
@@ -227,21 +301,28 @@ def _get_parameters_dicom_sop(dataset):
 
     """
     # get shape of the data (slices, rows, columns, fid_points)
-    section = dataset[0x5200,0x9229][0][0x0018,0x9103][0]
-    data_shape = (section["SpectroscopyAcquisitionOutOfPlanePhaseSteps"].value,
-                  section["SpectroscopyAcquisitionPhaseRows"].value,
-                  section["SpectroscopyAcquisitionPhaseColumns"].value,
-                  section["SpectroscopyAcquisitionDataColumns"].value, )
+    npts    = int(float(dataset[0x5200,0x9229][0][0x0018,0x9103][0]["SpectroscopyAcquisitionDataColumns"].value))
+    navg    = int(float(dataset[0x5200,0x9229][0][0x0018,0x9119][0]['NumberOfAverages'].value))
+    nframes = int(float(dataset[0x0028,0x0008].value))
+
+    # decide if we have summed spectra or indiv fids
+    navg = navg if navg == int(nframes/2) else int(nframes/2)
+    data_shape = 2, 1, navg, npts
 
     dataf =  convert_numbers(dataset['SpectroscopyData'].value, True, 'f') # (0x5600, 0x0020)
     data_iter = iter(dataf)
     data = [complex(r, i) for r, i in zip(data_iter, data_iter)]
     complex_data = np.fromiter(data, dtype=np.complex64)
     complex_data.shape = data_shape
-    complex_data = complex_data.conjugate()
+    #complex_data = complex_data.conjugate()        # different in XA30 bjs
 
     try:
-        iorient = dataset[0x5200,0x9229][0][0x0020,0x9116][0]['ImageOrientationPatient'].value
+        if (0x0020,0x9116) in list(dataset[0x5200,0x9229][0].keys()):
+            iorient = dataset[0x5200,0x9229][0][0x0020,0x9116][0]['ImageOrientationPatient'].value
+        elif (0x0020,0x9116) in list(dataset[0x5200,0x9230][0].keys()):
+            iorient = dataset[0x5200,0x9230][0][0x0020,0x9116][0]['ImageOrientationPatient'].value
+        else:
+            iorient = [-1, 0, 0, 0, 1, -0]
         row_vector    = np.array(iorient[0:3])
         col_vector    = np.array(iorient[3:6])
         voi_position  = dataset[0x5200,0x9230][0][0x0020,0x9113][0]['ImagePositionPatient'].value

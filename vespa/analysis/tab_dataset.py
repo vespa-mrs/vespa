@@ -11,6 +11,7 @@ import wx.lib.agw.aui as aui        # NB. wx.aui version throws odd wxWidgets ex
 import vespa.analysis.util_menu as util_menu
 import vespa.analysis.block_raw as block_raw
 import vespa.analysis.block_raw_probep as block_raw_probep
+import vespa.analysis.block_raw_edit as block_raw_edit
 import vespa.analysis.block_raw_edit_fidsum as block_raw_edit_fidsum
 import vespa.analysis.block_prep_fidsum as block_prep_fidsum
 import vespa.analysis.block_prep_timeseries as block_prep_timeseries
@@ -124,6 +125,7 @@ class TabDataset(dataset_module.DatasetUI):
 
                 if isinstance(block, block_raw.BlockRaw) or \
                    isinstance(block, block_raw_probep.BlockRawProbep) or \
+                   isinstance(block, block_raw_edit.BlockRawEdit) or \
                    isinstance(block, block_raw_edit_fidsum.BlockRawEditFidsum):
                     tab = tab_raw.TabRaw(self, self.top, block)
                     self._tabs["raw"] = tab

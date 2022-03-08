@@ -1118,7 +1118,7 @@ class SiemensMrsBrowser(DialogDicomBrowser):
             if 'Manufacturer' in dataset:
                 for item in self.manufacturer:
                     # we only handle manufacturers in this list
-                    if dataset.Manufacturer.upper() in item:
+                    if item in dataset.Manufacturer.upper() :
                         test = True
             if not test:
                 return False
@@ -1130,7 +1130,7 @@ class SiemensMrsBrowser(DialogDicomBrowser):
                 # this is the condition for Spectroscopy Browser
                 return False
             elif sop_class_uid.name == 'MR Spectroscopy Storage':
-                # this is the UID value for Siemens VD files
+                # this is the UID value for Siemens VD and XA files
                 return True
             elif sop_class_uid.name == str(item_uid):
                 # In software versions VA, VB (maybe others, but not VD), Siemens uses a proprietary
