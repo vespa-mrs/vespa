@@ -1,34 +1,45 @@
 #!/usr/bin/env python
+'''
+Numpy marshalling of array -> str -> array for xmlrpc call based on Rob Kern example at:
+http://numpy-discussion.10968.n7.nabble.com/xml-rpc-with-numpy-arrays-td15129.html
 
+On the client side we have this code, where s is the server obj:
+
+    img_str = s.get_fake_result_512(1)    # 1 returns zeros
+    f = io.StringIO(img_str)
+    img_arr = nplib.format.read_array(f)
+
+'''
 # Python imports
-from __future__ import division
-
 import os
 import sys
 import zlib
 import base64
 import xdrlib
-import xmlrpclib
+import xmlrpc.client
 import struct
 import itertools
-import cStringIO
+import io
 import platform
 
+# Third party imports
 import matplotlib as mpl
 mpl.use('Agg')
 
 import numpy as np
+import numpy.lib as nplib
 
-import vespa.analysis.src.block_prep_fidsum as block_prep_fidsum
-import vespa.analysis.src.mrs_dataset as mrs_dataset
-import vespa.analysis.src.util_import as util_import
-import vespa.analysis.src.figure_layouts as figure_layouts
-import vespa.common.mrs_data_raw_fidsum as mrs_data_raw_fidsum
+# Our imports
+import vespa.analysis.block_prep_fidsum as block_prep_fidsum
+import vespa.analysis.mrs_dataset as mrs_dataset
+import vespa.analysis.util_import as util_import
+import vespa.analysis.figure_layouts as figure_layouts
+import vespa.common.mrs_data_raw as mrs_data_raw
 import vespa.common.util.export as util_export
 import vespa.common.constants as constants
 
 
-from SimpleXMLRPCServer import SimpleXMLRPCServer
+from xmlrpc.server import SimpleXMLRPCServer
 #from test1_encoded import test1
 
 # RAWDATA_SCALE is based on ICE_RAWDATA_SCALE in SpecRoFtFunctor.cpp
@@ -66,12 +77,12 @@ class ListenRequestHandler(object):
 
     def div(self, x, y):
         """A minimalist method for testing - div()."""
-        if self.verbose: print "test_xmlrpc_server: div() --"
+        if self.verbose: print("test_xmlrpc_server: div() --")
         return x // y
     
     def add(self, x, y):
         """A minimalist method for testing - add()."""
-        if self.verbose: print "test_xmlrpc_server: add() --"
+        if self.verbose: print("test_xmlrpc_server: add() --")
         return x + y
 
     def bump2(self, x, y):
@@ -82,7 +93,7 @@ class ListenRequestHandler(object):
         to parse a known return value set.
          
         '''
-        if self.verbose: print "test_xmlrpc_server: bump2() --"
+        if self.verbose: print("test_xmlrpc_server: bump2() --")
         return x+1, y+1
 
     def is_available(self):
@@ -92,7 +103,7 @@ class ListenRequestHandler(object):
         To be called when the scanner is initializing the ICE program and
         wants to check if there is an XML-RPD server listening for it.
         """
-        if self.verbose: print "test_simple_server: is_available() --"
+        if self.verbose: print("test_simple_server: is_available() --")
         pass
 
     def quit(self):
@@ -104,7 +115,7 @@ class ListenRequestHandler(object):
         a new listener until at least that amount of time has elapsed.
         
         """
-        if self.verbose: print "listener: quit() --"
+        if self.verbose: print("listener: quit() --")
         #
         # I would like to call sys.exit() directly here, but an XMLRPC call 
         # has to return, otherwise xmlrpclib raises an error. So instead I set
@@ -115,7 +126,7 @@ class ListenRequestHandler(object):
         return _EXIT_TIMER_DELAY
 
 
-    def get_fake_result(self, x):
+    def get_fake_result_512(self, x):
         """
         The fake data is an encoded string previously saved of an RGB file
         screenshot of a Vespa-Analysis results layout. We wrap it in and
@@ -128,20 +139,26 @@ class ListenRequestHandler(object):
             data = base64.b64decode(test1)
             data = zlib.decompress(data)
             p = xdrlib.Unpacker(data)
-            data = p.unpack_farray(len(data) // 4, p.unpack_int)     # 4 since we expect INT32 here 
+            data = p.unpack_farray(len(data) // 4, p.unpack_int)     # 4 since we expect INT32 here
+            data = np.array(data)
         else:
-            data = [0,] * (512*512*3)
+            data = np.zeros([512*512*3,],dtype=np.int32)
+
+        # now convert the numpy array of ints to a string, which Binary requires
+        f = io.StringIO()
+        nplib.format.write_array(f, arr)
+        data = f.getvalue()
+
+        # # now convert the list of ints to a string, which Binary requires
+        # data = "".join(map(chr, data))
         
-        # now convert the list of ints to a string, which Binary requires
-        data = "".join(map(chr, data))      
-        
-        val = xmlrpclib.Binary(data)
+        val = xmlrpc.client.Binary(data)
         return val
 
 
     def vespa_process(self, ncol, ncha, nave, os_remove, nleft, nright, os_factor, dwell, freq, delta, seqte, nucstr, seqstr, tapstr, data64):
 
-        if self.verbose: print "currently running: vespa_process() --"
+        if self.verbose: print("currently running: vespa_process() --")
 
         if platform.system() == 'Windows':
             #presetfile  = "C:/bsoher/code/xmlrpc_server_vespa/preset_svs_se_water_v1.xml"
@@ -149,7 +166,7 @@ class ListenRequestHandler(object):
             presetfile   = "C:/bsoher/code/xmlrpc_server_vespa/preset_svs_se_brian_v1.xml"
             out_filename = "C:/bsoher/code/xmlrpc_server_vespa/ice_dataset_out_8.xml"
             
-            print 'seqstr = '+str(seqstr)
+            print('seqstr = '+str(seqstr))
             
             if seqstr == 'svs_seF':
                 out_rgb_fname = "C:/bsoher/code/xmlrpc_server_vespa/debug_last_run_seq_svs_seF.bin"
@@ -173,21 +190,21 @@ class ListenRequestHandler(object):
             count  = 2 * ncol * ncha * nave
             fmt = '<%d%s' % (count, 'f')
             
-            data1 = cStringIO.StringIO(data64.data)
+            data1 = io.StringIO(data64.data)
             data2 = data1.read(struct.calcsize(fmt))
             data3 = struct.unpack(fmt, data2)
             
             data_iter = iter(data3)
-            data4 = [complex(r, i) for r, i in itertools.izip(data_iter, data_iter)]
-            print 'count, len(data4) = ', count, len(data4)
+            data4 = [complex(r, i) for r, i in zip(data_iter, data_iter)]
+            print('count, len(data4) = ', count, len(data4))
             
             data5 = np.array(data4)
             data5.shape = nave, ncha, ncol      # acquisition order
             
             ncol0 = 1<<((ncol-1).bit_length()-1) # ensure power of 2
             
-        except Exception, e:
-            print str(e)
+        except Exception as e:
+            print(str(e))
 
         # Set up header info ----------------------------------------
 
@@ -198,13 +215,13 @@ class ListenRequestHandler(object):
         d["readout_os"]     = float(os_factor)
         d["sequence_type"]  = seqstr
         d["frequency"]      = float(freq)
-        d["dims"]           = mrs_data_raw_fidsum.DataRawFidsum.DEFAULT_DIMS
+        d["dims"]           = mrs_data_raw.DataRawFidsum.DEFAULT_DIMS
         d["dims"][0]        = int(ncol0/d["readout_os"]) 
         d["dims"][1]        = int(nave)
         d["dims"][2]        = int(ncha)
         d["dims"][3]        = 1 
         d["seqte"]          = float(seqte)     # comes in as msec
-        print 'seqte = ', seqte
+        print('seqte = ', seqte)
         d["start_point"]    = nleft
         d["nucleus"]        = nucstr
         if nucstr == '1H':
@@ -244,7 +261,7 @@ class ListenRequestHandler(object):
         
         d["data"] = dat
         d["data_source"] = "XmlRpc Server Ice Vespa - vespa_process()"
-        raw = mrs_data_raw_fidsum.DataRawFidsum(d)
+        raw = mrs_data_raw.DataRawFidsum(d)
 
         dataset = _import_siemens_ice([raw,], open_dataset=None)
         dataset = dataset[0]
@@ -275,19 +292,19 @@ class ListenRequestHandler(object):
         
         
         # convert string to byte arry and write to a debug file
-        print "Saving degug RGB file to - " + str(out_rgb_fname)
+        print("Saving degug RGB file to - " + str(out_rgb_fname))
         cbuf = np.fromstring(buf1, dtype=np.uint8)
         cbuf.tofile(out_rgb_fname)
 
         
-        print 'buf1 = fig.canvas.tostring_rgb()  - len() = ', len(buf1)
-        buf2 = xmlrpclib.Binary(buf1)
+        print('buf1 = fig.canvas.tostring_rgb()  - len() = ', len(buf1))
+        buf2 = xmlrpc.client.Binary(buf1)
 
         dataset.dataset_filename = out_filename
     
         util_export.export(out_filename, [dataset], None, None, False)
         
-        print 'finished vespa_process()'
+        print('finished vespa_process()')
             
         return buf2   
 
@@ -299,16 +316,16 @@ def _process_all_blocks(dataset):
     
     try:
         voxel = dataset.all_voxels
-        for key in dataset.blocks.keys():
+        for key in list(dataset.blocks.keys()):
             if key == 'spectral':
                 key = 'spectral'
                 block = dataset.blocks[key]
                 tmp = block.chain.run(voxel, entry='all')
                 chain_outputs[key] = tmp
                 
-                print 'block._svd_outputs = ', block.get_svd_output([0,0,0])
+                print('block._svd_outputs = ', block.get_svd_output([0,0,0]))
                 
-                if 'fit' in dataset.blocks.keys():
+                if 'fit' in list(dataset.blocks.keys()):
                     key = 'fit'
                     block = dataset.blocks[key]
                     block.chain.run(voxel, entry='initial_only')
@@ -321,8 +338,8 @@ def _process_all_blocks(dataset):
                 block = dataset.blocks[key]
                 tmp = block.chain.run(voxel, entry='all')
                 chain_outputs[key] = tmp
-    except Exception, e:
-        print str(e) 
+    except Exception as e:
+        print(str(e)) 
         
 
     return chain_outputs
@@ -334,9 +351,9 @@ def _import_preset(presetfile):
         msg = ""
         try:
             importer = util_import.DatasetImporter(presetfile)
-        except Exception, e:
+        except Exception as e:
             msg = str(e)
-            print str(e) 
+            print(str(e)) 
         
 #         except IOError:
 #             msg = """I can't read the preset file "%s".""" % presetfile
@@ -344,7 +361,7 @@ def _import_preset(presetfile):
 #             msg = """The preset file "%s" isn't valid Vespa Interchange File Format.""" % presetfile
 
         if msg:
-            print msg
+            print(msg)
         else:
             # Time to rock and roll!
             presets = importer.go()
@@ -352,8 +369,8 @@ def _import_preset(presetfile):
             
             return preset
 
-    except Exception, e:
-        print str(e) 
+    except Exception as e:
+        print(str(e)) 
             
     
 def _import_siemens_ice(raws, open_dataset=None):
@@ -381,12 +398,12 @@ def _import_siemens_ice(raws, open_dataset=None):
     block_class_specs = []
     for raw in raws:
         d = { }
-        if isinstance(raw, mrs_data_raw_fidsum.DataRawFidsum):
+        if isinstance(raw, mrs_data_raw.DataRawFidsum):
             d["prep"] = block_prep_fidsum.BlockPrepFidsum
         block_class_specs.append(d)
 
     f = lambda raw, block_classes: mrs_dataset.dataset_from_raw(raw, block_classes, zero_fill_multiplier)
-    datasets = map(f, raws, block_class_specs)
+    datasets = list(map(f, raws, block_class_specs))
 
     if datasets:
 
@@ -408,9 +425,9 @@ class MyXmlRpcServer(SimpleXMLRPCServer):
     def serve_until_quit(self):
         self.quit = False
         while not self.quit:
-            print "MyXmlRpcServer: handling next request"
+            print("MyXmlRpcServer: handling next request")
             self.handle_request()
-        print "MyXmlRpcServer: self.quit set, exiting..."
+        print("MyXmlRpcServer: self.quit set, exiting...")
 
 
 
@@ -425,9 +442,9 @@ rh = ListenRequestHandler(kill_server, verbose=True)
 server.register_instance(rh)
 server.register_function(kill_server)
 
-print "listener is listening..."
+print("listener is listening...")
 server.serve_until_quit()
-print "listener is exiting."
+print("listener is exiting.")
 
    
 

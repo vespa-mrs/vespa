@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
-import xmlrpclib
+import xmlrpc.client
 
-s = xmlrpclib.ServerProxy('http://127.0.0.1:8080')
+s = xmlrpc.client.ServerProxy('http://127.0.0.1:8080')
 
-print 'bump2 - ', s.bump2(2,3)  # Returns [3,4]
-print 'add  - ', s.add(2,3)  # Returns 5
-print 'div   - ', s.div(5,2)  # Returns 5//2 = 2
-#print 'adder_function  - ', s.adder_function(7,9)  # Returns 16
+print('bump2 - ', s.bump2(2,3))  # Returns [3,4]
+print('add  - ', s.add(2,3))  # Returns 5
+print('div   - ', s.div(5,2))  # Returns 5//2 = 2
+#print('adder_function  - ', s.adder_function(7,9))  # Returns 16
 # Print list of available methods
-print s.system.listMethods()
+print(s.system.listMethods())
 
-img = s.get_fake_result(1)      # 0-return fake data, 1-return all zeros
+#img = s.get_fake_result(1)      # 0-return fake data, 1-return all zeros
 
 
 bob = 10

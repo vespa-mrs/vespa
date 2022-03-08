@@ -1,5 +1,5 @@
-from __future__ import division
-from __future__ import unicode_literals
+
+
 
 import sys
 import os
@@ -34,7 +34,7 @@ def read_fake_bitmap(fname='test1.bin'):
             bitmap.append(ord(item))    
     except:
         e = "bitmap error" + sys.exc_info()[0]
-        print "======> bjs sample.py      python got here 3 - except = "+str(e)
+        print("======> bjs sample.py      python got here 3 - except = "+str(e))
 
     return bitmap
 
@@ -86,9 +86,9 @@ if __name__ == '__main__':
     bitmap3 = decode_fake_bitmap(test1_encoded.test1)
     
     if bitmap2 == bitmap0:
-        print 'bitmap2 == bitmap0'
+        print('bitmap2 == bitmap0')
     if bitmap3 == bitmap0:
-        print 'bitmap3 == bitmap0'
+        print('bitmap3 == bitmap0')
     
     bob = 10
     bob += 1

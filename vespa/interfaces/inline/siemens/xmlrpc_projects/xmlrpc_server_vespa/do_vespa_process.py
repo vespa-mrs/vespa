@@ -15,17 +15,17 @@ This is the Python 2 version of this code
 '''
 
 # Python imports
-from __future__ import division
+
 
 import os
 import sys
 import zlib
 import base64
 import xdrlib
-import xmlrpclib
+import xmlrpc.client
 import struct
 import itertools
-import cStringIO
+import io
 import platform
 
 import matplotlib as mpl
@@ -49,12 +49,12 @@ RAWDATA_SCALE = 131072.0 * 256.0
 
 def vespa_process():
 
-    print "currently running: vespa_process() --"
+    print("currently running: vespa_process() --")
 
     try:
 
         # debug default value
-        seqstr = 'svs_seF':
+        seqstr = 'svs_seF'
 
         if  platform.system() == 'Windows':
             fname        = "C:/bsoher/code/xmlrpc_server_vespa/data5_saved.npy"
@@ -82,8 +82,8 @@ def vespa_process():
 
         data5 = np.load(fname)
 
-    except Exception, e:
-        print str(e)
+    except Exception as e:
+        print(str(e))
         return
 
     ncol = 4096
@@ -116,7 +116,7 @@ def vespa_process():
     d["dims"][2]        = int(ncha)
     d["dims"][3]        = 1 
     d["seqte"]          = float(seqte)     # comes in as msec
-    print 'seqte = ', seqte
+    print('seqte = ', seqte)
     d["start_point"]    = 0
     d["nucleus"]        = nucstr
     if nucstr == '1H':
@@ -182,14 +182,14 @@ def vespa_process():
                     debug=False)
 
     buf1 = fig.canvas.tostring_rgb()
-    print 'buf1 = fig.canvas.tostring_rgb()  - len() = ', len(buf1)
+    print('buf1 = fig.canvas.tostring_rgb()  - len() = ', len(buf1))
 
     # convert string to byte arry and write to a debug file
-    print "Saving degug RGB file to - " + str(out_rgb_fname)
+    print("Saving degug RGB file to - " + str(out_rgb_fname))
     cbuf = np.fromstring(buf1, dtype=np.uint8)
     cbuf.tofile(out_rgb_fname)
 
-    buf2 = xmlrpclib.Binary(buf1)
+    buf2 = xmlrpc.client.Binary(buf1)
 
     
     
@@ -197,7 +197,7 @@ def vespa_process():
 
     util_export.export(out_filename, [dataset], None, None, False)
 
-    print 'finished vespa_process()'
+    print('finished vespa_process()')
     
     
     
@@ -208,16 +208,16 @@ def _process_all_blocks(dataset):
     
     try:
         voxel = dataset.all_voxels
-        for key in dataset.blocks.keys():
+        for key in list(dataset.blocks.keys()):
             if key == 'spectral':
                 key = 'spectral'
                 block = dataset.blocks[key]
                 tmp = block.chain.run(voxel, entry='all')
                 chain_outputs[key] = tmp
                 
-                print 'block._svd_outputs = ', block.get_svd_output([0,0,0])
+                print('block._svd_outputs = ', block.get_svd_output([0,0,0]))
                 
-                if 'fit' in dataset.blocks.keys():
+                if 'fit' in list(dataset.blocks.keys()):
                     key = 'fit'
                     block = dataset.blocks[key]
                     block.chain.run(voxel, entry='initial_only')
@@ -230,8 +230,8 @@ def _process_all_blocks(dataset):
                 block = dataset.blocks[key]
                 tmp = block.chain.run(voxel, entry='all')
                 chain_outputs[key] = tmp
-    except Exception, e:
-        print str(e) 
+    except Exception as e:
+        print(str(e)) 
         
 
     return chain_outputs
@@ -243,9 +243,9 @@ def _import_preset(presetfile):
         msg = ""
         try:
             importer = util_import.DatasetImporter(presetfile)
-        except Exception, e:
+        except Exception as e:
             msg = str(e)
-            print str(e) 
+            print(str(e)) 
         
 #         except IOError:
 #             msg = """I can't read the preset file "%s".""" % presetfile
@@ -253,7 +253,7 @@ def _import_preset(presetfile):
 #             msg = """The preset file "%s" isn't valid Vespa Interchange File Format.""" % presetfile
 
         if msg:
-            print msg
+            print(msg)
         else:
             # Time to rock and roll!
             presets = importer.go()
@@ -261,8 +261,8 @@ def _import_preset(presetfile):
             
             return preset
 
-    except Exception, e:
-        print str(e) 
+    except Exception as e:
+        print(str(e)) 
             
     
 def _import_siemens_ice(raws, open_dataset=None):
@@ -295,7 +295,7 @@ def _import_siemens_ice(raws, open_dataset=None):
         block_class_specs.append(d)
 
     f = lambda raw, block_classes: mrs_dataset.dataset_from_raw(raw, block_classes, zero_fill_multiplier)
-    datasets = map(f, raws, block_class_specs)
+    datasets = list(map(f, raws, block_class_specs))
 
     if datasets:
 
@@ -305,7 +305,7 @@ def _import_siemens_ice(raws, open_dataset=None):
         return datasets[0], open_dataset
     
     else:
-        return None, open_dataset    
+        return None, open_dataset     
     
     
 #------------------------------------------------------------------------------
