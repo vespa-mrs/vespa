@@ -269,6 +269,14 @@ class TwixScanHeader(object):
         """
         return bool(self.test_eval_info_by_label("MDH_ACQEND"))
 
+    @property
+    def is_first_acquisition(self):
+        """
+        Returns True if this scan is the first acquisition (which means it
+        contains FID), False otherwise.
+
+        """
+        return bool(self.test_eval_info_by_label("MDH_FIRSTSCANINSLICE"))
 
     @property
     def clock_time(self):
@@ -784,7 +792,8 @@ class TwixMeasurement(object):
         # Read the scans one by one until we hit the last (which should be flagged)
         # or run off the end of the file.
         scans = []
-        more_scans = True
+        more_scans = True       # if last scan, it has not data so don't save
+        save_scans = False      # don't save until 'MDH_FIRSTSCANINSLICE' flag is seen
         index = 0
         while more_scans:
             scan = TwixScan()
@@ -793,7 +802,11 @@ class TwixMeasurement(object):
 
             if scan.scan_header.is_last_acquisition:
                 more_scans = False
-            else:
+            if scan.scan_header.is_first_acquisition:
+                # begin saving scans
+                save_scans = True
+
+            if save_scans and more_scans:
                 scans.append(scan)
 
                 # PS - I'm not sure if this is necessary. In the samples I have,
@@ -802,14 +815,14 @@ class TwixMeasurement(object):
                 if (infile.tell() - measurement_start) >= measurement_length:
                     more_scans = False
 
-            index += 1
+                index += 1
 
         self.scans = scans
         self.evps  = evps
         self.free_parameters = self.get_free_parameters()
         self.ice_parameters = self.get_ice_parameters()
 
-        self.indices_list   = self.create_ice_indices()
+        self.indices_list   = self.create_ice_indices()   # bjs TODO still out of sync with data array
         self.indices_unique = self.check_unique_indices()
         self.dims           = self.get_dims()
 

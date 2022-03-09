@@ -103,10 +103,13 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
         # MEAS.sSpecPara.lAutoRefScanMode [aushFreePara2 for VB] >1, water refs are saved
         # MEAS.sSpecPara.lAutoRefScanNo   [aushFreePara3 for VB] = number of scans acquired for ecc and water scaling references at start and end of protocol.
 
-        software = header['sProtConsistencyInfo.tBaselineString'].lower()
-        if   'n4_vb' in software: software_version = 'vb'
-        elif 'n4_vd' in software: software_version = 'vd'
-        elif 'n4_ve' in software: software_version = 've'
+        if 'sProtConsistencyInfo.tBaselineString' not in list(header.keys()):
+            software_version = 'xx'
+        else:
+            software = header['sProtConsistencyInfo.tBaselineString'].lower()
+            if   'n4_vb' in software: software_version = 'vb'
+            elif 'n4_vd' in software: software_version = 'vd'
+            elif 'n4_ve' in software: software_version = 've'
 
         wiplong, wipdouble = self._get_xprot_wipvars(evps[2][1])
 
