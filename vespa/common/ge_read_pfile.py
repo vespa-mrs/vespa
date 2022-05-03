@@ -115,13 +115,17 @@ class Pfile(object):
                 return False
         else:
             offset = self.hdr.rhr_rdb_hdr_off_data
-            if ( offset == 61464  or        # bjs from matlap script for ver = 9 
-                 offset == 66072  or 
-                 offset == 145908 or 
-                 offset == 149788 or
-                 offset == 150336 or
-                 offset == 157276 or        # v24 empirical
-                 offset == 213684 ):        # v26 empirical
+            if offset in [
+              61464,   # bjs from matlap script for ver = 9 
+              66072,
+              145908,
+              149788,
+              150336,
+              157276,  # v24 empirical
+              213684,  # 26.002
+              219828,  # 27.000
+              228020   # 28.003
+              ]:
                 return True
             else:
                 return False
@@ -195,7 +199,7 @@ class Pfile(object):
         filelike = open(self.file_name, 'rb')
 
         # determine version number of this header from revision of rdbm.h
-        version = self._major_version(filelike)
+        version = self._version(filelike)
         if version == 0:
             raise UnknownPfile("Pfile not supported for version %s" % version)    
   
@@ -213,7 +217,7 @@ class Pfile(object):
         # created once dynamically, but afterwards would stick around and
         # could not then be changed. 
         
-        if version < 11:  # data taken on SGI - big endian
+        if self.endian == 'big':
             class PfileHeaderBig(BigEndianStructure):
                 """
                 Contains the ctypes Structure for a GE P-file rdb header.
@@ -261,7 +265,7 @@ class Pfile(object):
         
         
 
-    def _major_version(self, filelike):
+    def _version(self, filelike):
         """
         Get the rdbm.h revision number from first 4 bytes. Then map the rdbm 
         revision to a platform number (e.g. 11.x, 12.x, etc.)
@@ -274,37 +278,45 @@ class Pfile(object):
         filelike.seek(0)
         filelike.readinto(rev_big)
         
-        rev_little = rev_little.major
-        rev_big    = rev_big.major
+        rev_little = rev_little.revision
+        rev_big    = rev_big.revision
         
-        version = 0
+        known_revisions = [
+            7,      8,      9,      10,     11,
+            14.0,   14.1,   14.2,
+            15.000, 15.001, 16.000,
+            20.001, 20.002, 20.003, 20.004, 20.005, 20.006, 20.007,
+            24.000,
+            25.001, 25.002, 25.003, 25.004,
+            26.000, 26.001, 26.002,
+            27.000, 27.001,
+            28.000, 28.002, 28.003 ];
 
-        if (rev_little > 6.95 and rev_little < 8.0) or (rev_big > 6.95 and rev_big < 8.0):
-            version = 9.0; 
-        elif ( rev_little == 9.0  or rev_big == 9.0  ): 
-            version = 11.0;
-        elif ( rev_little == 11.0 or rev_big == 11.0 ): 
-            version = 12.0;
-        elif ( rev_little == 14 or rev_big == 14 ): 
-            version = 14.0;
-        elif ( rev_little == 15 or rev_big == 15 ): 
-            version = 15.0;
-        elif ( rev_little == 16 or rev_big == 16 ): 
-            version = 16.0;
-        elif ( rev_little == 20 or rev_big == 20 ): 
-            version = 20.0;
-        elif ( rev_little == 21 or rev_big == 21 ): 
-            version = 21.0;
-        elif ( rev_little == 23 or rev_big == 23 ): 
-            version = 21.0;
-        elif ( rev_little == 24 or rev_big == 24 ): 
-            version = 24.0;
-        elif ( rev_little == 26 or rev_big == 26 ): 
-            version = 26.0;
+        print(rev_little)
+        print(rev_big)
+        if any(np.isclose(rev_little,known_revisions)):
+            # little-endian: most reasonably recent implementations
+            self.endian = 'little'
+            version = rev_little;
+        elif any(np.isclose(rev_big,known_revisions)) and rev_big < 11:
+            # certain earlier revisions on SGI, big-endian
+            self.endian = 'big'
+            version = rev_big;
         else:
             raise UnknownPfile("Unknown header structure for revision %s" % rev_little)
 
-        return version; 
+        return version
+
+    def _major_version(self, filelike):
+        """
+        Get the rdbm.h revision number from first 4 bytes. Then map the rdbm
+        revision to a platform number (e.g. 11.x, 12.x, etc.)
+
+        """
+
+        version = self._version(filelike)
+
+        return int(np.trunc(version))
 
 
     def dump_header_strarr(self):
@@ -1148,7 +1160,9 @@ def get_pfile_hdr_fields(version):
     """
     plist = []
 
-    if version == 9:
+    version_major=int(np.trunc(version))
+
+    if version_major in [7, 8]:
         plist.append( ('rhr_rh_rdbm_rev',          c_float) )
         plist.append( ('pad_xx',                   c_char * 12) )
         plist.append( ('rhr_rh_scan_date',         c_char * 10) )
@@ -1365,7 +1379,7 @@ def get_pfile_hdr_fields(version):
         plist.append( ('rhi_user47',               c_float) )
         plist.append( ('rhi_user48',               c_float) )
 
-    elif version == 11:
+    elif version_major == 9:
         plist.append( ('rhr_rh_rdbm_rev',          c_float) )
         plist.append( ('pad_xx',                   c_char * 12) )
         plist.append( ('rhr_rh_scan_date',         c_char * 10) )
@@ -1583,7 +1597,7 @@ def get_pfile_hdr_fields(version):
         plist.append( ('rhi_user47',               c_float) )
         plist.append( ('rhi_user48',               c_float) )
 
-    elif version == 12:
+    elif version_major in [11, 12]:
         plist.append( ('rhr_rh_rdbm_rev',          c_float) )
         plist.append( ('pad_xx',                   c_char * 12) )
         plist.append( ('rhr_rh_scan_date',         c_char * 10) )
@@ -1807,7 +1821,7 @@ def get_pfile_hdr_fields(version):
         plist.append( ('pad_xx',                   c_char * 51) )
         plist.append( ('rhi_image_uid',            c_char * 32) )
 
-    elif version == 14:
+    elif version_major == 14:
         plist.append( ('rhr_rh_rdbm_rev',          c_float) )
         plist.append( ('pad_xx',                   c_char * 12) )
         plist.append( ('rhr_rh_scan_date',         c_char * 10) )
@@ -2031,7 +2045,7 @@ def get_pfile_hdr_fields(version):
         plist.append( ('pad_xx',                   c_char * 51) )
         plist.append( ('rhi_image_uid',            c_char * 32) )
 
-    elif version == 15:
+    elif version_major == 15:
         plist.append( ('rhr_rh_rdbm_rev',          c_float) )
         plist.append( ('pad_xx',                   c_char * 12) )
         plist.append( ('rhr_rh_scan_date',         c_char * 10) )
@@ -2255,7 +2269,7 @@ def get_pfile_hdr_fields(version):
         plist.append( ('pad_xx',                   c_char * 51) )
         plist.append( ('rhi_image_uid',            c_char * 32) )
 
-    elif version == 16:
+    elif version_major == 16:
         plist.append( ('rhr_rh_rdbm_rev',          c_float) )
         plist.append( ('pad_xx',                   c_char * 12) )
         plist.append( ('rhr_rh_scan_date',         c_char * 10) )
@@ -2479,7 +2493,7 @@ def get_pfile_hdr_fields(version):
         plist.append( ('pad_xx',                   c_char * 51) )
         plist.append( ('rhi_image_uid',            c_char * 32) )
 
-    elif version == 20:
+    elif version_major == 20:
         plist.append( ('rhr_rh_rdbm_rev',          c_float) )
         plist.append( ('pad_xx',                   c_char * 12) )
         plist.append( ('rhr_rh_scan_date',         c_char * 10) )
@@ -2700,7 +2714,7 @@ def get_pfile_hdr_fields(version):
         plist.append( ('pad_xx',                   c_char * 51) )
         plist.append( ('rhi_image_uid',            c_char * 32) )
 
-    elif version == 21:
+    elif version_major < 23: # 21, 22
         plist.append( ('rhr_rh_rdbm_rev',          c_float) )
         plist.append( ('pad_xx',                   c_char * 12) )
         plist.append( ('rhr_rh_scan_date',         c_char * 10) )
@@ -2921,7 +2935,7 @@ def get_pfile_hdr_fields(version):
         plist.append( ('pad_xx',                   c_char * 51) )
         plist.append( ('rhi_image_uid',            c_char * 32) )
 
-    elif version == 23:
+    elif version_major == 23:
         plist.append( ('rhr_rh_rdbm_rev',          c_float) )
         plist.append( ('pad_xx',                   c_char * 12) )
         plist.append( ('rhr_rh_scan_date',         c_char * 10) )
@@ -3142,7 +3156,7 @@ def get_pfile_hdr_fields(version):
         plist.append( ('pad_xx',                   c_char * 51) )
         plist.append( ('rhi_image_uid',            c_char * 32) )
 
-    elif version == 24:  # 25 and 25.1 same pfile
+    elif version_major in [24, 25]:  # 25 and 25.1 same pfile
         plist.append( ('rhr_rh_rdbm_rev',          c_float) )
         plist.append( ('pad_xx',                   c_char * 12) )
         plist.append( ('rhr_rh_scan_date',         c_char * 10) )
@@ -3363,7 +3377,7 @@ def get_pfile_hdr_fields(version):
         plist.append( ('pad_xx',                   c_char * 51) )
         plist.append( ('rhi_image_uid',            c_char * 32) )
 
-    elif version == 26:
+    elif version_major in [26,27,28]:
         plist.append( ('rhr_rh_rdbm_rev',           c_float) )
         plist.append( ('rhr_rdb_hdr_off_data',      c_int) )
         plist.append( ('pad_xx',                    c_char * 84) )
@@ -3376,7 +3390,10 @@ def get_pfile_hdr_fields(version):
         plist.append( ('pad_xx',                    c_char * 6) )
         plist.append( ('rhr_rh_npasses',            c_short) )
         plist.append( ('pad_xx',                    c_char * 2) )
-        plist.append( ('rhr_rh_nslices',            c_short) )
+        if version < 28.002:
+            plist.append(('rhr_rh_nslices',         c_short)) # uint16
+        else:
+            plist.append(('rhr_rh_nslices_deprecated', c_short))
         plist.append( ('pad_xx',                    c_char * 10) )
         plist.append( ('rhr_rh_frame_size',         c_short) )
         plist.append( ('rhr_rh_point_size',         c_short) )
@@ -3454,7 +3471,14 @@ def get_pfile_hdr_fields(version):
         plist.append( ('rhr_rh_user48',             c_float) )
         plist.append( ('pad_xx',                    c_char * 488) )
         plist.append( ('rhr_rh_raw_pass_size',      c_longlong) )
-        plist.append( ('pad_xx',                    c_char * 192684) )
+        if version < 28.002:
+            plist.append(('pad_xx',                 c_char * 192684) )
+        else:
+            plist.append(('pad_xx',                 c_char * 1652))
+            plist.append(('rhr_rh_nslices',         c_int)) # uint32
+            plist.append(('pad_xx',                 c_char * ( 192684 - 1652 - 4)))
+        if version > 27.0: # 27.001 +
+            plist.append(('pad_xx',                 c_char * 8192))
         plist.append( ('rhe_magstrength',           c_int) )
         plist.append( ('pad_xx',                    c_char * 4) )
         plist.append( ('rhe_ex_datetime',           c_int) )
@@ -3584,220 +3608,35 @@ def get_pfile_hdr_fields(version):
         plist.append( ('rhi_cname',                 c_char * 17) )
         plist.append( ('pad_xx',                    c_char * 51) )
         plist.append( ('rhi_image_uid',             c_char * 32) )
-
-
-
+    else:
+        raise UnknownPfile("Unfamiliar header revision: %0.3f" % (version,));
 
     return plist
         
-
-
-
-#        else if ( (int)(this->pfileVersion) == 26 ) {
-#
-#         offsets.assign (" \
-#             rhr.rh_rdbm_rev                    , FLOAT_4, 1   , 0,\
-#             rhr.rh_scan_date                   , CHAR   , 10  , 92,\
-#             rhr.rh_scan_time                   , CHAR   , 8   , 102,\
-#             rhr.rh_npasses                     , INT_2  , 1   , 140,\
-#             rhr.rh_nslices                     , UINT_2 , 1   , 144,\
-#             rhr.csi_dims                       , INT_2  , 1   , 436,\
-#             rhr.rh_dab[0].start_rcv            , INT_2  , 1   , 264,\
-#             rhr.rh_dab[0].stop_rcv             , INT_2  , 1   , 266,\
-#             rhr.rh_dab[1].start_rcv            , INT_2  , 1   , 268,\
-#             rhr.rh_dab[1].stop_rcv             , INT_2  , 1   , 270,\
-#             rhr.rh_dab[2].start_rcv            , INT_2  , 1   , 272,\
-#             rhr.rh_dab[2].stop_rcv             , INT_2  , 1   , 274,\
-#             rhr.rh_dab[3].start_rcv            , INT_2  , 1   , 276,\
-#             rhr.rh_dab[3].stop_rcv             , INT_2  , 1   , 278,\
-#             rhr.rh_data_collect_type           , INT_2  , 1   , 132,\
-#             rhr.rh_file_contents               , INT_2  , 1   , 120,\
-#             rhr.rdb_hdr_off_data               , INT_4  , 1   , 4,\
-#             rhr.rh_frame_size                  , UINT_2 , 1   , 156,\
-#             rhr.rh_point_size                  , INT_2  , 1   , 158,\
-#             rhr.rh_ps_mps_freq                 , UINT_4 , 1   , 488,\
-#             rhr.rh_user_usage_tag              , UINT_4 , 1   , 924,\
-#             rhr.roilenx                        , FLOAT_4, 1   , 444,\
-#             rhr.roileny                        , FLOAT_4, 1   , 448,\
-#             rhr.roilenz                        , FLOAT_4, 1   , 452,\
-#             rhr.spectral_width                 , FLOAT_4, 1   , 432,\
-#             rhr.xcsi                           , INT_2  , 1   , 438,\
-#             rhr.ycsi                           , INT_2  , 1   , 440,\
-#             rhr.zcsi                           , INT_2  , 1   , 442,\
-#             rhr.rh_logo                        , CHAR   , 10  , 110,\
-#             rhr.rh_raw_pass_size               , LINT_8 , 1   , 1540,\
-#             rhr.rh_user0                       , FLOAT_4, 1   , 280,\
-#             rhr.rh_user1                       , FLOAT_4, 1   , 284,\
-#             rhr.rh_user2                       , FLOAT_4, 1   , 288,\
-#             rhr.rh_user3                       , FLOAT_4, 1   , 292,\
-#             rhr.rh_user4                       , FLOAT_4, 1   , 296,\
-#             rhr.rh_user5                       , FLOAT_4, 1   , 300,\
-#             rhr.rh_user6                       , FLOAT_4, 1   , 304,\
-#             rhr.rh_user7                       , FLOAT_4, 1   , 308,\
-#             rhr.rh_user8                       , FLOAT_4, 1   , 312,\
-#             rhr.rh_user9                       , FLOAT_4, 1   , 316,\
-#             rhr.rh_user10                      , FLOAT_4, 1   , 320,\
-#             rhr.rh_user11                      , FLOAT_4, 1   , 324,\
-#             rhr.rh_user12                      , FLOAT_4, 1   , 328,\
-#             rhr.rh_user13                      , FLOAT_4, 1   , 332,\
-#             rhr.rh_user14                      , FLOAT_4, 1   , 336,\
-#             rhr.rh_user15                      , FLOAT_4, 1   , 340,\
-#             rhr.rh_user16                      , FLOAT_4, 1   , 344,\
-#             rhr.rh_user17                      , FLOAT_4, 1   , 348,\
-#             rhr.rh_user18                      , FLOAT_4, 1   , 352,\
-#             rhr.rh_user19                      , FLOAT_4, 1   , 356,\
-#             rhr.rh_user20                      , FLOAT_4, 1   , 936,\
-#             rhr.rh_user21                      , FLOAT_4, 1   , 940,\
-#             rhr.rh_user22                      , FLOAT_4, 1   , 944,\
-#             rhr.rh_user23                      , FLOAT_4, 1   , 948,\
-#             rhr.rh_user24                      , FLOAT_4, 1   , 952,\
-#             rhr.rh_user25                      , FLOAT_4, 1   , 956,\
-#             rhr.rh_user26                      , FLOAT_4, 1   , 960,\
-#             rhr.rh_user27                      , FLOAT_4, 1   , 964,\
-#             rhr.rh_user28                      , FLOAT_4, 1   , 968,\
-#             rhr.rh_user29                      , FLOAT_4, 1   , 972,\
-#             rhr.rh_user30                      , FLOAT_4, 1   , 976,\
-#             rhr.rh_user31                      , FLOAT_4, 1   , 980,\
-#             rhr.rh_user32                      , FLOAT_4, 1   , 984,\
-#             rhr.rh_user33                      , FLOAT_4, 1   , 988,\
-#             rhr.rh_user34                      , FLOAT_4, 1   , 992,\
-#             rhr.rh_user35                      , FLOAT_4, 1   , 996,\
-#             rhr.rh_user36                      , FLOAT_4, 1   , 1000,\
-#             rhr.rh_user37                      , FLOAT_4, 1   , 1004,\
-#             rhr.rh_user38                      , FLOAT_4, 1   , 1008,\
-#             rhr.rh_user39                      , FLOAT_4, 1   , 1012,\
-#             rhr.rh_user40                      , FLOAT_4, 1   , 1016,\
-#             rhr.rh_user41                      , FLOAT_4, 1   , 1020,\
-#             rhr.rh_user42                      , FLOAT_4, 1   , 1024,\
-#             rhr.rh_user43                      , FLOAT_4, 1   , 1028,\
-#             rhr.rh_user44                      , FLOAT_4, 1   , 1032,\
-#             rhr.rh_user45                      , FLOAT_4, 1   , 1036,\
-#             rhr.rh_user46                      , FLOAT_4, 1   , 1040,\
-#             rhr.rh_user47                      , FLOAT_4, 1   , 1044,\
-#             rhr.rh_user48                      , FLOAT_4, 1   , 1048,\
-#             rhi.psdname                        , CHAR   , 33  , 199812,\
-#             rhi.scanspacing                    , FLOAT_4, 1   , 198500,\
-#             rhi.te                             , INT_4  , 1   , 199244,\
-#             rhi.ti                             , INT_4  , 1   , 199240,\
-#             rhi.tr                             , INT_4  , 1   , 199236,\
-#             rhi.tlhc_A                         , FLOAT_4, 1   , 198904,\
-#             rhi.tlhc_R                         , FLOAT_4, 1   , 198900,\
-#             rhi.tlhc_S                         , FLOAT_4, 1   , 198908,\
-#             rhi.t                              , INT_4  , 1   , 199236,\
-#             rhi.trhc_A                         , FLOAT_4, 1   , 198916,\
-#             rhi.trhc_R                         , FLOAT_4, 1   , 198912,\
-#             rhi.trhc_S                         , FLOAT_4, 1   , 198920,\
-#             rhi.user0                          , FLOAT_4, 1   , 198536,\
-#             rhi.user1                          , FLOAT_4, 1   , 198540,\
-#             rhi.user2                          , FLOAT_4, 1   , 198544,\
-#             rhi.user3                          , FLOAT_4, 1   , 198548,\
-#             rhi.user4                          , FLOAT_4, 1   , 198552,\
-#             rhi.user5                          , FLOAT_4, 1   , 198556,\
-#             rhi.user6                          , FLOAT_4, 1   , 198560,\
-#             rhi.user7                          , FLOAT_4, 1   , 198564,\
-#             rhi.user8                          , FLOAT_4, 1   , 198568,\
-#             rhi.user9                          , FLOAT_4, 1   , 198572,\
-#             rhi.user10                         , FLOAT_4, 1   , 198576,\
-#             rhi.user11                         , FLOAT_4, 1   , 198580,\
-#             rhi.user12                         , FLOAT_4, 1   , 198584,\
-#             rhi.user13                         , FLOAT_4, 1   , 198588,\
-#             rhi.user14                         , FLOAT_4, 1   , 198592,\
-#             rhi.user15                         , FLOAT_4, 1   , 198596,\
-#             rhi.user16                         , FLOAT_4, 1   , 198600,\
-#             rhi.user17                         , FLOAT_4, 1   , 198604,\
-#             rhi.user18                         , FLOAT_4, 1   , 198608,\
-#             rhi.user19                         , FLOAT_4, 1   , 198612,\
-#             rhi.user20                         , FLOAT_4, 1   , 198616,\
-#             rhi.user21                         , FLOAT_4, 1   , 198620,\
-#             rhi.user22                         , FLOAT_4, 1   , 198624,\
-#             rhi.user23                         , FLOAT_4, 1   , 198636,\
-#             rhi.user24                         , FLOAT_4, 1   , 198640,\
-#             rhi.user25                         , FLOAT_4, 1   , 198704,\
-#             rhi.user26                         , FLOAT_4, 1   , 198708,\
-#             rhi.user27                         , FLOAT_4, 1   , 198712,\
-#             rhi.user28                         , FLOAT_4, 1   , 198716,\
-#             rhi.user29                         , FLOAT_4, 1   , 198720,\
-#             rhi.user30                         , FLOAT_4, 1   , 198724,\
-#             rhi.user31                         , FLOAT_4, 1   , 198728,\
-#             rhi.user32                         , FLOAT_4, 1   , 198732,\
-#             rhi.user33                         , FLOAT_4, 1   , 198736,\
-#             rhi.user34                         , FLOAT_4, 1   , 198740,\
-#             rhi.user35                         , FLOAT_4, 1   , 198744,\
-#             rhi.user36                         , FLOAT_4, 1   , 198748,\
-#             rhi.user37                         , FLOAT_4, 1   , 198752,\
-#             rhi.user38                         , FLOAT_4, 1   , 198756,\
-#             rhi.user39                         , FLOAT_4, 1   , 198760,\
-#             rhi.user40                         , FLOAT_4, 1   , 198764,\
-#             rhi.user41                         , FLOAT_4, 1   , 198768,\
-#             rhi.user42                         , FLOAT_4, 1   , 198772,\
-#             rhi.user43                         , FLOAT_4, 1   , 198776,\
-#             rhi.user44                         , FLOAT_4, 1   , 198780,\
-#             rhi.user45                         , FLOAT_4, 1   , 198784,\
-#             rhi.user46                         , FLOAT_4, 1   , 198788,\
-#             rhi.user47                         , FLOAT_4, 1   , 198792,\
-#             rhi.user48                         , FLOAT_4, 1   , 198796,\
-#             rhi.cname                          , CHAR   , 17  , 199929,\
-#             rhi.brhc_A                         , FLOAT_4, 1   , 198928,\
-#             rhi.brhc_R                         , FLOAT_4, 1   , 198924,\
-#             rhi.brhc_S                         , FLOAT_4, 1   , 198932,\
-#             rhi.ctr_A                          , FLOAT_4, 1   , 198880,\
-#             rhi.ctr_R                          , FLOAT_4, 1   , 198876,\
-#             rhi.ctr_S                          , FLOAT_4, 1   , 198884,\
-#             rhi.dfov                           , FLOAT_4, 1   , 198484,\
-#             rhi.freq_dir                       , INT_2  , 1   , 199680,\
-#             rhi.ctyp                           , INT_2  , 1   , 199614,\
-#             rhi.loc                            , FLOAT_4, 1   , 198504,\
-#             rhi.mr_flip                        , INT_2  , 1   , 199592,\
-#             rhi.nex                            , FLOAT_4, 1   , 198512,\
-#             rhi.numecho                        , INT_2  , 1   , 199558,\
-#             rhi.image_uid                      , UID    , 32  , 199997,\
-#             rhi.rawrunnum                      , INT_4  , 1   , 199288,\
-#             rhe.ex_datetime                    , INT_4  , 1   , 194240,\
-#             rhe.ex_no                          , UINT_2 , 1   , 194356,\
-#             rhe.magstrength                    , INT_4  , 1   , 194232,\
-#             rhe.patid                          , CHAR   , 65  , 195249,\
-#             rhe.patname                        , CHAR   , 65  , 195184,\
-#             rhe.refphy                         , CHAR   , 65  , 194717,\
-#             rhe.reqnum                         , CHAR   , 17  , 195314,\
-#             rhe.study_uid                      , UID    , 32  , 195088,\
-#             rhe.dateofbirth                    , CHAR   , 9   , 195331,\
-#             rhe.patsex                         , INT_2  , 1   , 194380,\
-#             rhe.hospname                       , CHAR   , 33  , 195011,\
-#             rhe.ex_sysid                       , CHAR   , 9   , 194980,\
-#             rhe.uniq_sys_id                    , CHAR   , 16  , 195052,\
-#             rhe.ex_verscre                     , CHAR   , 2   , 195048,\
-#             rhs.se_no                          , INT_4  , 1   , 196356,\
-#             rhs.se_desc                        , CHAR   , 65  , 196602,\
-#             rhs.entry                          , INT_4  , 1   , 196264,\
-#             rhs.position                       , INT_4  , 1   , 196260,\
-#             rhs.series_uid                     , UID    , 32  , 196765,\
-#             rhs.landmark_uid                   , UID    , 32  , 196797,\
-#             rhs.anref                          , CHAR   , 3   , 196685,\
-
 
 #----------------------------------------------------------
 # Test routines
 #----------------------------------------------------------
 
 
-
 def main():
 
-    # v16 data - 1 chan
-    fname = 'C:\\Users\\bsoher\\code\\repository_svn\\sample_data\\example_ge_svs_1ch_pom\\P29184.7'
+    test_files=sys.argv[1:];
+
+    print(test_files);
+    if len(test_files)==0:
+    	# v16 data - 1 chan
+        test_files.append('C:\\Users\\bsoher\\code\\repository_svn\\sample_data\\example_ge_svs_1ch_pom\\P29184.7');
     
-    # v11 data - 8 chan
-#    fname = 'C:\\Users\\bsoher\\code\\repository_svn\\sample_data\\example_ge_pom_multi-channel\\P01024.7'
+    	# v11 data - 8 chan
+		# fname = 'C:\\Users\\bsoher\\code\\repository_svn\\sample_data\\example_ge_pom_multi-channel\\P01024.7'
 
-    # v20 data - 32 chan
-#    fname = 'C:\\Users\\bsoher\\code\\repository_svn\\sample_data\\example_ge_svs_32ch_gregor\\P32256.7'
+    	# v20 data - 32 chan
+		# fname = 'C:\\Users\\bsoher\\code\\repository_svn\\sample_data\\example_ge_svs_32ch_gregor\\P32256.7'
 
-    hdr = Pfile(fname)
-    hdr.dump_header()
-
-    bob = 10
-    bob += 1
-
+    for fname in test_files:
+	    hdr = Pfile(fname)
+	    hdr.dump_header()
 
 
 

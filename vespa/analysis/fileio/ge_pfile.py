@@ -175,15 +175,18 @@ def _get_parameters(pfile):
     tr = float(hdr.rhi_tr) / 1000  # in ms
 
     #  Use the mps freq and field strength to determine gamma and thus isotope
-    gamma = (hdr.rhr_rh_ps_mps_freq * 1e-7) / (hdr.rhe_magstrength / 10000.0)
-    if abs(gamma - 42.57) < 0.3:
-        nucleus = "1H"
-    elif abs(gamma - 10.7) < 0.3:
-        nucleus = "13C"
-    elif abs(gamma - 17.2) < 0.3:
-        nucleus = "31P"
-    else:
-        nucleus = "1H"
+
+    # Note, some anonymization procedures clear the exam header, which invalidates magstrength; in this case, assume 1H
+    nucleus = "1H"
+
+    if (hdr.rhe_magstrength > 0):
+	    gamma = (hdr.rhr_rh_ps_mps_freq * 1e-7) / (hdr.rhe_magstrength / 10000.0)
+	    if abs(gamma - 42.57) < 0.3:
+	        nucleus = "1H"
+	    elif abs(gamma - 10.7) < 0.3:
+	        nucleus = "13C"
+	    elif abs(gamma - 17.2) < 0.3:
+	        nucleus = "31P"
     resppm = 4.7 if nucleus == "1H" else 0.0
 
     pulseq = hdr.rhi_psdname.decode('utf-8').lower()
