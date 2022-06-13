@@ -264,32 +264,33 @@ def _get_version_info():
     # Python:
     #    python -c "import sys;  print sys.modules"
     #
-
-    # Some don't have a __file__ attr
-    modules = [module for module in list(sys.modules.values())
-                                 if hasattr(module, "__file__")]
-
+    modules=[]
+    for name, m in sorted(sys.modules.items()):
+        for attr in ["__version__", "__VERSION__", "VERSION", "version"]:
+            if hasattr(m, attr) and hasattr(m, "__file__"):
+                #print('name=[%s], module=[%s]'%(name,m))
+                modules.append(m)
+    
     # I figure out where most of the standard library modules are by selecting
     # a module (I picked the re module) and getting that module's path. I
     # then assume that anything with the same path is part of the Python
     # standard lib. This doesn't exclude all of the modules I'd like it to,
     # but it successfully removes many while erring on the side of caution.
     standard_library_path = ""
-    for module in modules:
-        head, tail = os.path.split(module.__file__)
-        if tail == "re.pyc":
+    for m in modules:
+        if m.__name__ in ['re','platform','argparse']:
+            head, tail = os.path.split(m.__file__)
             standard_library_path = head
+            break
 
     # Remove Python modules
     f = lambda fq_filename: os.path.split(fq_filename)[0] != standard_library_path
-    modules = [module for module in modules if f(module.__file__)]
+    modules = [m for m in modules if f(m.__file__)]
 
     # What's left should be mostly modules that are not part of the standard
     # library. I build a list of 2-tuples consisting of (module filename,
     # module version).
-    modules = [ (module.__file__, _get_module_version(module)) for module
-                                                               in  modules]
-
+    modules = [ (m.__file__, _get_module_version(m)) for m in modules]
     modules = sorted(modules)
 
     return lines + modules
