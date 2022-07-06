@@ -12,13 +12,7 @@ settings are for multiple axes to be linked for pan/zoom operations.
 Brian J. Soher, Duke University, April, 2014
 """
 # Python modules
-
 import os
-
-
-# Used to guarantee to use at least Wx2.8
-#import wxversion
-#wxversion.ensureMinimal('2.8')
 
 # third party modules
 import wx

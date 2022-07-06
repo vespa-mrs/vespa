@@ -71,6 +71,7 @@ class Prefs(object, metaclass=abc.ABCMeta):
     instantiation based on the names of the constants in one of the 
     util_menu.ViewIdXxxx classes.
     """
+	__metaclass__ = abc.ABCMeta
 
 
     def __init__(self, menu_bar, id_class):
