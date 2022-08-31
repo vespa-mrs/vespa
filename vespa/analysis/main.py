@@ -16,6 +16,7 @@ import numpy as np
 # Our modules
 import vespa.analysis.mrs_dataset as mrs_dataset
 import vespa.analysis.notebook_datasets as notebook_datasets
+import vespa.analysis.utils as utils
 import vespa.analysis.util_menu as util_menu
 import vespa.analysis.util_analysis_config as util_analysis_config
 import vespa.analysis.util_import as util_import
@@ -455,6 +456,15 @@ class Main(wx.Frame):
 
     def on_vespa_help_online(self, event):
         webbrowser.open("https://vespa-mrs.github.io/vespa.io/", 1)
+
+    def on_util_dicom_series_sort(self, event):
+        ini_name = "util_dicom_series_sort"
+        default_path = util_analysis_config.get_path(ini_name)
+        base_path = wx.DirSelector('Select DICOM Directory', default_path)
+        if base_path != '':
+            utils.dicom_series_sort(base_path)
+            util_analysis_config.set_path(ini_name, base_path)
+
 
     def on_about(self, event):
 
