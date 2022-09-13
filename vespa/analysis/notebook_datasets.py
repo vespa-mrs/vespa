@@ -630,11 +630,21 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
         elif isinstance(dataset.blocks['raw'], block_raw_edit.BlockRawEdit):
             base = "Edit%d." % count
             names = [base+"On", base+"Off", base+"Sum", base+"Dif"]
+            if len(datasets) > 4:
+                names = [base+"On", base+"Off", base+"Sum"]
+                for i in range(len(datasets)-4):
+                    names.append("Dataset%d_%d." % (count, i))
+                names.append(base+"Dif")
             count += 1
 
         elif isinstance(dataset.blocks['raw'], block_raw_edit_fidsum.BlockRawEditFidsum):
             base = "Edit%d." % count
             names = [base+"On", base+"Off", base+"Sum", base+"Dif"]
+            if len(datasets) > 4:
+                names = [base+"On", base+"Off", base+"Sum"]
+                for i in range(len(datasets)-4):
+                    names.append("Dataset%d_%d." % (count, i))
+                names.append(base+"Dif")
             count += 1
 
         elif isinstance(dataset.blocks['raw'], block_raw_cmrr_slaser.BlockRawCmrrSlaser):
