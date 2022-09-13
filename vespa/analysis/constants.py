@@ -403,7 +403,7 @@ class FitPriorMaskSource(object):
 
 class FitPriorCalculateCombinations(object):
     """ lists available metabolite combinations that can be calculated """
-    choices = ["naa+naag", "cr+pcr", "gpc+pcho", "cr2+pcr2", "glu+gln", "tau+glc"]
+    choices = ["gaba+", "naa+naag", "cr+pcr", "gpc+pcho", "cr2+pcr2", "glu+gln", "tau+glc"]
     
 
 class FitLineshapeModel(object):

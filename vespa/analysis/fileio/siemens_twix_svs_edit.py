@@ -55,7 +55,7 @@ class RawReaderSiemensTwixSvsEdit(RawReaderSiemensTwix):
         dat_on  = data[0, :, :, :].copy()
         dat_off = data[1, :, :, :].copy()
         dat_sum = (dat_on + dat_off).copy()
-        dat_dif = (dat_on - dat_off).copy()     # may need external coil combine ON
+        dat_dif = (dat_on - dat_off).copy()     # may need external coil combine ON for proper processing
 
         # Create a DataRawEditFidsum objects for the four different states
         # of the data ON, OFF, SUM and DIFFERENCE.

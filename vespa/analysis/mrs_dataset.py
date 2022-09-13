@@ -1001,11 +1001,21 @@ class Dataset(object):
 
         all_combos = constants.FitPriorCalculateCombinations.choices
         for item in all_combos:
-            met1, met2 = item.split('+')
-            if met1 in prior_list_unique and met2 in prior_list_unique:
-                imet1 = prior_list_unique.index(met1)
-                imet2 = prior_list_unique.index(met2)
-                combos.append([item, res[imet1]+res[imet2]])
+            if item == 'gaba+':
+                if self.blocks["fit"].set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET:
+                    nmet = len(prior_list_unique)
+                    if 'gaba' in prior_list_unique:
+                        igaba = prior_list_unique.index('gaba')
+                        combos.append(['gaba+', res[igaba]+res[nmet*2+4]])
+                    if 'gaba_umn' in prior_list_unique:
+                        igaba = prior_list_unique.index('gaba_umn')
+                        combos.append(['gaba+', res[igaba]+res[nmet*2+4]])
+            else:
+                met1, met2 = item.split('+')
+                if met1 in prior_list_unique and met2 in prior_list_unique:
+                    imet1 = prior_list_unique.index(met1)
+                    imet2 = prior_list_unique.index(met2)
+                    combos.append([item, res[imet1]+res[imet2]])
 
         if combos == []:
             combos = None
@@ -2032,7 +2042,6 @@ class Dataset(object):
             table1.append(tmp)
 
         if fit.set.prior_calculate_combinations:
-            #combo = self.get_combo_results(voxel)
             combo = self.get_combo_results(voxel, quant=True)
             if combo is not None:
                 for item in combo:
