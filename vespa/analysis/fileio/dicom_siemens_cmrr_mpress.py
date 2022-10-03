@@ -155,33 +155,73 @@ class RawReaderDicomSiemensFidsumXaMpress(RawReaderDicomSiemensXaMpress):
 
         d["data_source"] = filename
 
-        data = d['data']
+        return [d, ]
 
-        dat_on = data[0, :, :, :].copy()
-        dat_off = data[1, :, :, :].copy()
-        dat_sum = (dat_on+dat_off).copy()
-        dat_dif = (dat_on-dat_off).copy()
 
-        # Create a DataRawEditFidsum objects for the four different states
-        # of the data ON, OFF, SUM and DIFFERENCE.
+    def read_raws(self, ignore_data=False, *args, **kwargs):
+        """
+        Calls read_raw() once for each filename in self.filenames.
+        - returns two DataRawFidsum objects
+        - returns a list with multiple objects for ON, OFF, SUM and DIFF
+        - read_raw() method should return one FID data set per file.
 
-        d["data"] = dat_on
-        d["data_source"] = filename+'.EditON'
-        raw1 = DataRawEditFidsum(d)
+        1) One filename returning ONE DataRaw object with one FID in it and data
+           array shape [1,1,1,N], where N is the number of spectral points.
 
-        d["data"] = dat_off
-        d["data_source"] = filename+'.EditOFF'
-        raw2 = DataRawEditFidsum(d)
+        """
+        self.raws_on = []
+        self.raws_off = []
 
+        nfiles = len(self.filenames)
+
+        for i, fname in enumerate(self.filenames):
+            raw = self.read_raw(fname, ignore_data, *args, **kwargs)
+            if i < int(nfiles/2):
+                self.raws_on.append(raw[0])
+            else:
+                self.raws_off.append(raw[0])
+
+        d = self.raws_on[0]
+        d["data_source"] = d["data_source"]+'.EditON'
+        raw_on = DataRawEditFidsum(d)
+        for d in self.raws_on[1:]:
+            raw_on.concatenate(DataRawEditFidsum(d))
+
+        d = self.raws_off[0]
+        d["data_source"] = d["data_source"]+'.EditOFF'
+        raw_off = DataRawEditFidsum(d)
+        for d in self.raws_on[1:]:
+            raw_off.concatenate(DataRawEditFidsum(d))
+
+        dat_on  = raw_on.data.copy()
+        dat_off = raw_off.data.copy()
+
+        dat_sum = dat_on + dat_off
+        dat_dif = dat_on - dat_off
+
+        d = self.raws_on[0]
         d["data"] = dat_sum
-        d["data_source"] = filename+'.Sum'
-        raw3 = DataRawEditFidsum(d)
+        d["data_source"] = d["data_source"]+'.Sum'
+        raw_sum = DataRawEditFidsum(d)
 
+        d = self.raws_on[0]
         d["data"] = dat_dif
-        d["data_source"] = filename+'.Diff'
-        raw4 = DataRawEditFidsum(d)
+        d["data_source"] = d["data_source"]+'.Diff'
+        raw_dif = DataRawEditFidsum(d)
 
-        return [raw1, raw2, raw3, raw4]
+        self._check_consistency(fidsum=True)
+        self._check_for_si()
+
+        if 'open_dataset' in list(kwargs.keys()):
+            if kwargs['open_dataset'] is not None:
+                self._check_compatibility(raw_on, kwargs['open_dataset'], fidsum=True)
+
+        return [raw_on, raw_off, raw_sum, raw_dif]
+
+
+
+
+
 
 
 ####################    Internal functions start here     ###############
@@ -306,8 +346,10 @@ def _get_parameters_dicom_sop(dataset):
     nframes = int(float(dataset[0x0028,0x0008].value))
 
     # decide if we have summed spectra or indiv fids
-    navg = navg if navg == int(nframes/2) else int(nframes/2)
-    data_shape = 2, 1, navg, npts
+    avg_flag = True if navg > 1 else False
+
+    navg = 1
+    data_shape = nframes, 1, navg, npts
 
     dataf =  convert_numbers(dataset['SpectroscopyData'].value, True, 'f') # (0x5600, 0x0020)
     data_iter = iter(dataf)
