@@ -803,9 +803,15 @@ if __name__ == "__main__":
     app.SetTopWindow(frame)
     frame.Show()
 
-#    import cProfile
-    app.MainLoop()
-#    cProfile.run('app.MainLoop()')
+    import cProfile
+    import pstats as ps
+    fname = 'D:\\Users\\bsoher\\profile.data'
+    if os.path.exists(fname):
+        os.remove(fname)
 
-#    to time this call user
-#    >python -m cProfile -s cumulative bloch_lib_hargreaves.py
+    #app.MainLoop()
+
+    cProfile.run('app.MainLoop()', fname)
+    p = ps.Stats(fname)
+    p.strip_dirs().sort_stats('cumulative').print_stats()
+

@@ -598,20 +598,21 @@ class DialogDicomBrowser(TheDialog):
         filenames = os.listdir(path)
         filenames = [os.path.join(path, filename) for filename in filenames]
         filenames = [filename for filename in filenames if os.path.isfile(filename)]
+        filenames = [filename for filename in filenames if self.is_dicom(filename)]
 
         for filename in filenames:
-            if self.is_dicom(filename):
-                dataset = pydicom.read_file(filename)
-                dataset.decode()  # change strings to unicode
+            dataset = pydicom.dcmread(filename, stop_before_pixels=True)
 
-                if ("Manufacturer" in dataset) and \
-                   ("SIEMENS" in dataset.Manufacturer.upper()):
-                    df = DicomFileSiemens(dataset, filename)
-                else:
-                    df = DicomFileInfo(dataset, filename)
-                yield df
-            # else:
-                # Not a DICOM file; ignore it.
+            # bjs - oct 2022, this was slowing Tree create down by 10-50x
+            #  not sure if needed just for the limited data required for Tree.
+            #
+            # dataset.decode()  # change strings to unicode
+
+            if ("Manufacturer" in dataset) and ("SIEMENS" in dataset.Manufacturer.upper()):
+                df = DicomFileSiemens(dataset, filename)
+            else:
+                df = DicomFileInfo(dataset, filename)
+            yield df
 
 
     #--------------------------------------------------------------------------
@@ -1332,19 +1333,19 @@ replaced by the application's main window.
         #                             return_objects=False,
         #                             default_path=default_path)
 
-        # dialog = SiemensSpectroscopyDicomBrowserDialog(self,
-        #                             preview_size=(96, 96),
-        #                             show_tags=False,
-        #                             multi_select=True,
-        #                             return_objects=False,
-        #                             default_path=default_path)
-
-        dialog = PhilipsSpectroscopyDicomBrowserDialog(self,
+        dialog = SiemensMrsBrowser(self,
                                     preview_size=(96, 96),
                                     show_tags=False,
                                     multi_select=True,
                                     return_objects=False,
                                     default_path=default_path)
+
+        # dialog = PhilipsMrsBrowser(self,
+        #                             preview_size=(96, 96),
+        #                             show_tags=False,
+        #                             multi_select=True,
+        #                             return_objects=False,
+        #                             default_path=default_path)
         dialog.ShowModal()
 
         if dialog.items:
@@ -1363,8 +1364,10 @@ replaced by the application's main window.
 
 
 def _test():
-    default_path = ''
-    default_path = r'D:\Users\bsoher\code\repository_svn\sample_data\siemens_dicom_export'
+
+    # default_path = ''
+    # default_path = r'D:\Users\bsoher\code\repository_svn\sample_data\siemens_dicom_export'
+    default_path = r'D:\Users\bsoher\projects\2022_Neurona_GABA\data\2022_09_22_NTRT_003_01\dicom\DICOM\0044_EJA_MPRESS_HIPPO_METAB_2_RES'
 
     app = wx.App(0)
     wx.InitAllImageHandlers()
@@ -1375,4 +1378,15 @@ def _test():
 
 
 if __name__ == '__main__':
+
+    # import cProfile
+    # import pstats as ps
+    # fname = 'D:\\Users\\bsoher\\profile.data'
+    # if os.path.exists(fname):
+    #     os.remove(fname)
+    # cmd = '_test()'
+    # cProfile.run(cmd, fname)
+    # p = ps.Stats(fname)
+    # p.strip_dirs().sort_stats('cumulative').print_stats()
+
     _test()

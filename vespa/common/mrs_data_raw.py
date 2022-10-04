@@ -473,6 +473,65 @@ class DataRawEditFidsum(DataRawFidsum):
     def __init__(self, attributes=None, transform=None):
         super().__init__(attributes=attributes, transform=transform)
 
+    def concatenate(self, new, ignore_transform=False):
+        """
+        Given an DataRawEditFidsum instance, concatenates that instance's data
+        (and some metadata) onto this object. This object's zeroeth dimension
+        will increase by one. For instance, if self.dims was [1,1,1,4096]
+        before concatenation, it will be [2,1,1,4096] after.
+
+        This axis is concatenated under the assumption that there are multiple
+        FIDs being concatenated.
+
+        There are several conditions that must be met, otherwise this will
+        raise a ValueError.
+
+        1) This data must be single voxel or a stack of single voxels.
+           (i.e. 1st and 2nd dimension == 1)
+        2) The data to be concatenated must be single voxel or a stack of
+           single voxels. (i.e. 1st and 2nd dimension == 1)
+        3) The spectral dimension (dims[3]) must match.
+        4) The attributes data_type, sw, resppm, echopeak, and
+           nucleus must be the same on both DataRaw instances.
+
+        """
+        if len(new.data.shape) != 4:
+            raise ValueError("New data shape does not have 4 dimensions")
+
+        if max(self.data.shape[0:2]) > 1:
+            raise ValueError("Current data is not single voxel or a stack of single voxels")
+
+        if max(new.data.shape[0:2]) > 1:
+            raise ValueError("Data to be concatented is not single voxel or a stack of single voxels")
+
+        if new.data.shape[3] != self.data.shape[3]:
+            raise ValueError("Spectral dimension mismatch")
+
+        attribs = ("data_type", "resppm", "echopeak", "nucleus")
+        for attr in attribs:
+            if getattr(self, attr) != getattr(new, attr):
+                raise ValueError("""Attribute "%s" not equal"""%attr)
+
+        # Frequencies must be within +/- 1 Hz of one another.
+        if abs(abs(self.frequency)-abs(new.frequency)) > 1:
+            raise ValueError("""Frequencies not equal""")
+
+        # Sweep width must be within +/- 1 Hz of one another.
+        if abs(abs(self.sw)-abs(new.sw)) > 1:
+            raise ValueError("""Sweep widths not equal""")
+
+        if not ignore_transform:
+            # Transform must be within 1e-3 of one another
+            if not np.allclose(self.transform, new.transform, rtol=1e-03, atol=1e-04):
+                raise ValueError("""Transforms not equal (within tolerances)""")
+
+        # All is well, we can concatenate.
+        self.data_sources.extend(new.data_sources)
+        self.measure_time.extend(new.measure_time)
+        self.headers.extend(new.headers)
+
+        self.data = np.concatenate((self.data, new.data), axis=2)
+
     def deflate(self, flavor=Deflate.ETREE):
 
         if flavor == Deflate.ETREE:

@@ -129,7 +129,7 @@ class RawReaderDicomSiemensFidsumXaMpress(RawReaderDicomSiemensXaMpress):
     def __init__(self):
         RawReaderDicomSiemensXaMpress.__init__(self)
 
-    def read_raw(self, filename, ignore_data=False, *args, **kwargs):
+    def read_raw(self, filename, ignore_data=False, get_header=True, *args, **kwargs):
         """
         Given Siemens DICOM filename, return populated DataRawEditFidsum objects
 
@@ -144,12 +144,12 @@ class RawReaderDicomSiemensFidsumXaMpress(RawReaderDicomSiemensXaMpress):
         # information inside a private and very complicated header with its own
         # data storage format, we have to get that information out along with
         # the data. we start by reading in the DICOM file completely
-        dataset = pydicom.dicomio.read_file(filename)
+        dataset = pydicom.dicomio.dcmread(filename)
 
         sop_class_uid = pydicom.uid.UID(str(dataset['SOPClassUID'].value.upper()))
 
         if sop_class_uid.name == 'MR Spectroscopy Storage':
-            d = _get_parameters_dicom_sop(dataset)
+            d = _get_parameters_dicom_sop(dataset, get_header=get_header)
         else:
             d = _get_parameters_siemens_proprietary(dataset)
 
@@ -173,9 +173,11 @@ class RawReaderDicomSiemensFidsumXaMpress(RawReaderDicomSiemensXaMpress):
         self.raws_off = []
 
         nfiles = len(self.filenames)
+        get_header = True
 
         for i, fname in enumerate(self.filenames):
-            raw = self.read_raw(fname, ignore_data, *args, **kwargs)
+            get_header = (i==0) or (i==int(nfiles/2))
+            raw = self.read_raw(fname, ignore_data, get_header=get_header, *args, **kwargs)
             if i < int(nfiles/2):
                 self.raws_on.append(raw[0])
             else:
@@ -335,7 +337,7 @@ def _read_csa_header(csa_header_bytes):
     return csa_header
 
 
-def _get_parameters_dicom_sop(dataset):
+def _get_parameters_dicom_sop(dataset, get_header=True):
     """
     Returns a subset of the parameters from a Pydicom dataset
 
@@ -380,6 +382,8 @@ def _get_parameters_dicom_sop(dataset):
         voxel_size = np.array([20.0, 20.0, 20.0])
         tform = None
 
+    hdr = str(dataset) if get_header else ''
+
     params = {'is_dicom_sop': True,
               'sw'          : dataset["SpectralWidth"].value,
               'frequency'   : dataset["TransmitterFrequency"].value,
@@ -389,7 +393,7 @@ def _get_parameters_dicom_sop(dataset):
               'seqte'       : dataset[0x5200,0x9229][0][0x0018,0x9114][0]['EffectiveEchoTime'].value,
               'seqtr'       : dataset[0x5200,0x9229][0][0x0018,0x9112][0]['RepetitionTime'].value,
               'voxel_dimensions' : voxel_size,
-              'header'      : str(dataset),
+              'header'      : hdr,
               'transform'   : tform,
               'data'        : complex_data}
 
