@@ -53,6 +53,7 @@ class LCModelRawHardcode(raw_reader.RawReader):
         
         # Read the SPAR file and extract the stuff I need.
         lines = open(filename, "rb").read()
+        lines = lines.decode()
 
         # Now we find the start/end of the header section based on the standard
         # ">>> Begin of header <<<" and ">>> End of header <<<" marker lines

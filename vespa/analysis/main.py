@@ -803,15 +803,15 @@ if __name__ == "__main__":
     app.SetTopWindow(frame)
     frame.Show()
 
-    import cProfile
-    import pstats as ps
-    fname = 'D:\\Users\\bsoher\\profile.data'
-    if os.path.exists(fname):
-        os.remove(fname)
+    # import cProfile
+    # import pstats as ps
+    # fname = 'D:\\Users\\bsoher\\profile.data'
+    # if os.path.exists(fname):
+    #     os.remove(fname)
 
-    #app.MainLoop()
+    app.MainLoop()
 
-    cProfile.run('app.MainLoop()', fname)
-    p = ps.Stats(fname)
-    p.strip_dirs().sort_stats('cumulative').print_stats()
-
+    # cProfile.run('app.MainLoop()', fname)
+    # p = ps.Stats(fname)
+    # p.strip_dirs().sort_stats('cumulative').print_stats()
+    #
