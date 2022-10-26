@@ -95,7 +95,7 @@ class Main(wx.Frame):
         # set up default and user import data classes
         #
         # TODO - FIXME - bjs this is a hack for 2to3 convert ... rethink in future
-        if (sys.version_info > (3, 0)):
+        if (tuple(sys.version_info)[0:2] > (3, 0)):
             # Python 3 code in this block
             fname = os.path.join(util_misc.get_data_dir(), "analysis_import_menu_additions.ini")
         else:
@@ -803,9 +803,15 @@ if __name__ == "__main__":
     app.SetTopWindow(frame)
     frame.Show()
 
-#    import cProfile
-    app.MainLoop()
-#    cProfile.run('app.MainLoop()')
+    # import cProfile
+    # import pstats as ps
+    # fname = 'D:\\Users\\bsoher\\profile.data'
+    # if os.path.exists(fname):
+    #     os.remove(fname)
 
-#    to time this call user
-#    >python -m cProfile -s cumulative bloch_lib_hargreaves.py
+    app.MainLoop()
+
+    # cProfile.run('app.MainLoop()', fname)
+    # p = ps.Stats(fname)
+    # p.strip_dirs().sort_stats('cumulative').print_stats()
+    #
