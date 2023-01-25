@@ -426,6 +426,10 @@ class TabPrepFidsum(tab_base.Tab, fidsum.PanelPrepFidsumUI):
     #
     #=======================================================
 
+    def on_destroy(self, event):
+        tab_base.Tab.on_destroy(self, event)
+        pubsub.unsubscribe(self.on_push_prep_fidsum_results, "push_prep_fidsum_results")
+
     def on_activation(self):
         super().on_activation()
         # plot is necessary here to resize img0/img1 waterfall plots

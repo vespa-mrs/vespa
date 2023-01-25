@@ -106,21 +106,23 @@ class RawReaderDicomSiemensXaEjaSvsMpress(raw_reader.RawReader):
 
         d["data"] = dat_on
         d["data_source"] = filename+'.EditON'
-        raw1 = DataRawEdit(attributes=d)
+        raw_on = DataRawEdit(attributes=d)
 
         d["data"] = dat_off
         d["data_source"] = filename+'.EditOFF'
-        raw2 = DataRawEdit(attributes=d)
+        raw_off = DataRawEdit(attributes=d)
 
         d["data"] = dat_sum
         d["data_source"] = filename+'.Sum'
-        raw3 = DataRawEdit(attributes=d)
+        raw_sum = DataRawEdit(attributes=d)
 
         d["data"] = dat_dif
         d["data_source"] = filename+'.Diff'
-        raw4 = DataRawEdit(attributes=d)
+        raw_dif = DataRawEdit(attributes=d)
 
-        return [raw1, raw2, raw3, raw4]
+        self.raws = [raw_on, raw_off, raw_sum, raw_dif]
+
+        return self.raws
 
 
 
@@ -209,14 +211,15 @@ class RawReaderDicomSiemensFidsumXaEjaSvsMpress(RawReaderDicomSiemensXaEjaSvsMpr
         d["data_source"] = d["data_source"]+'.Diff'
         raw_dif = DataRawEditFidsum(d)
 
+        self.raws = [raw_on, raw_off, raw_sum, raw_dif]
+
         self._check_consistency(fidsum=True)
         self._check_for_si()
-
         if 'open_dataset' in list(kwargs.keys()):
             if kwargs['open_dataset'] is not None:
-                self._check_compatibility(raw_on, kwargs['open_dataset'], fidsum=True)
+                self._check_compatibility(self.raws, kwargs['open_dataset'], fidsum=True)
 
-        return [raw_on, raw_off, raw_sum, raw_dif]
+        return self.raws
 
 
 

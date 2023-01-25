@@ -80,6 +80,7 @@ class TabPrepTimeseries(tab_base.Tab, timeseries.PanelPrepTimeseriesUI):
         #------------------------------------------------------------
         # PubSub subscriptions
 #        pubsub.subscribe(self.on_push_prep_fidsum_results, "push_prep_fidsum_results")
+# TODO bjs    don't forget to add unsubscribe() code in Destroy when tab closed
 
 
         # If the sash position isn't recorded in the INI file, we use the

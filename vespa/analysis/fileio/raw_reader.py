@@ -187,7 +187,7 @@ class RawReader(object):
         Attributes and object type of new object must match those of the open dataset(s)
 
         """
-        raw0 = self.raws[0]
+        raw0 = raws[0]
         raw1 = open_dataset.blocks["prep"]
 
         new_is_fidsum = False

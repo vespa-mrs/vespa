@@ -749,6 +749,11 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
     #
     #=======================================================
 
+    def on_destroy(self, event):
+        tab_base.Tab.on_destroy(self, event)
+        pubsub.subscribe(self.on_check_datasetb_status, "check_datasetb_status")
+        pubsub.subscribe(self.on_dataset_keys_change, "dataset_keys_change")
+
     def on_activation(self):
         tab_base.Tab.on_activation(self)
 
