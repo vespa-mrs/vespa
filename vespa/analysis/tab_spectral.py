@@ -749,6 +749,11 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
     #
     #=======================================================
 
+    def on_destroy(self, event):
+        tab_base.Tab.on_destroy(self, event)
+        pubsub.subscribe(self.on_check_datasetb_status, "check_datasetb_status")
+        pubsub.subscribe(self.on_dataset_keys_change, "dataset_keys_change")
+
     def on_activation(self):
         tab_base.Tab.on_activation(self)
 
@@ -910,7 +915,16 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
     
                     if msg:
                         common_dialogs.message(msg, style=common_dialogs.E_OK)
-    
+
+            elif event_id == util_menu.ViewIdsSpectral.PLOTC_FID_TO_VIFF:
+                self.dump_to_viff('plotc_fid')
+
+            elif event_id == util_menu.ViewIdsSpectral.PLOTC_FID_TO_ASCII:
+                filename = common_dialogs.save_as("", "TXT files (*.txt)|*.txt")
+                if filename:
+                    dataC = self.view.get_data(2)
+                    dataC.tofile(filename, sep=' ')
+
             elif event_id == util_menu.ViewIdsSpectral.PLOTS_TO_BINARY:
                 filename = common_dialogs.save_as("", "BIN files (*.bin)|*.bin")
                 if filename:
@@ -1006,6 +1020,8 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
             - Calculated HLSVD FIDs
             - b0 shift is applied to these FIDs before they are output
             - NO apod, zf, fft, flip, ph0/ph1, dc, ampl applied
+        'plotc_fid'
+            - Derived spectrum, but without FFT or ph0/1 or chop, or flip
 
         """
 
@@ -1042,6 +1058,20 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
                     lines.append('------------------------------------------------------------------')
                     lines.append('An IFFT() was performed on the Plot C spectrum and the resultant FID written into')
                     lines.append('this VIFF XML Raw Data file.')
+                elif key == 'plotc_fid':
+                    if self.plot_C_function == self.plot_C_map[util_menu.ViewIdsSpectral.PLOT_C_FUNCTION_NONE]:
+                        labl_func = 'None'
+                    elif self.plot_C_function == self.plot_C_map[util_menu.ViewIdsSpectral.PLOT_C_FUNCTION_A_MINUS_B]:
+                        labl_func = 'PlotA - PlotB'
+                    elif self.plot_C_function == self.plot_C_map[util_menu.ViewIdsSpectral.PLOT_C_FUNCTION_B_MINUS_A]:
+                        labl_func = 'PlotB - PlotA'
+                    elif self.plot_C_function == self.plot_C_map[util_menu.ViewIdsSpectral.PLOT_C_FUNCTION_A_PLUS_B]:
+                        labl_func = 'PlotA + PlotB'
+
+                    lines = ['Export from Analysis Spectral General Tab - PlotC ('+labl_func+') FID Data']
+                    lines.append('------------------------------------------------------------------')
+                    lines.append('An IFFT() was performed on the Plot C spectrum and the resultant FID written into')
+                    lines.append('this VIFF XML Raw Data file.')
 
                 lines.append(' ')
                 lines.append('Creation_date            - '+stamp[0])
@@ -1059,9 +1089,12 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
                     dat = np.fft.ifft(np.fft.fftshift(dat)) * len(dat)
                 elif key == 'svd_fids_checked_sum':
                     dat = results[key].copy()
+                elif key == 'plotc_fid':
+                    dat = self.view.get_data(2)
+                    dat = np.fft.ifft(np.fft.fftshift(dat)) * len(dat)
 
                 met = mrs_data_raw.DataRaw()
-                met.data_sources = ['analysis_spetral_svd_tab_data_export']
+                met.data_sources = ['analysis_spectral_general_tab_plotc_data_export']
                 met.headers      = [lines]
                 met.sw           = ds.sw
                 met.frequency    = ds.frequency

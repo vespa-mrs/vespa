@@ -34,11 +34,12 @@ TAG_SOP_CLASS_UID = (0x0008, 0x0016)
 
 
 
-class RawReaderDicomSiemensXaMpress(raw_reader.RawReader):
+class RawReaderDicomSiemensXaEjaSvsMpress(raw_reader.RawReader):
     """ Read a single Siemens DICOM file into an DataRaw object. """
 
     def __init__(self):
         raw_reader.RawReader.__init__(self)
+        self.multiple = False
 
 
     def pickfile(self, default_path=""):
@@ -89,14 +90,14 @@ class RawReaderDicomSiemensXaMpress(raw_reader.RawReader):
         if sop_class_uid.name == 'MR Spectroscopy Storage':
             d = _get_parameters_dicom_sop(dataset)
         else:
-            d = _get_parameters_siemens_proprietary(dataset)
+            raise ValueError('Error (RawReaderDicomSiemensFidsumXaEjaSvsMpress): Old style Siemens DICOM should not be here.')
 
         d["data_source"] = filename
 
         data = d['data']
 
-        dat_on  = data[0, :, :, :].copy()
-        dat_off = data[1, :, :, :].copy()
+        dat_on  = data[1, :, :, :].copy()
+        dat_off = data[0, :, :, :].copy()
         dat_sum = (dat_on+dat_off).copy()
         dat_dif = (dat_on-dat_off).copy()
 
@@ -105,53 +106,56 @@ class RawReaderDicomSiemensXaMpress(raw_reader.RawReader):
 
         d["data"] = dat_on
         d["data_source"] = filename+'.EditON'
-        raw1 = DataRawEdit(attributes=d)
+        raw_on = DataRawEdit(attributes=d)
 
         d["data"] = dat_off
         d["data_source"] = filename+'.EditOFF'
-        raw2 = DataRawEdit(attributes=d)
+        raw_off = DataRawEdit(attributes=d)
 
         d["data"] = dat_sum
         d["data_source"] = filename+'.Sum'
-        raw3 = DataRawEdit(attributes=d)
+        raw_sum = DataRawEdit(attributes=d)
 
         d["data"] = dat_dif
         d["data_source"] = filename+'.Diff'
-        raw4 = DataRawEdit(attributes=d)
+        raw_dif = DataRawEdit(attributes=d)
 
-        return [raw1, raw2, raw3, raw4]
+        self.raws = [raw_on, raw_off, raw_sum, raw_dif]
+
+        return self.raws
 
 
 
-class RawReaderDicomSiemensFidsumXaMpress(RawReaderDicomSiemensXaMpress):
+class RawReaderDicomSiemensFidsumXaEjaSvsMpress(RawReaderDicomSiemensXaEjaSvsMpress):
     """ Read multiple Siemens DICOMs file into a DataRawFidsum object """
 
     def __init__(self):
-        RawReaderDicomSiemensXaMpress.__init__(self)
+        RawReaderDicomSiemensXaEjaSvsMpress.__init__(self)
+        self.multiple = True
 
     def read_raw(self, filename, ignore_data=False, get_header=True, *args, **kwargs):
         """
-        Given Siemens DICOM filename, return populated DataRawEditFidsum objects
+        Given Siemens DICOM filename, return list with a single dict containing
+        essential data to create an MrsDataRaw or MrsDataEdit object
 
-        The sop_class_uid flags if this is the older proprietary Siemens hack
-        format or the newer DICOM standard MR Spectroscopy Storage object.
+        The sop_class_uid flags an error if this is the older proprietary Siemens
+        format
 
         Ignore data has no effect on this parser
 
+        SOPClassID for spectro from https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_B.5.html
+        - sop_class_uid == '1.2.840.10008.5.1.4.1.1.4.2' is 'MR Spectroscopy Storage'
+
         """
 
-        # the .IMA format is a DICOM standard, but Siemens stores a lot of
-        # information inside a private and very complicated header with its own
-        # data storage format, we have to get that information out along with
-        # the data. we start by reading in the DICOM file completely
         dataset = pydicom.dicomio.dcmread(filename)
 
-        sop_class_uid = pydicom.uid.UID(str(dataset['SOPClassUID'].value.upper()))
+        sop_class_uid = pydicom.uid.UID(dataset['SOPClassUID'].value)
 
-        if sop_class_uid.name == 'MR Spectroscopy Storage':
+        if sop_class_uid.name == 'MR Spectroscopy Storage' or sop_class_uid == '1.2.840.10008.5.1.4.1.1.4.2':
             d = _get_parameters_dicom_sop(dataset, get_header=get_header)
         else:
-            d = _get_parameters_siemens_proprietary(dataset)
+            raise ValueError('Error (RawReaderDicomSiemensFidsumXaEjaSvsMpress): Old style Siemens DICOM should not be here.')
 
         d["data_source"] = filename
 
@@ -161,12 +165,8 @@ class RawReaderDicomSiemensFidsumXaMpress(RawReaderDicomSiemensXaMpress):
     def read_raws(self, ignore_data=False, *args, **kwargs):
         """
         Calls read_raw() once for each filename in self.filenames.
-        - returns two DataRawFidsum objects
-        - returns a list with multiple objects for ON, OFF, SUM and DIFF
+        - returns list with four DataRawEditFidsum objects for ON, OFF, SUM and DIFF
         - read_raw() method should return one FID data set per file.
-
-        1) One filename returning ONE DataRaw object with one FID in it and data
-           array shape [1,1,1,N], where N is the number of spectral points.
 
         """
         self.raws_on = []
@@ -192,14 +192,14 @@ class RawReaderDicomSiemensFidsumXaMpress(RawReaderDicomSiemensXaMpress):
         d = self.raws_off[0]
         d["data_source"] = d["data_source"]+'.EditOFF'
         raw_off = DataRawEditFidsum(d)
-        for d in self.raws_on[1:]:
+        for d in self.raws_off[1:]:
             raw_off.concatenate(DataRawEditFidsum(d))
 
         dat_on  = raw_on.data.copy()
         dat_off = raw_off.data.copy()
 
         dat_sum = dat_on + dat_off
-        dat_dif = dat_on - dat_off
+        dat_dif = dat_off - dat_on
 
         d = self.raws_on[0]
         d["data"] = dat_sum
@@ -211,14 +211,15 @@ class RawReaderDicomSiemensFidsumXaMpress(RawReaderDicomSiemensXaMpress):
         d["data_source"] = d["data_source"]+'.Diff'
         raw_dif = DataRawEditFidsum(d)
 
+        self.raws = [raw_on, raw_off, raw_sum, raw_dif]
+
         self._check_consistency(fidsum=True)
         self._check_for_si()
-
         if 'open_dataset' in list(kwargs.keys()):
             if kwargs['open_dataset'] is not None:
-                self._check_compatibility(raw_on, kwargs['open_dataset'], fidsum=True)
+                self._check_compatibility(self.raws, kwargs['open_dataset'], fidsum=True)
 
-        return [raw_on, raw_off, raw_sum, raw_dif]
+        return self.raws
 
 
 
@@ -358,7 +359,7 @@ def _get_parameters_dicom_sop(dataset, get_header=True):
     data = [complex(r, i) for r, i in zip(data_iter, data_iter)]
     complex_data = np.fromiter(data, dtype=np.complex64)
     complex_data.shape = data_shape
-    #complex_data = complex_data.conjugate()        # different in XA30 bjs
+    complex_data = complex_data.conjugate()        # different in XA30 bjs
 
     try:
         if (0x0020,0x9116) in list(dataset[0x5200,0x9229][0].keys()):
@@ -401,91 +402,6 @@ def _get_parameters_dicom_sop(dataset, get_header=True):
 
 
 
-def _get_parameters_siemens_proprietary(dataset):
-    """ Returns a subset of the parameters from a Pydicom dataset """
 
-    #--------------------------------------------------------------------------
-    # Find Image CSA Header - search tags (0029, 00xx), Siemens start xx at 10
-
-    xx = 0x0010
-    header_index = 0
-    while (0x0029, xx) in dataset:
-        if dataset[0x0029, xx].value == "SIEMENS CSA HEADER":
-            header_index = xx
-        xx += 1
-    # check that we have found the header
-    if header_index == 0:
-        raise KeyError("Could not find header index")
-
-    # now we know which tag contains the CSA image header info: (0029, xx10)
-    csa_header_bytes = dataset[0x0029, 0x0100 * header_index + 0x0010].value
-    csa_header = _read_csa_header(csa_header_bytes)
-
-    # could also get the Series CSA Header info: (0029, xx20), but we don't
-
-    # get data shape (slices, rows, columns, fid_points)
-    data_shape = (csa_header["SpectroscopyAcquisitionOut-of-planePhaseSteps"],
-                  csa_header["Rows"],
-                  csa_header["Columns"],
-                  csa_header["DataPointColumns"], )
-
-    #--------------------------------------------------------------------------
-    # Find CSA Non-Image Data - search tags (0029, 00xx), start xx at 10
-
-    xx = 0x0010
-    data_index = 0
-    while (0x7fe1, xx) in dataset:
-        if dataset[0x7fe1, xx].value == "SIEMENS CSA NON-IMAGE":
-            data_index = xx
-        xx += 1
-    # check that we have found the data
-    if data_index == 0:
-        raise KeyError("Could not find data index")
-
-    # extract the actual data bytes
-    csa_data_bytes = dataset[0x7fe1, 0x0100 * data_index + 0x0010].value
-
-    # data stored in string as 4 byte floats in (real, imaginary) pairs
-    data = struct.unpack("<%df" % (len(csa_data_bytes) / 4), csa_data_bytes)
-    data_iter = iter(data)
-    data = [complex(r, i) for r, i in zip(data_iter, data_iter)]
-    complex_data = np.fromiter(data, dtype=np.complex64)
-    complex_data.shape = data_shape
-
-    try:
-        row_vector    = np.array(csa_header['ImageOrientationPatient'][0:3])
-        col_vector    = np.array(csa_header['ImageOrientationPatient'][3:6])
-        voi_position  = np.array(csa_header["VoiPosition"])
-
-        # voxel_size = (*csa_header["PixelSpacing"],csa_header["SliceThickness"])
-        # Since VB13 these are used for voxel_size, and ReadoutFoV and PhaseFoV are swapped
-        voxel_size = [csa_header["VoiReadoutFoV"],
-                      csa_header["VoiPhaseFoV"],
-                      csa_header["VoiThickness"]]
-
-        tform = transformation_matrix(row_vector, col_vector, voi_position, voxel_size)
-
-    except:
-        # this will trigger default
-        voxel_size = [20.0, 20.0, 20.0]
-        tform = None
-
-    header  = '\n--- DICOM TAGS -------\n'+str(dataset)
-    header += '\n\n--- CSA IMAGE HEADER -------\n'+pp.pformat(csa_header)
-
-    params = {'is_dicom_sop': False,
-              'sw'          : 1.0 / (csa_header["RealDwellTime"] * 1e-9),
-              'frequency'   : csa_header["ImagingFrequency"],
-              'resppm'      : 4.7,
-              'echopeak'    : 0.0,
-              'nucleus'     : '1H',
-              'seqte'       : csa_header["EchoTime"],
-              'seqtr'       : csa_header["RepetitionTime"],
-              'voxel_dimensions' : voxel_size,
-              'header'      : header,
-              'transform'   : tform,
-              'data'        : complex_data}
-
-    return params
 
 

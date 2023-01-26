@@ -47,7 +47,7 @@ class RawReaderSiemensDicomFidsumMegaPress(RawReaderDicomSiemens):
         raw = super().read_raw(filename, ignore_data, kwargs['open_dataset'])
 
         # Change that DataRaw object into a DataRawEdit
-        d = raw.deflate(constants.Deflate.DICTIONARY)
+        d = raw[0].deflate(constants.Deflate.DICTIONARY)
 
         return [DataRawEditFidsum(d),]
         
@@ -87,15 +87,16 @@ class RawReaderSiemensDicomFidsumMegaPress(RawReaderDicomSiemens):
         self.raws = [ ]
 
         for filename in self.filenames:
-            try:
-                # This try/except is here because we changed the API from
-                # fixed attribute/keywords to variable entries and we don't
-                # want to force users to rewrite their code. So, here we
-                # first try the new way of calling the user method.
-                raw = self.read_raw(filename, ignore_data, *args, **kwargs)
-            except:
-                # and this is the old way of calling the user method.
-                raw = self.read_raw(filename, ignore_data)
+            raw = self.read_raw(filename, ignore_data, *args, **kwargs)
+            # try:
+            #     # This try/except is here because we changed the API from
+            #     # fixed attribute/keywords to variable entries and we don't
+            #     # want to force users to rewrite their code. So, here we
+            #     # first try the new way of calling the user method.
+            #     raw = self.read_raw(filename, ignore_data, *args, **kwargs)
+            # except:
+            #     # and this is the old way of calling the user method.
+            #     raw = self.read_raw(filename, ignore_data)
             self.raws.append(raw)
 
         # Parse scan data into four arrays 

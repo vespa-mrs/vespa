@@ -88,7 +88,10 @@ class ViewIdsSpectral(common_menu.IdContainer):
     VIEW_TO_SVG  = "replace me"
     VIEW_TO_PDF  = "replace me"
     VIEW_TO_EPS  = "replace me"
-    
+
+    PLOTC_FID_TO_VIFF  = "replace me"
+    PLOTC_FID_TO_ASCII = "replace me"
+
     SVD_DATA_TO_VIFF = "replace me"
     SVD_PEAKS_CHECKED_SUM_TO_VIFF = "replace me"
     SVD_FIDS_CHECKED_SUM_TO_VIFF = "replace me"
@@ -718,6 +721,10 @@ def _get_menu_data(main):
                 ("Plot A", (
                     ("to Binary", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTS_TO_BINARY),
                     ("to ASCII",  main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTS_TO_ASCII))),
+                common_menu.SEPARATOR,
+                ("Plot C", (
+                    ("FID Data -> VIFF Raw Data", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_VIFF),
+                    ("FID Data -> to ASCII",  main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_ASCII))),
                 common_menu.SEPARATOR,
                 ("SVD Exports", (
                     ("Plot A Spectrum -> VIFF Raw Data", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.SVD_DATA_TO_VIFF),
