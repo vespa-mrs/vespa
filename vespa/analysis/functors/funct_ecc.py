@@ -21,31 +21,44 @@ def ecc_fida(chain, ecc_raw, ecc_dataset):
 
     if ecc_dataset:
         voxel = chain.voxel
-        ecc = ecc_raw[voxel[2], voxel[1], voxel[0], :].copy()
-
-        npts = chain.data.shape[-1]
-        ds = chain._dataset
+        ecc   = ecc_raw[voxel[2], voxel[1], voxel[0], :].copy()
+        npts  = chain.data.shape[-1]
+        ds    = chain._dataset
         dwell = 1.0 / ds.sw
-        t  = np.arange(npts) * dwell
-        t150 = (npts * dwell) * np.arange(150, dtype=np.float)/149.0
-        # choose the part of the phase function that is most linear
-        tmin, tmax = 0.030, 0.400 # in sec
-        trange = np.logical_and(t >= tmin, t <= tmax)
 
-        import matplotlib.pyplot as plt
+        t  = np.arange(npts) * dwell
 
         inph0 = np.arctan2(ecc.imag, ecc.real)
         inph1 = np.unwrap(inph0)
-        inph  = phase2(inph1, trange)
 
+        # following code refines the np.unwrap() result in later 75%
+        # if the data is noisy and still wrapping
+        phi = inph1.copy()
+        npts = len(phi)
+        str2, end2 = int(npts * 0.02), int(npts * 0.25)
+        tt = np.arange(npts)
+        phi1 = np.polyval(np.polyfit(tt[str2:end2], phi[str2:end2], 1), tt)
+        phi2 = phi1.copy()
+        diff = phi - phi1
+        for i in range(end2 + 1, npts):
+            mult = -1 if diff[i] < 0 else 1.0
+            delta = diff[i]
+            while abs(delta) > abs(delta - (mult * np.pi * 2)):
+                delta = delta - (mult * np.pi * 2)
+            phi2[i] = delta + phi1[i]
+
+        inph = phi2
 
         # now fit a straight line to the linear part of the phase function
-        c = np.polyfit(t[trange], inph[trange],1)
+        # - choose a part of the phase function that is most linear
+        # - tmin, tmax = 0.030, 0.350 # in sec
+        str, end = int(npts * 0.03), int(npts * 0.35)
+        c = np.polyfit(t[str:end], inph[str:end],1)
         p = np.polyval(c, t)
 
         # now fit a spline to approximate a smooth version of the phase function
-        ff = sp.interpolate.splrep(t, inph, k=3, task=-1, t=t150[1:npts-1])
-        pp = sp.interpolate.splev(t, ff)
+        smooth = (npts - np.sqrt(2*npts))/1.15     # default in scipy docs, nudge from bjs
+        pp = sp.interpolate.splev(t, sp.interpolate.splrep(t, inph, k=3, s=smooth))
 
         # subtract line from spline -> eddy current related phase offset
         ecphase = pp - p
@@ -54,29 +67,10 @@ def ecc_fida(chain, ecc_raw, ecc_dataset):
 
         chain.data *= util_math.safe_exp(1j * 180.0*ecphase[0]/np.pi)
 
+        # import matplotlib.pyplot as plt
+        # plt.plot(t, inph0, t, inph)
+        # plt.show()
 
-def phase2(phi):
-    """
-    Find a linear fit line based on a "nice" part of the data
-    For every point, find the integer multiple of 2π that brings the data closest to the fit line.
-    Return {processed data, fit line object, plot}
-
-    """
-    npts = len(phi)
-    str, end = npts * 0.02, npts * 0.25
-    t = np.arange(npts)
-    phi1 = np.polyval(np.polyfit(t[str:end],phi[str:end], 1),t)
-    phi2 = phi1.copy()
-
-    diff = phi - phi1
-    for i in range(end+1,npts):
-        mult = -1 if diff[i] < 0 else 1.0
-        delta = diff[i]
-        while abs(delta) > abs(delta-(mult*np.pi*2)):
-            delta = delta-(mult*np.pi*2)
-        phi2[i] = delta + phi1[i]
-
-    return phi2
 
 
 
@@ -595,8 +589,11 @@ def _test():
 
     # testing ecc_fida()
 
-    fmetab = r"D:\Users\bsoher\code\repository_svn\sample_data\press_cp_svs_data\press_cp2.rsd"
-    fwater = r"D:\Users\bsoher\code\repository_svn\sample_data\press_cp_svs_data\press_cp2_wref.rsd"
+    #fmetab = r"D:\Users\bsoher\code\repository_svn\sample_data\press_cp_svs_data\press_cp2.rsd"
+    #fwater = r"D:\Users\bsoher\code\repository_svn\sample_data\press_cp_svs_data\press_cp2_wref.rsd"
+
+    fmetab = r"D:\Users\bsoher\code\repository_svn\sample_data\press_cp_svs_data\press_cp1.rsd"
+    fwater = r"D:\Users\bsoher\code\repository_svn\sample_data\press_cp_svs_data\press_cp1_wref.rsd"
 
     dsmet = util_file_import.get_datasets_cli(fmetab, 'import_vasf', None)[0]
     dswat = util_file_import.get_datasets_cli(fwater, 'import_vasf', None)[0]
@@ -616,8 +613,8 @@ def _test():
 
     ecc_fida(chain, wat, dswat)
 
-    plt.plot(savdat.real)
-    plt.plot(chain.data.real, 'b', linewidth=2)
+    plt.plot(np.ravel(savdat.real))
+    plt.plot(np.ravel(chain.data.real), 'b', linewidth=2)
     plt.show()
 
 
