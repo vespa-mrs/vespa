@@ -82,12 +82,14 @@ def phase2(phi):
 
 
 def ecc_klose(chain, ecc_raw, ecc_dataset):
+    """ 
+    Based on Klose U. In vivo proton spectroscopy in presence of eddy currents. 
+    Magn Reson Med 1990;14(1):26-30.
+    
+    """
     if ecc_dataset: 
-        voxel = chain.voxel
+        voxel  = chain.voxel
         ecc    = ecc_raw[voxel[2],voxel[1],voxel[0],:]
-        # phecc  = np.angle(ecc)
-        # phtime = np.angle(chain.data)
-        # chain.data  = abs(chain.data) * util_math.safe_exp(1j*(phtime-phecc))
 
         phecc  = np.angle(ecc) - np.angle(ecc[0])
         phtime = np.angle(chain.data) - np.angle(chain.data[0])
@@ -95,6 +97,13 @@ def ecc_klose(chain, ecc_raw, ecc_dataset):
 
 
 def ecc_quality(chain, ecc_raw, ecc_dataset):
+    """
+    Based on De Graaf
+    De Graaf AA, van Dijk JE, Bovee WMMJ. QUALITY: Quantification improvement 
+    by converting lineshapes to the Lorentzian type. Magn Reson Med 
+    1990;13:343-357.
+    
+    """
     
     if ecc_dataset: 
         voxel = chain.voxel
@@ -114,6 +123,10 @@ def ecc_quality(chain, ecc_raw, ecc_dataset):
 def ecc_quecc(chain, ecc_raw, ecc_dataset):
     """
     Based on Bartha, et.al. MRM Vol 44, p.641-645, 2000
+    
+    Bartha R, Drost DJ, Menon RS, Williamson PC. Spectroscopic lineshape 
+    correction by QUECC: combined QUALITY deconvolution and eddy current 
+    correction. Magn Reson Med 2000;44(4):641-645.
     
     "There are two important issues that must be considered when implementing 
     QUECC: determining the optimal crossover point (time) to end the QUALITY 
@@ -207,6 +220,7 @@ def ecc_simple(chain, ecc_raw, ecc_dataset):
             ecc[index] = tom
         
         chain.data  = chain.data / ecc    
+
 
 
 def ecc_traf(chain, ecc_raw, ecc_dataset):

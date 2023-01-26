@@ -276,6 +276,7 @@ def correction_spectral_registration_suspect(raw, chain):
 def correction_rats_suspect(raw, chain):
     """ 
     FID frequency and phase correction method - RATS from Suspect
+    https://onlinelibrary.wiley.com/doi/abs/10.1002/mrm.27605
     
     Corrects individual FID data from an MRS data set for frequency and phase
     drifts through time
