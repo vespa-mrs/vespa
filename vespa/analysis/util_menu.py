@@ -89,18 +89,24 @@ class ViewIdsSpectral(common_menu.IdContainer):
     VIEW_TO_PDF  = "replace me"
     VIEW_TO_EPS  = "replace me"
 
-    PLOTC_FID_TO_VIFF  = "replace me"
+    PLOTA_FID_TO_BINARY = "replace me"
+    PLOTA_FID_TO_ASCII = "replace me"
+    PLOTA_SPECTRUM_TO_BINARY = "replace me"
+    PLOTA_SPECTRUM_TO_ASCII = "replace me"
+    PLOTA_FID_TO_VIFF = "replace me"
+
+    PLOTC_FID_TO_BINARY = "replace me"
     PLOTC_FID_TO_ASCII = "replace me"
+    PLOTC_SPECTRUM_TO_BINARY = "replace me"
+    PLOTC_SPECTRUM_TO_ASCII = "replace me"
+    PLOTC_FID_TO_VIFF  = "replace me"
 
-    SVD_DATA_TO_VIFF = "replace me"
-    SVD_PEAKS_CHECKED_SUM_TO_VIFF = "replace me"
-    SVD_FIDS_CHECKED_SUM_TO_VIFF = "replace me"
-    SVD_PEAKS_CHECKED_DIFF_TO_VIFF = "replace me"
-    SVD_TABLE_VALUES_TO_XML = "replace me"
+    SVDA_SPECTRUM_TO_VIFF = "replace me"
+    SVDB_SPECTRUM_CHECKED_SUM_TO_VIFF = "replace me"
+    SVDB_FIDS_CHECKED_SUM_TO_VIFF = "replace me"
+    SVDC_SPECTRUM_TO_VIFF = "replace me"
+    SVD_TABLE_VALUES_TO_VIFF = "replace me"
     SVD_TABLE_VALUES_TO_CSV = "replace me"
-
-    PLOTS_TO_BINARY = "replace me"
-    PLOTS_TO_ASCII = "replace me"
 
 
 class ViewIdsPrepTimeseries(common_menu.IdContainer):
@@ -683,12 +689,14 @@ def _get_menu_data(main):
                 common_menu.SEPARATOR,
                 ("Top",    main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.ZERO_LINE_TOP),
                 ("Middle", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.ZERO_LINE_MIDDLE),
-                ("Bottom", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.ZERO_LINE_BOTTOM))),
+                ("Bottom", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.ZERO_LINE_BOTTOM),
+            )),
             ("X-Axis", (
                 ("Show", main.on_menu_view_option,   wx.ITEM_CHECK, ViewIdsSpectral.XAXIS_SHOW),
                 common_menu.SEPARATOR,
                 ("PPM",   main.on_menu_view_option,  wx.ITEM_RADIO, ViewIdsSpectral.XAXIS_PPM),
-                ("Hertz", main.on_menu_view_option,  wx.ITEM_RADIO, ViewIdsSpectral.XAXIS_HERTZ))),
+                ("Hertz", main.on_menu_view_option,  wx.ITEM_RADIO, ViewIdsSpectral.XAXIS_HERTZ),
+            )),
             common_menu.SEPARATOR,
             ("Data Type", (
                 ("Real",      main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.DATA_TYPE_REAL),
@@ -696,46 +704,63 @@ def _get_menu_data(main):
                 ("Magnitude", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.DATA_TYPE_MAGNITUDE),
                 common_menu.SEPARATOR,
                 ("Summed",    main.on_menu_view_option, wx.ITEM_CHECK, ViewIdsSpectral.DATA_TYPE_SUMMED),
-                          )
-            ),
+            )),
             common_menu.SEPARATOR,
             ("Area Calculation", (
                 ("From Plot A", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.AREA_CALC_PLOT_A),
                 ("From Plot B", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.AREA_CALC_PLOT_B),
-                ("From Plot C", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.AREA_CALC_PLOT_C))),
+                ("From Plot C", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.AREA_CALC_PLOT_C),
+            )),
             ("Plot C Function", (
                 ("None",         main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.PLOT_C_FUNCTION_NONE),
                 ("Residual A-B", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.PLOT_C_FUNCTION_A_MINUS_B),
                 ("Residual B-A", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.PLOT_C_FUNCTION_B_MINUS_A),
-                ("Sum A+B",      main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.PLOT_C_FUNCTION_A_PLUS_B))),
+                ("Sum A+B",      main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.PLOT_C_FUNCTION_A_PLUS_B),
+            )),
             ("User Button Function", (
                 ("Automatic Phasing", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.USER_BUTTON_PHASING),
-                ("Output Area Value", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.USER_BUTTON_AREA))),
+                ("Output Area Value", main.on_menu_view_option, wx.ITEM_RADIO, ViewIdsSpectral.USER_BUTTON_AREA),
+            )),
+            common_menu.SEPARATOR,
+            ("Derived Datasets", (
+                ("Plot A", (
+                    ("FID -> to Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_FID_TO_BINARY),
+                    ("FID -> to ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_FID_TO_ASCII),
+                    ("Spectrum -> to Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_SPECTRUM_TO_BINARY),
+                    ("Spectrum -> to ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_SPECTRUM_TO_ASCII),
+                    ("FID -> VIFF Raw Data", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_FID_TO_VIFF),
+                )),
+                common_menu.SEPARATOR,
+                ("Plot C", (
+                    ("FID -> to Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_BINARY),
+                    ("FID -> to ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_ASCII),
+                    ("Spectrum -> to Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_SPECTRUM_TO_BINARY),
+                    ("Spectrum -> to ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_SPECTRUM_TO_ASCII),
+                    ("FID -> VIFF Raw Data", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_VIFF),
+                )),
+                common_menu.SEPARATOR,
+                ("SVD Exports", (
+                    ("Plot A Spectrum -> VIFF Raw Data", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.SVDA_SPECTRUM_TO_VIFF),
+                    ("Plot B Spectrum Sum -> VIFF Raw Data",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.SVDB_SPECTRUM_CHECKED_SUM_TO_VIFF),
+                    ("Plot B FID Data Sum -> VIFF Raw Data", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.SVDB_FIDS_CHECKED_SUM_TO_VIFF),
+                    ("Plot C Spectrum Diff -> VIFF Raw Data", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.SVDC_SPECTRUM_TO_VIFF),
+                )),
+            )),
             common_menu.SEPARATOR,
             ("Output", (
                 ("View -> PNG", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.VIEW_TO_PNG),
                 ("View -> SVG", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.VIEW_TO_SVG),
                 ("View -> PDF", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.VIEW_TO_PDF),
                 ("View -> EPS", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.VIEW_TO_EPS),
-                common_menu.SEPARATOR,
-                ("Plot A", (
-                    ("to Binary", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTS_TO_BINARY),
-                    ("to ASCII",  main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTS_TO_ASCII))),
-                common_menu.SEPARATOR,
-                ("Plot C", (
-                    ("FID Data -> VIFF Raw Data", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_VIFF),
-                    ("FID Data -> to ASCII",  main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_ASCII))),
+                ("View -> EPS", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.VIEW_TO_EPS),
+
                 common_menu.SEPARATOR,
                 ("SVD Exports", (
-                    ("Plot A Spectrum -> VIFF Raw Data", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.SVD_DATA_TO_VIFF),
-                    ("Plot B Spectrum Sum -> VIFF Raw Data",  main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.SVD_PEAKS_CHECKED_SUM_TO_VIFF),
-                    ("Plot B FID Data Sum -> VIFF Raw Data", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.SVD_FIDS_CHECKED_SUM_TO_VIFF),
-                    ("Plot C Spectrum Diff -> VIFF Raw Data", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.SVD_PEAKS_CHECKED_DIFF_TO_VIFF),
-                    ("HLSVD Table Values -> VIFF XML", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.SVD_TABLE_VALUES_TO_XML),
+                    ("HLSVD Table Values -> VIFF XML", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.SVD_TABLE_VALUES_TO_VIFF),
                     ("HLSVD Table Values -> CSV File", main.on_menu_view_output, wx.ITEM_NORMAL, ViewIdsSpectral.SVD_TABLE_VALUES_TO_CSV),
-                                )
-                 ),
+                )),
             )))
+
 
     view_voigt = (
             ("Zero Line", (
