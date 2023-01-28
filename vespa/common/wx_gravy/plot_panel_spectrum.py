@@ -819,6 +819,21 @@ class PlotPanelSpectrum(wx.Panel):
             return self.data[index][0]['data'].copy()
 
 
+    def set_data_direct(self, data, index):
+        """
+        Convenience function to simplify direct change to data arrays.
+        - data must be same shape and dtype as existing array
+        - index must be existing location
+        """
+        if index < 0 or index >= self.naxes:
+            return
+        if self.data[index][0]['data'].dtype != data.dtype:
+            return
+        if self.data[index][0]['data'].shape != data.shape:
+            return
+        self.data[index][0]['data'] = data
+
+
     def format_axes(self):
         """
         Here the plot_option settings are enforced for display of x-axis

@@ -864,78 +864,113 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
                 self.ButtonUserFunction.SetLabel(label)
 
 
+    def on_menu_view_derived(self, event):
+        event_id = event.GetId()
+
+        if event_id == util_menu.ViewIdsSpectral.PLOTA_FID_TO_BINARY:
+            filename = common_dialogs.save_as("Plot A FID to Binary", "BIN files (*.bin)|*.bin", default_filename='analysis_plota_fid_to_binary.bin')
+            if filename:
+                data = self.view.get_data(0)
+                data = np.fft.ifft(np.fft.fftshift(data)) * len(data)
+                util_fileio.dump_iterable(filename, data)
+        elif event_id == util_menu.ViewIdsSpectral.PLOTA_FID_TO_ASCII:
+            filename = common_dialogs.save_as("Plot A FID to ASCII", "TXT files (*.txt)|*.txt", default_filename='analysis_plota_fid_to_text.txt')
+            if filename:
+                data = self.view.get_data(0)
+                data = np.fft.ifft(np.fft.fftshift(data)) * len(data)
+                data.tofile(filename, sep=' ')
+        elif event_id == util_menu.ViewIdsSpectral.PLOTA_SPECTRUM_TO_BINARY:
+            filename = common_dialogs.save_as("Plot A Spectrum to Binary", "BIN files (*.bin)|*.bin", default_filename='analysis_plota_spectrum_to_binary.bin')
+            if filename:
+                data = self.view.get_data(0)
+                util_fileio.dump_iterable(filename, data)
+        elif event_id == util_menu.ViewIdsSpectral.PLOTA_SPECTRUM_TO_ASCII:
+            filename = common_dialogs.save_as("Plot A Spectrum to ASCII", "TXT files (*.txt)|*.txt", default_filename='analysis_plota_spectrum_to_text.txt')
+            if filename:
+                data = self.view.get_data(0)
+                data.tofile(filename, sep=' ')
+        elif event_id == util_menu.ViewIdsSpectral.PLOTA_FID_TO_VIFF:
+            self.dump_to_viff('plota_fid')
+
+        if event_id == util_menu.ViewIdsSpectral.PLOTC_FID_TO_BINARY:
+            filename = common_dialogs.save_as("Plot C FID to Binary", "BIN files (*.bin)|*.bin", default_filename='analysis_plotc_fid_to_binary.bin')
+            if filename:
+                data = self.view.get_data(2)
+                data = np.fft.ifft(np.fft.fftshift(data)) * len(data)
+                util_fileio.dump_iterable(filename, data)
+        elif event_id == util_menu.ViewIdsSpectral.PLOTC_FID_TO_ASCII:
+            filename = common_dialogs.save_as("Plot C FID to ASCII", "TXT files (*.txt)|*.txt", default_filename='analysis_plotc_fid_to_text.txt')
+            if filename:
+                data = self.view.get_data(2)
+                data = np.fft.ifft(np.fft.fftshift(data)) * len(data)
+                data.tofile(filename, sep=' ')
+        elif event_id == util_menu.ViewIdsSpectral.PLOTC_SPECTRUM_TO_BINARY:
+            filename = common_dialogs.save_as("Plot C Spectrum to Binary", "BIN files (*.bin)|*.bin", default_filename='analysis_plotc_spectrum_to_binary.bin')
+            if filename:
+                data = self.view.get_data(2)
+                util_fileio.dump_iterable(filename, data)
+        elif event_id == util_menu.ViewIdsSpectral.PLOTC_SPECTRUM_TO_ASCII:
+            filename = common_dialogs.save_as("Plot C Spectrum to ASCII", "TXT files (*.txt)|*.txt", default_filename='analysis_plotc_spectrum_to_text.txt')
+            if filename:
+                data = self.view.get_data(2)
+                data.tofile(filename, sep=' ')
+        elif event_id == util_menu.ViewIdsSpectral.PLOTC_FID_TO_VIFF:
+            self.dump_to_viff('plotc_fid')
+
+        elif event_id == util_menu.ViewIdsSpectral.SVDA_SPECTRUM_TO_VIFF:
+            self.dump_to_viff('svda_spectrum')
+        elif event_id == util_menu.ViewIdsSpectral.SVDB_SPECTRUM_CHECKED_SUM_TO_VIFF:
+            self.dump_to_viff('svdb_spectrum_checked_sum')
+        elif event_id == util_menu.ViewIdsSpectral.SVDB_FIDS_CHECKED_SUM_TO_VIFF:
+            self.dump_to_viff('svdb_fids_checked_sum')
+        elif event_id == util_menu.ViewIdsSpectral.SVDC_SPECTRUM_TO_VIFF:
+            self.dump_to_viff('svdc_spectrum')
+
+
 
     def on_menu_view_output(self, event):
         event_id = event.GetId()
         
-        if event_id == util_menu.ViewIdsSpectral.SVD_DATA_TO_VIFF:
-            self.dump_to_viff('svd_data')
-        elif event_id == util_menu.ViewIdsSpectral.SVD_PEAKS_CHECKED_SUM_TO_VIFF:
-            self.dump_to_viff('svd_peaks_checked_sum')
-        elif event_id == util_menu.ViewIdsSpectral.SVD_FIDS_CHECKED_SUM_TO_VIFF:
-            self.dump_to_viff('svd_fids_checked_sum')
-        elif event_id == util_menu.ViewIdsSpectral.SVD_PEAKS_CHECKED_DIFF_TO_VIFF:
-            self.dump_to_viff('svd_peak_checked_diff')
-        elif event_id == util_menu.ViewIdsSpectral.SVD_TABLE_VALUES_TO_XML:
+        formats = { util_menu.ViewIdsSpectral.VIEW_TO_PNG : "PNG",
+                    util_menu.ViewIdsSpectral.VIEW_TO_SVG : "SVG",
+                    util_menu.ViewIdsSpectral.VIEW_TO_EPS : "EPS",
+                    util_menu.ViewIdsSpectral.VIEW_TO_PDF : "PDF",
+                  }
+
+        if event_id in formats:
+            format = formats[event_id]
+            lformat = format.lower()
+            filter_ = "%s files (*.%s)|*.%s" % (format, lformat, lformat)
+
+            if self.svd_tab_active:
+                figure = self.view_svd.figure
+            else:
+                figure = self.view.figure
+
+            filename = common_dialogs.save_as("", filter_)
+
+            if filename:
+                msg = ""
+                try:
+                    figure.savefig( filename,
+                                    dpi=300,
+                                    facecolor='w',
+                                    edgecolor='w',
+                                    orientation='portrait',
+                                    papertype='letter',
+                                    format=None,
+                                    transparent=False)
+                except IOError:
+                    msg = """I can't write the file "%s".""" % filename
+
+                if msg:
+                    common_dialogs.message(msg, style=common_dialogs.E_OK)
+
+        elif event_id == util_menu.ViewIdsSpectral.SVD_TABLE_VALUES_TO_VIFF:
             self.export_hlsvd_table_to_xml()
         elif event_id == util_menu.ViewIdsSpectral.SVD_TABLE_VALUES_TO_CSV:
             self.export_hlsvd_table_to_csv()
-        else:
-            formats = { util_menu.ViewIdsSpectral.VIEW_TO_PNG : "PNG",
-                        util_menu.ViewIdsSpectral.VIEW_TO_SVG : "SVG",
-                        util_menu.ViewIdsSpectral.VIEW_TO_EPS : "EPS",
-                        util_menu.ViewIdsSpectral.VIEW_TO_PDF : "PDF",
-                      }
-    
-            if event_id in formats:
-                format = formats[event_id]
-                lformat = format.lower()
-                filter_ = "%s files (*.%s)|*.%s" % (format, lformat, lformat)
-    
-                if self.svd_tab_active:
-                    figure = self.view_svd.figure
-                else:
-                    figure = self.view.figure
-    
-                filename = common_dialogs.save_as("", filter_)
-    
-                if filename:
-                    msg = ""
-                    try:
-                        figure.savefig( filename,
-                                        dpi=300,
-                                        facecolor='w',
-                                        edgecolor='w',
-                                        orientation='portrait',
-                                        papertype='letter',
-                                        format=None,
-                                        transparent=False)
-                    except IOError:
-                        msg = """I can't write the file "%s".""" % filename
-    
-                    if msg:
-                        common_dialogs.message(msg, style=common_dialogs.E_OK)
 
-            elif event_id == util_menu.ViewIdsSpectral.PLOTC_FID_TO_VIFF:
-                self.dump_to_viff('plotc_fid')
-
-            elif event_id == util_menu.ViewIdsSpectral.PLOTC_FID_TO_ASCII:
-                filename = common_dialogs.save_as("", "TXT files (*.txt)|*.txt")
-                if filename:
-                    dataC = self.view.get_data(2)
-                    dataC.tofile(filename, sep=' ')
-
-            elif event_id == util_menu.ViewIdsSpectral.PLOTS_TO_BINARY:
-                filename = common_dialogs.save_as("", "BIN files (*.bin)|*.bin")
-                if filename:
-                    dataA = self.view.get_data(0)
-                    util_fileio.dump_iterable(filename, dataA)
-    
-            elif event_id == util_menu.ViewIdsSpectral.PLOTS_TO_ASCII:
-                filename = common_dialogs.save_as("", "TXT files (*.txt)|*.txt")
-                if filename:
-                    dataA = self.view.get_data(0)
-                    dataA.tofile(filename, sep=' ')
 
 
     def on_dataset_keys_change(self, keys):
@@ -1038,26 +1073,33 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
 
                 stamp = util_time.now(util_time.ISO_TIMESTAMP_FORMAT).split('T')
             
-                if key == 'svd_data':
+                if key == 'svda_spectrum':
                     lines = ['Export from Analysis Spectral SVD Tab - PlotA Spectrum Data']
                     lines.append('------------------------------------------------------------------')
                     lines.append('An IFFT() was performed on the Plot A spectrum and the resultant FID written into')
                     lines.append('this VIFF XML Raw Data file.')
-                elif key == 'svd_peaks_checked_sum':
+                elif key == 'svdb_spectrum_checked_sum':
                     lines = ['Export from Analysis SVD Spectral Tab - PlotB Checked SVD Summed Spectrum']
                     lines.append('------------------------------------------------------------------')
                     lines.append('An IFFT() was performed on the summed SVD peak spectrum and the resultant FID written')
                     lines.append('into this VIFF XML Raw Data file.')
-                elif key == 'svd_fids_checked_sum':
+                elif key == 'svdb_fids_checked_sum':
                     lines = ['Export from Analysis Spectral SVD Tab - PlotB Checked SVD Summed FID Data']
                     lines.append('------------------------------------------------------------------')
                     lines.append('The time data for the summed SVD FIDs was written into this VIFF XML Raw Data file.')
                     lines.append('You can process it the same way your would any other time domain FID data.')
-                elif key == 'svd_peak_checked_diff':
+                elif key == 'svdc_spectrum':
                     lines = ['Export from Analysis Spectral SVD Tab - PlotC (PlotA - PlotB) Spectrum Data']
                     lines.append('------------------------------------------------------------------')
                     lines.append('An IFFT() was performed on the Plot C spectrum and the resultant FID written into')
                     lines.append('this VIFF XML Raw Data file.')
+
+                elif key == 'plota_fid':
+                    lines = ['Export from Analysis Spectral General Tab - PlotA FID Data']
+                    lines.append('------------------------------------------------------------------')
+                    lines.append('An IFFT() was performed on the Plot A spectrum and the resultant FID written into')
+                    lines.append('this VIFF XML Raw Data file.')
+
                 elif key == 'plotc_fid':
                     if self.plot_C_function == self.plot_C_map[util_menu.ViewIdsSpectral.PLOT_C_FUNCTION_NONE]:
                         labl_func = 'None'
@@ -1081,14 +1123,20 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
                 if (sys.platform == "win32"):
                     lines = lines.replace("\n", "\r\n")
 
-                if key == 'svd_data' or key == 'svd_peaks_checked_sum':
-                    dat = results[key].copy()
+                if key == 'svda_spectrum':
+                    dat = results['svd_data'].copy()
                     dat = np.fft.ifft(np.fft.fftshift(dat)) * len(dat)
-                elif key =='svd_peak_checked_diff':
+                elif key == 'svdb_spectrum_checked_sum':
+                    dat = results['svd_peaks_checked_sum'].copy()
+                    dat = np.fft.ifft(np.fft.fftshift(dat)) * len(dat)
+                elif key == 'svdb_fids_checked_sum':
+                    dat = results[key].copy()
+                elif key =='svd_spectrum_checked_diff':
                     dat = results['svd_data'].copy() - results['svd_peaks_checked_sum'].copy()
                     dat = np.fft.ifft(np.fft.fftshift(dat)) * len(dat)
-                elif key == 'svd_fids_checked_sum':
-                    dat = results[key].copy()
+                elif key == 'plota_fid':
+                    dat = self.view.get_data(0)
+                    dat = np.fft.ifft(np.fft.fftshift(dat)) * len(dat)
                 elif key == 'plotc_fid':
                     dat = self.view.get_data(2)
                     dat = np.fft.ifft(np.fft.fftshift(dat)) * len(dat)
@@ -2079,6 +2127,10 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
         data3 = self.plot_C_function(data1, data2)
         self.view.all_axes[2].lines[0].set_ydata(data3)
 
+        view_data1 = self.view.get_data(0)
+        view_data2 = self.view.get_data(1)
+        view_data3 = self.plot_C_function(view_data1, view_data2)
+        self.view.set_data_direct(view_data3, 2)
 
     def svd_checklist_update(self):
         """
