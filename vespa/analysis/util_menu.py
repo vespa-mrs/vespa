@@ -100,6 +100,8 @@ class ViewIdsSpectral(common_menu.IdContainer):
     PLOTC_SPECTRUM_TO_BINARY = "replace me"
     PLOTC_SPECTRUM_TO_ASCII = "replace me"
     PLOTC_FID_TO_VIFF  = "replace me"
+    PLOTC_A_PLUS_B_TO_NEW_TAB = "replace me"
+    PLOTC_A_MINUS_B_TO_NEW_TAB = "replace me"
 
     SVDA_SPECTRUM_TO_VIFF = "replace me"
     SVDB_SPECTRUM_CHECKED_SUM_TO_VIFF = "replace me"
@@ -724,19 +726,21 @@ def _get_menu_data(main):
             common_menu.SEPARATOR,
             ("Derived Datasets", (
                 ("Plot A", (
-                    ("FID -> to Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_FID_TO_BINARY),
-                    ("FID -> to ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_FID_TO_ASCII),
-                    ("Spectrum -> to Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_SPECTRUM_TO_BINARY),
-                    ("Spectrum -> to ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_SPECTRUM_TO_ASCII),
+                    ("FID -> Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_FID_TO_BINARY),
+                    ("FID -> ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_FID_TO_ASCII),
+                    ("Spectrum -> Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_SPECTRUM_TO_BINARY),
+                    ("Spectrum -> ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_SPECTRUM_TO_ASCII),
                     ("FID -> VIFF Raw Data", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTA_FID_TO_VIFF),
                 )),
                 common_menu.SEPARATOR,
                 ("Plot C", (
-                    ("FID -> to Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_BINARY),
-                    ("FID -> to ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_ASCII),
-                    ("Spectrum -> to Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_SPECTRUM_TO_BINARY),
-                    ("Spectrum -> to ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_SPECTRUM_TO_ASCII),
+                    ("FID -> Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_BINARY),
+                    ("FID -> ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_ASCII),
+                    ("Spectrum -> Binary", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_SPECTRUM_TO_BINARY),
+                    ("Spectrum -> ASCII",  main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_SPECTRUM_TO_ASCII),
                     ("FID -> VIFF Raw Data", main.on_menu_view_derived, wx.ITEM_NORMAL, ViewIdsSpectral.PLOTC_FID_TO_VIFF),
+                    ("Spectrum A+B -> New Tab", main.on_menu_view_derived, wx.ITEM_NORMAL,ViewIdsSpectral.PLOTC_A_PLUS_B_TO_NEW_TAB),
+                    ("Spectrum A-B -> New Tab", main.on_menu_view_derived, wx.ITEM_NORMAL,ViewIdsSpectral.PLOTC_A_MINUS_B_TO_NEW_TAB),
                 )),
                 common_menu.SEPARATOR,
                 ("SVD Exports", (

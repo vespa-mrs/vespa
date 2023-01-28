@@ -925,6 +925,64 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
             self.dump_to_viff('svdb_fids_checked_sum')
         elif event_id == util_menu.ViewIdsSpectral.SVDC_SPECTRUM_TO_VIFF:
             self.dump_to_viff('svdc_spectrum')
+        elif event_id == util_menu.ViewIdsSpectral.PLOTC_A_PLUS_B_TO_NEW_TAB:
+            self.derived_dataset('plotc_a_plus_b')
+        elif event_id == util_menu.ViewIdsSpectral.PLOTC_A_MINUS_B_TO_NEW_TAB:
+            self.derived_dataset('plotc_a_minus_b')
+
+
+    def derived_dataset(self, mode):
+
+        msg = ''
+        voxel = self._tab_dataset.voxel
+        ds = self.dataset
+        if ds:
+            block = ds.blocks["spectral"]
+            results = block.chain.run([voxel], entry='viff')
+            defname = "analysis_export_hlsvd_data.xml"
+            label = "Save HLSVDPro Data to VIFF XML Raw Filename"
+            filename = common_dialogs.save_as(label, "XML files (*.xml)|*.xml", default_filename=defname)
+            if filename:
+
+                stamp = util_time.now(util_time.ISO_TIMESTAMP_FORMAT).split('T')
+
+                if mode == 'plotc_a_plus_b':
+                    labl_func = 'PlotA + PlotB'
+                    dat = self.view.get_data(0)+self.view.get_data(1)
+                elif mode == 'plotc_a_minus_b':
+                    labl_func = 'PlotA - PlotB'
+                    dat = self.view.get_data(0)-self.view.get_data(1)
+
+                lines = ['Export from Analysis Spectral General Tab - PlotC ('+labl_func+') FID Data']
+                lines.append('------------------------------------------------------------------')
+                lines.append('An IFFT() was performed on the Plot C spectrum and the resultant FID written into')
+                lines.append('this VIFF XML Raw Data file.')
+
+                lines.append(' ')
+                lines.append('Creation_date            - '+stamp[0])
+                lines.append('Creation_time            - '+stamp[1])
+                lines.append(' ')
+                lines = "\n".join(lines)
+                if (sys.platform == "win32"):
+                    lines = lines.replace("\n", "\r\n")
+
+                dat = np.fft.ifft(np.fft.fftshift(dat))*len(dat)
+
+                met = mrs_data_raw.DataRaw()
+                met.data_sources = ['analysis_spectral_general_tab_plotc_data_export']
+                met.headers = [lines]
+                met.sw = ds.sw
+                met.frequency = ds.frequency
+                met.resppm = ds.resppm
+                met.data = dat
+                try:
+                    util_export.export(filename, [met], None, lines, False)
+                except IOError:
+                    msg = """I can't write the file "%s"."""%filename
+
+                if msg:
+                    common_dialogs.message(msg, style=common_dialogs.E_OK)
+                    return
 
 
 
