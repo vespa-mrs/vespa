@@ -81,6 +81,10 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
         if self.active_tab:
             self.active_tab.on_menu_view_output(event)
 
+    def on_menu_view_derived(self, event):
+        if self.active_tab:
+            self.active_tab.on_menu_view_derived(event)
+
     def on_menu_view_results(self, event):
         if self.active_tab:
             self.active_tab.on_menu_view_results(event)
@@ -230,13 +234,17 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
     #
     #=======================================================
 
-    def add_dataset_tab(self, datasets=None):
+    def add_dataset_tab(self, datasets=None, force_name=None):
         # If the welcome tab is open, close it.
         if self.is_welcome_tab_open:
             self.DeletePage(0)
 
-        names, count = self.custom_tab_names(datasets, self.count)
-        self.count = count
+        if force_name is None:
+            names, count = self.custom_tab_names(datasets, self.count)
+            self.count = count
+        else:
+            # NB. there should only be one dataset and one forced name
+            names = [force_name,]
 
         for i,dataset in enumerate(datasets):
 

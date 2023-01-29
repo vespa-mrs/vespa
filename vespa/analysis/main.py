@@ -433,6 +433,9 @@ class Main(wx.Frame):
     def on_menu_view_output(self, event):
         self.notebook_datasets.on_menu_view_output(event)
 
+    def on_menu_view_derived(self, event):
+        self.notebook_datasets.on_menu_view_derived(event)
+
     def on_menu_view_results(self, event):
         self.notebook_datasets.on_menu_view_results(event)
 

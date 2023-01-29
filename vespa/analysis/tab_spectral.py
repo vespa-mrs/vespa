@@ -1,6 +1,7 @@
 # Python modules
 import os
 import sys
+import importlib
 import xml.etree.cElementTree as ElementTree
 from xml.etree.cElementTree import Element
 
@@ -12,6 +13,7 @@ from pubsub import pub as pubsub
 from wx.lib.mixins.listctrl import CheckListCtrlMixin, ColumnSorterMixin
 
 # Our modules
+import vespa.analysis.mrs_dataset as mrs_dataset
 import vespa.analysis.tab_base as tab_base
 import vespa.analysis.constants as constants
 import vespa.analysis.util_menu as util_menu
@@ -935,54 +937,96 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
 
         msg = ''
         voxel = self._tab_dataset.voxel
-        ds = self.dataset
-        if ds:
-            block = ds.blocks["spectral"]
-            results = block.chain.run([voxel], entry='viff')
-            defname = "analysis_export_hlsvd_data.xml"
-            label = "Save HLSVDPro Data to VIFF XML Raw Filename"
-            filename = common_dialogs.save_as(label, "XML files (*.xml)|*.xml", default_filename=defname)
-            if filename:
+        ds  = self.dataset
+        dsB = self.datasetB
 
-                stamp = util_time.now(util_time.ISO_TIMESTAMP_FORMAT).split('T')
+        if mode in ['plotc_a_plus_b', 'plotc_a_minus_b']:
 
-                if mode == 'plotc_a_plus_b':
-                    labl_func = 'PlotA + PlotB'
-                    dat = self.view.get_data(0)+self.view.get_data(1)
-                elif mode == 'plotc_a_minus_b':
-                    labl_func = 'PlotA - PlotB'
-                    dat = self.view.get_data(0)-self.view.get_data(1)
+            # Grab the A and B data, specify the derived data
+            stamp = util_time.now(util_time.ISO_TIMESTAMP_FORMAT).split('T')
+            if mode == 'plotc_a_plus_b':
+                labl_func = 'PlotA + PlotB'
+                dat = self.view.get_data(0)+self.view.get_data(1)
+            elif mode == 'plotc_a_minus_b':
+                labl_func = 'PlotA - PlotB'
+                dat = self.view.get_data(0)-self.view.get_data(1)
+            dat = dat.ravel()
+            dat = np.fft.ifft(np.fft.fftshift(dat))*len(dat)
+            dat.shape = 1,1,1,len(dat)
 
-                lines = ['Export from Analysis Spectral General Tab - PlotC ('+labl_func+') FID Data']
-                lines.append('------------------------------------------------------------------')
-                lines.append('An IFFT() was performed on the Plot C spectrum and the resultant FID written into')
-                lines.append('this VIFF XML Raw Data file.')
+            # Create the header
+            lines = ['Derived Dataset from Analysis Spectral General Tab - PlotC ('+labl_func+')']
+            lines.append('------------------------------------------------------------------')
+            lines.append('An IFFT() was performed on the Plot C spectrum and the resultant FID written into')
+            lines.append('this Dataset object. All other parameters were taken from the parent Dataset')
 
-                lines.append(' ')
-                lines.append('Creation_date            - '+stamp[0])
-                lines.append('Creation_time            - '+stamp[1])
-                lines.append(' ')
-                lines = "\n".join(lines)
-                if (sys.platform == "win32"):
-                    lines = lines.replace("\n", "\r\n")
+            lines.append(' ')
+            lines.append('Creation_date            - '+stamp[0])
+            lines.append('Creation_time            - '+stamp[1])
+            lines.append(' ')
+            lines.append('Filename Dataset A - '+str(ds.blocks['raw'].data_sources[0]))
+            lines.append('UUID Dataset A - '+str(ds.id))
+            lines.append('Filename Dataset B - '+str(dsB.blocks['raw'].data_sources[0]))
+            lines.append('UUID Dataset B - '+str(dsB.id))
+            lines = "\n".join(lines)
+            if (sys.platform == "win32"):
+                lines = lines.replace("\n", "\r\n")
 
-                dat = np.fft.ifft(np.fft.fftshift(dat))*len(dat)
+            # Create raw data object
+            met = mrs_data_raw.DataRawEdit()
+            met.data_sources = ['analysis_spectral_plotc_derived_dataset_edit_sum_dif'] # todo bjs - set on/off filenames
+            met.sw = ds.sw
+            met.frequency = ds.frequency
+            met.resppm = ds.resppm
+            met.echopeak = ds.echopeak
+            met.nucleus = ds. nucleus
+            met.seqte = ds.seqte
+            met.seqtr = ds.seqtr
+            met.voxel_dimensions = ds.blocks['raw'].voxel_dimensions
+            met.headers = [lines]
+            met.data = dat
+            met.transform = ds.blocks['raw'].transform
 
-                met = mrs_data_raw.DataRaw()
-                met.data_sources = ['analysis_spectral_general_tab_plotc_data_export']
-                met.headers = [lines]
-                met.sw = ds.sw
-                met.frequency = ds.frequency
-                met.resppm = ds.resppm
-                met.data = dat
-                try:
-                    util_export.export(filename, [met], None, lines, False)
-                except IOError:
-                    msg = """I can't write the file "%s"."""%filename
+            block_classes = {}
+            block_classes["raw"] = getattr(importlib.import_module('vespa.analysis.block_raw_edit'), 'BlockRawEdit')
 
-                if msg:
-                    common_dialogs.message(msg, style=common_dialogs.E_OK)
-                    return
+            derived = mrs_dataset.dataset_from_raw(met, block_classes, ds.zero_fill_multiplier)
+
+            # set up associated datasets in original and derived objects
+            derived.blocks['raw'].data_off_id = ds.id
+            derived.blocks['raw'].data_off    = ds
+            derived.blocks['raw'].data_on_id  = dsB.id
+            derived.blocks['raw'].data_on     = dsB
+            derived.blocks['raw'].data_sum_id = ds.blocks['raw'].data_sum_id
+            derived.blocks['raw'].data_sum    = ds.blocks['raw'].data_sum
+            derived.blocks['raw'].data_dif_id = ds.blocks['raw'].data_dif_id
+            derived.blocks['raw'].data_dif    = ds.blocks['raw'].data_dif
+
+            if mode == 'plotc_a_plus_b':
+                derived.blocks['raw'].data_sum_id = derived.id
+                derived.blocks['raw'].data_sum    = derived
+                ds.blocks['raw'].data_sum_id  = derived.id
+                ds.blocks['raw'].data_sum     = derived
+                dsB.blocks['raw'].data_sum_id = derived.id
+                dsB.blocks['raw'].data_sum    = derived
+            elif mode == 'plotc_a_minus_b':
+                derived.blocks['raw'].data_dif_id = derived.id
+                derived.blocks['raw'].data_dif    = derived
+                ds.blocks['raw'].data_dif_id  = derived.id
+                ds.blocks['raw'].data_dif     = derived
+                dsB.blocks['raw'].data_dif_id = derived.id
+                dsB.blocks['raw'].data_dif    = derived
+
+            # get current tab name for a base
+            tab_name = self._tab_dataset.indexAB[0]
+            tab_base = tab_name.split('.')
+            tab_new = tab_base[0]+'.Sum' if mode=='plotc_a_plus_b' else tab_base[0]+'.Dif'
+
+            # insert into Tab Notebook
+            self._tab_dataset._outer_notebook.add_dataset_tab(datasets=[derived,], force_name=tab_new)
+
+
+
 
 
 
