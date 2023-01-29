@@ -35,10 +35,14 @@ class BlockRawEditFidsum(block_raw.BlockRaw):
 
         self.data_on  = None
         self.data_off = None
+        self.data_sum_indiv = None
+        self.data_dif_indiv = None
         self.data_sum = None
         self.data_dif = None
         self.data_on_id  = ''
         self.data_off_id = ''
+        self.data_sum_indiv_id = ''
+        self.data_dif_indiv_id = ''
         self.data_sum_id = ''
         self.data_dif_id = ''
 
@@ -56,10 +60,14 @@ class BlockRawEditFidsum(block_raw.BlockRaw):
     def clear_associated_datasets(self):
         self.data_on  = None
         self.data_off = None
+        self.data_sum_indiv = None      # for derived dataset completeness
+        self.data_dif_indiv = None      # for derived dataset completeness
         self.data_sum = None
         self.data_dif = None
         self.data_on_id  = ''
         self.data_off_id = ''
+        self.data_sum_indiv_id = ''      # for derived dataset completeness
+        self.data_dif_indiv_id = ''      # for derived dataset completeness
         self.data_sum_id = ''
         self.data_dif_id = ''
 
@@ -69,16 +77,30 @@ class BlockRawEditFidsum(block_raw.BlockRaw):
         Return list of datasets associated with this object
         - is_main_dataset: flag for top dataset, used to stop circular references
 
+        Order matters here
+        - ON, OFF, then SUM_INDIV, DIF_INDIV, then SUM, DIF
+        - because of Fidsum object
+        - Note. this is different in block_raw_edit (non-Fidsum) object
+
         """
-        # order matters here - on, off, sum, then diff
-        return [] if not is_main_dataset else [self.data_on, self.data_off, self.data_sum, self.data_dif]
+        r = []
+        if is_main_dataset:
+            # None values dealt with in notebook_datasets.global_poll_associated_tabs
+            r = [self.data_on, self.data_off, self.data_sum_indiv, self.data_dif_indiv, self.data_sum, self.data_dif]
+
+        return r
 
 
     def set_associated_datasets(self, datasets): 
         """
         When we open a VIFF format file, main._import_file() calls this method
         to parse/store any datasets associated with this one as described below.
-        
+
+        Order matters here, datasets expected to be in following order:
+        - ON, OFF, then SUM_INDIV, DIF_INDIV, then SUM, DIF
+        - because of Fidsum object
+        - Note. this is different in block_raw_edit (non-Fidsum) object
+
         """
         if self.data_on_id == '':
             self.data_on = datasets[0]
@@ -94,19 +116,37 @@ class BlockRawEditFidsum(block_raw.BlockRaw):
                 if self.data_off_id == dataset.id:
                     self.data_off = dataset
 
-        if self.data_sum_id == '':
-            self.data_sum = datasets[2]
-        else:
-            for dataset in datasets:
-                if self.data_sum_id == dataset.id:
-                    self.data_sum = dataset
+        if len(datasets) > 2:
+            if self.data_sum_indiv_id == '':
+                self.data_sum_indiv = datasets[2]
+            else:
+                for dataset in datasets:
+                    if self.data_sum_indiv_id == dataset.id:
+                        self.data_sum_indiv = dataset
 
-        if self.data_dif_id == '':
-            self.data_dif = datasets[3]
-        else:
-            for dataset in datasets:
-                if self.data_dif_id == dataset.id:
-                    self.data_dif = dataset
+        if len(datasets) > 3:
+            if self.data_dif_indiv_id == '':
+                self.data_dif_indiv = datasets[3]
+            else:
+                for dataset in datasets:
+                    if self.data_dif_indiv_id == dataset.id:
+                        self.data_dif_indiv = dataset
+
+        if len(datasets) > 4:
+            if self.data_sum_id == '':
+                self.data_sum = datasets[4]
+            else:
+                for dataset in datasets:
+                    if self.data_sum_id == dataset.id:
+                        self.data_sum = dataset
+
+        if len(datasets) > 5:
+            if self.data_dif_id == '':
+                self.data_dif = datasets[5]
+            else:
+                for dataset in datasets:
+                    if self.data_dif_id == dataset.id:
+                        self.data_dif = dataset
                     
 
     def deflate(self, flavor=Deflate.ETREE):
@@ -138,6 +178,10 @@ class BlockRawEditFidsum(block_raw.BlockRaw):
                     util_xml.TextSubElement(e, "data_sum_id", self.data_sum.id)
                 if self.data_dif:
                     util_xml.TextSubElement(e, "data_dif_id", self.data_dif.id)
+                if self.data_sum_indiv:
+                    util_xml.TextSubElement(e, "data_sum_indiv_id", self.data_sum_indiv.id)
+                if self.data_dif_indiv:
+                    util_xml.TextSubElement(e, "data_dif_indiv_id", self.data_dif_indiv.id)
 
             return e
 
@@ -160,7 +204,9 @@ class BlockRawEditFidsum(block_raw.BlockRaw):
                 self.data_off_id = source.findtext("data_off_id")
                 self.data_sum_id = source.findtext("data_sum_id")
                 self.data_dif_id = source.findtext("data_dif_id")
-            
+                self.data_sum_indiv_id = source.findtext("data_sum_indiv_id")
+                self.data_dif_indiv_id = source.findtext("data_dif_indiv_id")
+
             # Look for settings under the old name as well as the standard name.
             self.set = util_xml.find_settings(source, "block_raw_edit_fidsum_settings")
             self.set = block_raw._Settings(self.set)
@@ -177,6 +223,10 @@ class BlockRawEditFidsum(block_raw.BlockRaw):
                         self.data_sum_id = source["data_sum_id"]
                     if key == "data_dif_id":
                         self.data_dif_id = source["data_dif_id"]
+                    if key == "data_sum_indiv_id":
+                        self.data_sum_indiv_id = source["data_sum_indiv_id"]
+                    if key == "data_dif_indiv_id":
+                        self.data_dif_indiv_id = source["data_dif_indiv_id"]
 
                 if key == "set":
                     setattr(self, key, source[key])

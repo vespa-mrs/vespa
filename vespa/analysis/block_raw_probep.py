@@ -62,8 +62,9 @@ class BlockRawProbep(block_raw.BlockRaw):
         
         """
         # order matters here - water then metab
-        return [] if not is_main_dataset else [self.water_dataset, self.metab_dataset]
-
+        r = [self.water_dataset, self.metab_dataset] if is_main_dataset else []
+        return r
+        
 
     def set_associated_datasets(self, datasets): 
         """ 'datasets' order matters here - water[0] then metab[1] """

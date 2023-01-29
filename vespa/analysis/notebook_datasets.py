@@ -278,7 +278,7 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
 
     def global_poll_associated_tabs(self, dataset):
         """
-        Here is the list of object classes that we polling for associated tabs:
+        Here is the list of object classes that we poll for associated tabs:
         
           block_raw_edit.BlockRawEdit
           block_raw_edit_fidsum.BlockRawEditFidsum
@@ -637,8 +637,13 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
 
         elif isinstance(dataset.blocks['raw'], block_raw_edit.BlockRawEdit):
             base = "Edit%d." % count
-            names = [base+"On", base+"Off", base+"Sum", base+"Dif"]
-            if len(datasets) > 4:
+            ndatasets = len(datasets)
+            if ndatasets == 2:
+                names = [base+"On", base+"Off"]
+            elif ndatasets==4:
+                names = [base+"On", base+"Off", base+"Sum", base+"Dif"]
+            elif ndatasets>4:
+                # generally should not happen
                 names = [base+"On", base+"Off", base+"Sum"]
                 for i in range(len(datasets)-4):
                     names.append("Dataset%d_%d." % (count, i))
@@ -647,12 +652,17 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
 
         elif isinstance(dataset.blocks['raw'], block_raw_edit_fidsum.BlockRawEditFidsum):
             base = "Edit%d." % count
-            names = [base+"On", base+"Off", base+"Sum", base+"Dif"]
-            if len(datasets) > 4:
-                names = [base+"On", base+"Off", base+"Sum"]
+            ndatasets = len(datasets)
+            if ndatasets == 2:
+                names = [base+"On", base+"Off"]
+            elif ndatasets==4:
+                names = [base+"On", base+"Off", base+"SumIndiv", base+"DifIndiv"]
+            elif ndatasets>4:
+                # generally should not happen
+                names = [base+"On", base+"Off", base+"SumIndiv"]
                 for i in range(len(datasets)-4):
                     names.append("Dataset%d_%d." % (count, i))
-                names.append(base+"Dif")
+                names.append(base+"DifIndiv")
             count += 1
 
         elif isinstance(dataset.blocks['raw'], block_raw_cmrr_slaser.BlockRawCmrrSlaser):

@@ -2206,7 +2206,7 @@ class Dataset(object):
 
             # save all associated datasets if main
             for dataset in unique_datasets:
-                # FIXME - BJS test if this is a true thing, we do NOT want
+                # TODO - BJS test if this is a true thing, we do NOT want
                 #   to save any associated datasets when we do presets save
                 if not self.behave_as_preset:
                     associated.append(dataset.deflate(flavor, is_main_dataset=False))

@@ -203,12 +203,12 @@ class RawReaderDicomSiemensFidsumXaEjaSvsMpress(RawReaderDicomSiemensXaEjaSvsMpr
 
         d = self.raws_on[0]
         d["data"] = dat_sum
-        d["data_source"] = d["data_source"]+'.Sum'
+        d["data_source"] = d["data_source"]+'.SumIndiv'
         raw_sum = DataRawEditFidsum(d)
 
         d = self.raws_on[0]
         d["data"] = dat_dif
-        d["data_source"] = d["data_source"]+'.Diff'
+        d["data_source"] = d["data_source"]+'.DiffIndiv'
         raw_dif = DataRawEditFidsum(d)
 
         self.raws = [raw_on, raw_off, raw_sum, raw_dif]
