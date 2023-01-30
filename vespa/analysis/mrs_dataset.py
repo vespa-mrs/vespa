@@ -2189,7 +2189,7 @@ class Dataset(object):
                 # create list of unique associated datasets maintaining order but
                 # also be sure that we do not include ourselves. This could occur
                 # in Edited datasets which have on/off/add/sub states.
-                if item not in unique_datasets and item is not self:
+                if item not in unique_datasets and item is not self and item is not None:
                     unique_datasets.append(item)
 
             # rename all dataset IDs if main dataset

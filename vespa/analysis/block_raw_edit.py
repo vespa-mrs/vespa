@@ -31,7 +31,6 @@ class BlockRawEdit(block_raw.BlockRaw):
     XML_VERSION = "1.0.0"
     
     def __init__(self, attributes=None):
-        super().__init__(attributes)
 
         self.data_on  = None
         self.data_off = None
@@ -45,6 +44,10 @@ class BlockRawEdit(block_raw.BlockRaw):
         self.data_dif_id = ''
         self.data_sum_indiv_id = ''
         self.data_dif_indiv_id = ''
+
+        # called last because inflate called inside here and values above would reset
+
+        super().__init__(attributes)
 
 
     ##### Standard Methods and Properties #####################################
@@ -102,51 +105,47 @@ class BlockRawEdit(block_raw.BlockRaw):
         - Note. this is different in Fidsum object
 
         """
+        ndatasets = len(datasets)
+
+        # pass1 - use defined IDs to set
+        for dataset in datasets:
+            if self.data_on_id == dataset.id:
+                self.data_on = dataset
+            if self.data_off_id == dataset.id:
+                self.data_off = dataset
+            if self.data_sum_indiv_id == dataset.id:
+                self.data_sum_indiv = dataset
+            if self.data_dif_indiv_id == dataset.id:
+                self.data_dif_indiv = dataset
+            if self.data_sum_id == dataset.id:
+                self.data_sum = dataset
+            if self.data_dif_id == dataset.id:
+                self.data_dif = dataset
+
+        # pass2 - define by position if necessary
         if self.data_on_id == '':
             self.data_on = datasets[0]
-        else:
-            for dataset in datasets:
-                if self.data_on_id == dataset.id:
-                    self.data_on = dataset
+            self.data_on_id = datasets[0].id
 
         if self.data_off_id == '':
             self.data_off = datasets[1]
-        else:
-            for dataset in datasets:
-                if self.data_off_id == dataset.id:
-                    self.data_off = dataset
+            self.data_off_id = datasets[1].id
 
-        if len(datasets) > 2:
-            if self.data_sum_id == '':
-                self.data_sum = datasets[2]
-            else:
-                for dataset in datasets:
-                    if self.data_sum_id == dataset.id:
-                        self.data_sum = dataset
+        if self.data_sum_indiv_id == '' and ndatasets > 2:
+            self.data_sum_indiv = datasets[2]
+            self.data_sum_indiv_id = datasets[2].id
 
-        if len(datasets) > 3:
-            if self.data_dif_id == '':
-                self.data_dif = datasets[3]
-            else:
-                for dataset in datasets:
-                    if self.data_dif_id == dataset.id:
-                        self.data_dif = dataset
+        if self.data_dif_indiv_id == '' and ndatasets > 3:
+            self.data_dif_indiv = datasets[3]
+            self.data_dif_indiv_id = datasets[3].id
 
-        if len(datasets) > 4:
-            if self.data_sum_indiv_id == '':
-                self.data_sum_indiv = datasets[4]
-            else:
-                for dataset in datasets:
-                    if self.data_sum_indiv_id == dataset.id:
-                        self.data_sum_indiv = dataset
+        if self.data_sum_id == '' and ndatasets > 4:
+            self.data_sum = datasets[4]
+            self.data_sum_id = datasets[4].id
 
-        if len(datasets) > 5:
-            if self.data_dif_indiv_id == '':
-                self.data_dif_indiv = datasets[5]
-            else:
-                for dataset in datasets:
-                    if self.data_dif_indiv_id == dataset.id:
-                        self.data_dif_indiv = dataset
+        if self.data_dif_id == '' and ndatasets > 5:
+            self.data_dif = datasets[5]
+            self.data_dif_id = datasets[5].id
 
 
 

@@ -294,8 +294,8 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
         raw = dataset.blocks['raw']
 
         if isinstance(raw, assoc_classes):
-            ids = raw.get_associated_datasets()
-            ids = [item.id for item in ids if item is not None]
+            dsets = raw.get_associated_datasets()
+            ids = [item.id for item in dsets if item is not None]
             for label in list(self.top.datasets.keys()):
                 tab = self.get_tab_by_label(label)
                 if tab.dataset.id in ids and tab.dataset.id != dataset.id:
@@ -651,18 +651,57 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
             count += 1
 
         elif isinstance(dataset.blocks['raw'], block_raw_edit_fidsum.BlockRawEditFidsum):
-            base = "Edit%d." % count
+            ds = datasets[0]
+            raw = ds.blocks['raw']
             ndatasets = len(datasets)
-            if ndatasets == 2:
-                names = [base+"On", base+"Off"]
-            elif ndatasets==4:
-                names = [base+"On", base+"Off", base+"SumIndiv", base+"DifIndiv"]
-            elif ndatasets>4:
-                # generally should not happen
-                names = [base+"On", base+"Off", base+"SumIndiv"]
-                for i in range(len(datasets)-4):
-                    names.append("Dataset%d_%d." % (count, i))
-                names.append(base+"DifIndiv")
+            base = "Edit%d." % count
+
+            ids = {}
+            ids['On'] = raw.data_on_id
+            ids['Off'] = raw.data_off_id
+            ids['Sum'] = raw.data_sum_id
+            ids['Dif'] = raw.data_dif_id
+            ids['SumIndiv'] = raw.data_sum_indiv_id
+            ids['DifIndiv'] = raw.data_dif_indiv_id
+
+            labels = {}
+            labels[raw.data_on_id] = 'On'
+            labels[raw.data_off_id] = 'Off'
+            labels[raw.data_sum_id] = 'Sum'
+            labels[raw.data_dif_id] = 'Dif'
+            labels[raw.data_sum_indiv_id] = 'SumIndiv'
+            labels[raw.data_dif_indiv_id] = 'DifIndiv'
+
+            nids = 0
+            for val in list(ids.values()):
+                if val != '':
+                    nids+=1
+
+            if nids > 0:
+                # Set names from Associated datasets info, others set to 'DataseN'
+
+                names = []
+                other_count = 0
+                for dset in datasets:
+                    if dset.id in labels.keys():
+                        names.append(base+labels[dset.id])
+                    else:
+                        names.append(base+'.Dataset%d'%(other_count,))
+
+
+            else:
+                # Set name from dataset position
+
+                if ndatasets == 2:
+                    names = [base+"On", base+"Off"]
+                elif ndatasets==4:
+                    names = [base+"On", base+"Off", base+"SumIndiv", base+"DifIndiv"]
+                elif ndatasets>4:
+                    # generally should not happen
+                    names = [base+"On", base+"Off", base+"SumIndiv"]
+                    for i in range(len(datasets)-4):
+                        names.append("Dataset%d_%d." % (count, i))
+                    names.append(base+"DifIndiv")
             count += 1
 
         elif isinstance(dataset.blocks['raw'], block_raw_cmrr_slaser.BlockRawCmrrSlaser):

@@ -120,9 +120,9 @@ class RawReaderDicomSiemensXaEjaSvsMpress(raw_reader.RawReader):
         d["data_source"] = filename+'.Diff'
         raw_dif = DataRawEdit(attributes=d)
 
-        self.raws = [raw_on, raw_off, raw_sum, raw_dif]
+        raws = [raw_on, raw_off, raw_sum, raw_dif]
 
-        return self.raws
+        return raws
 
 
 
@@ -179,9 +179,9 @@ class RawReaderDicomSiemensFidsumXaEjaSvsMpress(RawReaderDicomSiemensXaEjaSvsMpr
             get_header = (i==0) or (i==int(nfiles/2))
             raw = self.read_raw(fname, ignore_data, get_header=get_header, *args, **kwargs)
             if i < int(nfiles/2):
-                self.raws_on.append(raw[0])
-            else:
                 self.raws_off.append(raw[0])
+            else:
+                self.raws_on.append(raw[0])
 
         d = self.raws_on[0]
         d["data_source"] = d["data_source"]+'.EditON'
@@ -199,7 +199,7 @@ class RawReaderDicomSiemensFidsumXaEjaSvsMpress(RawReaderDicomSiemensXaEjaSvsMpr
         dat_off = raw_off.data.copy()
 
         dat_sum = dat_on + dat_off
-        dat_dif = dat_off - dat_on
+        dat_dif = dat_on - dat_off
 
         d = self.raws_on[0]
         d["data"] = dat_sum
