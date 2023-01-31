@@ -686,7 +686,7 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
                     if dset.id in labels.keys():
                         names.append(base+labels[dset.id])
                     else:
-                        names.append(base+'.Dataset%d'%(other_count,))
+                        names.append(base+'OtherData%d'%(other_count,))
 
 
             else:

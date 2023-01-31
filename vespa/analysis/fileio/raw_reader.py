@@ -187,27 +187,38 @@ class RawReader(object):
         Attributes and object type of new object must match those of the open dataset(s)
 
         """
-        raw0 = raws[0]
-        raw1 = open_dataset.blocks["prep"]
 
-        new_is_fidsum = False
-        if isinstance(raw0, (DataRawFidsum, DataRawWbnaa)) and not type(raw0) == DataRaw:
-            new_is_fidsum = True
-
-        open_is_fidsum = False
-        if isinstance(raw1, (BlockPrepFidsum, BlockPrepWbnaa)):
-            open_is_fidsum = True
-
-        if not (new_is_fidsum == open_is_fidsum):
-            raise util_exceptions.OpenFileTypeMismatchError
+        # NB. bjs  1/30/23 - commented this out so I can read in MrsDataRaw
+        # files with FidsumMpress files for ECC and Quant rather than have to
+        # save all FIDs and process them in.
+        #
+        # raw0 = raws[0]
+        # raw1 = open_dataset.blocks["prep"]
+        #
+        # new_is_fidsum = False
+        # if isinstance(raw0, (DataRawFidsum, DataRawWbnaa)) and not type(raw0) == DataRaw:
+        #     new_is_fidsum = True
+        #
+        # open_is_fidsum = False
+        # if isinstance(raw1, (BlockPrepFidsum, BlockPrepWbnaa)):
+        #     open_is_fidsum = True
+        #
+        # if not (new_is_fidsum == open_is_fidsum):
+        #     raise util_exceptions.OpenFileTypeMismatchError
 
         for raw in raws:
-            if fidsum:
-                dims_flag = (raw.data_shape[-1] == open_dataset.raw_shape[-1])
-            else:
-                dims_flag = (raw.data_shape == open_dataset.raw_shape)
+            # NB. bjs  1/30/23 - commented this out so I can read in MrsDataRaw
+            # files with FidsumMpress files for ECC and Quant rather than have to
+            # save all FIDs and process them in.
+            #
+            # if fidsum:
+            #     dims_flag = (raw.data_shape[-1] == open_dataset.raw_shape[-1])
+            # else:
+            #     dims_flag = (raw.data_shape == open_dataset.raw_shape)
 
-            if  dims_flag and (abs(raw.sw - open_dataset.sw) < 0.001):
+            dims_flag = (raw.data_shape[-1] == open_dataset.raw_shape[-1])
+
+            if dims_flag and (abs(raw.sw - open_dataset.sw) < 0.001):
                 # Add the 'slight difference' equation for real world conditions. All is well!
                 pass
             else:

@@ -977,7 +977,9 @@ class TabPrepFidsum(tab_base.Tab, fidsum.PanelPrepFidsumUI):
             phase0 = self.block.phase_0
             phase1 = self.block.set.global_phase1
             
-            uids = [raw.data_on.id, raw.data_off.id, raw.data_sum.id, raw.data_dif.id]
+            uids = [raw.data_on.id, raw.data_off.id]
+            if raw.data_sum is not None: uids.append(raw.data_sum.id)
+            if raw.data_dif is not None: uids.append(raw.data_dif.id)
 
             pubsub.sendMessage("push_prep_fidsum_results", 
                                uids=uids, 

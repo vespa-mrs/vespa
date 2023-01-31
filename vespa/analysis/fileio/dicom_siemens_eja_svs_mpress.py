@@ -125,6 +125,61 @@ class RawReaderDicomSiemensXaEjaSvsMpress(raw_reader.RawReader):
         return raws
 
 
+class RawReaderDicomSiemensXaEjaSvsMpressOnOff(RawReaderDicomSiemensXaEjaSvsMpress):
+    """ Read a single Siemens DICOM file into an DataRaw object. """
+
+    def __init__(self):
+        raw_reader.RawReader.__init__(self)
+        self.multiple = False
+
+
+    def read_raw(self, filename, ignore_data, *args, **kwargs):
+        """
+        Given Siemens DICOM filename, return a populated DataRaw object
+
+        The sop_class_uid flags if this is the older proprietary Siemens hack
+        format or the newer DICOM standard MR Spectroscopy Storage object.
+
+        Ignore data has no effect on this parser
+
+        """
+
+        # the .IMA format is a DICOM standard, but Siemens stores a lot of
+        # information inside a private and very complicated header with its own
+        # data storage format, we have to get that information out along with
+        # the data. we start by reading in the DICOM file completely
+        dataset = pydicom.dicomio.read_file(filename)
+
+        sop_class_uid = pydicom.uid.UID(str(dataset['SOPClassUID'].value.upper()))
+
+        if sop_class_uid.name == 'MR Spectroscopy Storage':
+            d = _get_parameters_dicom_sop(dataset)
+        else:
+            raise ValueError('Error (RawReaderDicomSiemensFidsumXaEjaSvsMpress): Old style Siemens DICOM should not be here.')
+
+        d["data_source"] = filename
+
+        data = d['data']
+
+        dat_on  = data[1, :, :, :].copy()
+        dat_off = data[0, :, :, :].copy()
+
+        # Create a DataRawEditFidsum objects for the four different states
+        # of the data ON, OFF, SUM and DIFFERENCE.
+
+        d["data"] = dat_on
+        d["data_source"] = filename+'.EditON'
+        raw_on = DataRawEdit(attributes=d)
+
+        d["data"] = dat_off
+        d["data_source"] = filename+'.EditOFF'
+        raw_off = DataRawEdit(attributes=d)
+
+        raws = [raw_on, raw_off]
+
+        return raws
+
+
 
 class RawReaderDicomSiemensFidsumXaEjaSvsMpress(RawReaderDicomSiemensXaEjaSvsMpress):
     """ Read multiple Siemens DICOMs file into a DataRawFidsum object """
@@ -222,6 +277,56 @@ class RawReaderDicomSiemensFidsumXaEjaSvsMpress(RawReaderDicomSiemensXaEjaSvsMpr
         return self.raws
 
 
+class RawReaderDicomSiemensFidsumXaEjaSvsMpressOnOff(RawReaderDicomSiemensFidsumXaEjaSvsMpress):
+    """ Read multiple Siemens DICOMs file into a DataRawFidsum object """
+
+    def __init__(self):
+        RawReaderDicomSiemensXaEjaSvsMpress.__init__(self)
+        self.multiple = True
+
+
+    def read_raws(self, ignore_data=False, *args, **kwargs):
+        """
+        Calls read_raw() once for each filename in self.filenames.
+        - returns list with four DataRawEditFidsum objects for ON, OFF, SUM and DIFF
+        - read_raw() method should return one FID data set per file.
+
+        """
+        self.raws_on = []
+        self.raws_off = []
+
+        nfiles = len(self.filenames)
+        get_header = True
+
+        for i, fname in enumerate(self.filenames):
+            get_header = (i==0) or (i==int(nfiles/2))
+            raw = self.read_raw(fname, ignore_data, get_header=get_header, *args, **kwargs)
+            if i < int(nfiles/2):
+                self.raws_off.append(raw[0])
+            else:
+                self.raws_on.append(raw[0])
+
+        d = self.raws_on[0]
+        d["data_source"] = d["data_source"]+'.EditON'
+        raw_on = DataRawEditFidsum(d)
+        for d in self.raws_on[1:]:
+            raw_on.concatenate(DataRawEditFidsum(d))
+
+        d = self.raws_off[0]
+        d["data_source"] = d["data_source"]+'.EditOFF'
+        raw_off = DataRawEditFidsum(d)
+        for d in self.raws_off[1:]:
+            raw_off.concatenate(DataRawEditFidsum(d))
+
+        self.raws = [raw_on, raw_off]
+
+        self._check_consistency(fidsum=True)
+        self._check_for_si()
+        if 'open_dataset' in list(kwargs.keys()):
+            if kwargs['open_dataset'] is not None:
+                self._check_compatibility(self.raws, kwargs['open_dataset'], fidsum=True)
+
+        return self.raws
 
 
 

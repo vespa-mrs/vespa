@@ -206,11 +206,21 @@ STANDARD_CLASSES_LOFL = [
     'class_name=RawReaderDicomSiemensXaEjaSvsMpress',
     'menu_item_text=SiemensXA DICOM eja_svs_mpress',
     'ini_file_name=import_siemens_dicom_eja_svs_mpress',
+'[import_siemens_dicom_eja_svs_mpress_onoff]',
+    'path=vespa.analysis.fileio.dicom_siemens_eja_svs_mpress',
+    'class_name=RawReaderDicomSiemensXaEjaSvsMpressOnOff',
+    'menu_item_text=SiemensXA DICOM eja_svs_mpress - On/Off only',
+    'ini_file_name=import_siemens_dicom_eja_svs_mpress_onoff',
 '[import_siemens_dicom_eja_svs_mpress_fidsum]',
     'path=vespa.analysis.fileio.dicom_siemens_eja_svs_mpress',
     'class_name=RawReaderDicomSiemensFidsumXaEjaSvsMpress',
     'menu_item_text=SiemensXA DICOM eja_svs_mpress Fidsum',
     'ini_file_name=import_siemens_dicom_eja_svs_mpress_fidsum',
+'[import_siemens_dicom_eja_svs_mpress_fidsum_onoff]',
+    'path=vespa.analysis.fileio.dicom_siemens_eja_svs_mpress',
+    'class_name=RawReaderDicomSiemensFidsumXaEjaSvsMpressOnOff',
+    'menu_item_text=SiemensXA DICOM eja_svs_mpress Fidsum - On/Off only',
+    'ini_file_name=import_siemens_dicom_eja_svs_mpress_fidsum_onoff',
 '[separator102]',
 ]
 
@@ -367,10 +377,16 @@ def get_datasets(reader, open_dataset=None):
                     dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1]])
 
             # Edited SVS Object - four datasets, acquisition ON/OFF and calculated SUM/DIFF.
-            if type(raws[0]).__name__ == 'DataRawEditFidsum':
-                dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1], datasets[2], datasets[3]])
-            if type(raws[0]).__name__ == 'DataRawEdit':
-                dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1], datasets[2], datasets[3]])
+            if len(datasets) == 4:
+                if type(raws[0]).__name__ == 'DataRawEditFidsum':
+                    dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1], datasets[2], datasets[3]])
+                if type(raws[0]).__name__ == 'DataRawEdit':
+                    dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1], datasets[2], datasets[3]])
+            elif len(datasets) == 2:
+                if type(raws[0]).__name__ == 'DataRawEditFidsum':
+                    dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1]])
+                if type(raws[0]).__name__ == 'DataRawEdit':
+                    dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1]])
 
             # CMRR sLASER - 3 or 6 datasets:
             #   coil 1 FID, ecc1 2 FIDs, water1 2 FIDs,  metab64 64 FIDs, ecc2 2 FIDs (opt) and water2 2 FIDs (opt)
