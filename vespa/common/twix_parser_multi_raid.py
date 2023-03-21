@@ -880,7 +880,14 @@ class TwixMeasurement(object):
         """ return list of the max value in each dim, plus samples per scan """
 
         # transpose the list of lists and check max val in each dimension
+
+        if self.indices_list == []:   # TODO bjs, this is an empirical hack, check on reality
+            return []
+
         dims = [max(item) + 1 for item in zip(*self.indices_list)]
+
+        if len(self.scans) == 0:
+            return dims
 
         dims.append(self.scans[0].scan_header.used_channels)
         dims.append(self.scans[0].scan_header.samples_in_scan)

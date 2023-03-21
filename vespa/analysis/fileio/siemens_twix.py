@@ -97,14 +97,17 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
         evps = twix.evps
 
         header, clean_header = self._parse_protocol_data(evps[3][1])
-
+        hdr_dicom = evps[1][1]
         # CMRR sLASER info - need to move later
         #
         # MEAS.sSpecPara.lAutoRefScanMode [aushFreePara2 for VB] >1, water refs are saved
         # MEAS.sSpecPara.lAutoRefScanNo   [aushFreePara3 for VB] = number of scans acquired for ecc and water scaling references at start and end of protocol.
 
         if 'sProtConsistencyInfo.tBaselineString' not in list(header.keys()):
-            software_version = 'xx'
+            if "syngo MR XA" in hdr_dicom:
+                software = 'nx_va'
+            else:
+                software_version = 'xx'
         else:
             software = header['sProtConsistencyInfo.tBaselineString'].lower()
             if   'n4_vb' in software: software_version = 'vb'
