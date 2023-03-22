@@ -24,13 +24,13 @@ from vespa.analysis.constants import FitOptimizeMethod as optmeth
 
 
 def initial_values(chain):
-    
+
     set = chain._block.set
-    
+
     nmet    = chain.nmet
     dim0    = chain._dataset.spectral_dims[0]
-    dat     = chain.data 
-    
+    dat     = chain.data
+
     unique_abbr = chain._dataset.prior_list_unique
 
     util_initial_values.find_initial_values(chain)
@@ -39,42 +39,42 @@ def initial_values(chain):
     if chain.init_ph1 == 0: chain.init_ph1 = 0.0001
 
     # Calculate parameter initial values
-    a = np.hstack([chain.init_area, 
+    a = np.hstack([chain.init_area,
                    chain.init_freq,         # this is radians here
-                   chain.init_ta[0], 
-                   chain.init_tb[0], 
+                   chain.init_ta[0],
+                   chain.init_tb[0],
                    chain.init_ph0,
                    chain.init_ph1 ])
 
 
-    # Update parameter bounds 
-    
+    # Update parameter bounds
+
     small_excludes = constants.FIT_OPTIMIZE_EXCLUDES_FOR_SMALL_PEAKS
-    
-    # Areas constraints    
+
+    # Areas constraints
     # areamax = chain.init_area * (1.0 + set.optimize_limits_range_area/100.0)
     # areamin = chain.init_area *  1e-8   # no zeros, else derivatives blow up in optimization
 
     areamin = []
     areamax = []
     for i,abbr in enumerate(unique_abbr):
-        
+
         if set.optimize_enable_bounds_area_small and abbr not in small_excludes:
             maxbnd = (set.optimize_bounds_area_max_small/100.0)
             minbnd = (set.optimize_bounds_area_min_small/100.0)
         else:
             maxbnd = (set.optimize_bounds_area_max/100.0)
             minbnd = (set.optimize_bounds_area_min/100.0)
-        
+
         val = chain.init_area[i] * minbnd if chain.init_area[i] * minbnd > 1e-8 else 1e-8
-        areamin.append(val)    
+        areamin.append(val)
         areamax.append(chain.init_area[i] * maxbnd)
-    
+
 #     for labl, minv, maxv in zip(unique_abbr, areamin, areamax):
 #         if len(labl) == 2: labl = labl+'  '
 #         if len(labl) == 3: labl = labl+' '
 #         print "Area - "+labl+" Min/Max = "+str(minv)+"/"+str(maxv) 
-        
+
     # PPM constraints
     fredel       = set.optimize_bounds_range_ppm       * 2.0 * np.pi       # convert Hz to radians here
     fredel_small = set.optimize_bounds_range_ppm_small * 2.0 * np.pi       # convert Hz to radians here
@@ -101,10 +101,10 @@ def initial_values(chain):
     lwBmin = set.optimize_bounds_min_linewidth
     lwBmax = set.optimize_bounds_max_linewidth
 
-    if set.lineshape_model == FitLineshapeModel.LORENTZ:  
+    if set.lineshape_model == FitLineshapeModel.LORENTZ:
           lwBmin = 1000.0 - 0.001
           lwBmax = 1000.0 + 0.001
-    elif set.lineshape_model == FitLineshapeModel.GAUSS:  
+    elif set.lineshape_model == FitLineshapeModel.GAUSS:
           lwAmin = chain.fix_t2_center - 0.001
           lwAmax = chain.fix_t2_center + 0.001
 
@@ -144,11 +144,11 @@ def initial_values(chain):
 
     # Save results and calculate some other initial value parameters
     chain.initial_values = a.copy()
-    chain.current_lw = set.initial_linewidth_value   
+    chain.current_lw = set.initial_linewidth_value
 
     # set the weight array
     chain.weight_array = util_initial_values.set_weight_array( chain )
-    
+
 
 
 
@@ -204,12 +204,12 @@ def param2a(chain, params):
 def initialize_for_fit(chain):
     """
     This is a final step before fitting to do any miscellaneous setup.
-    
+
     1) create list of parameter labels
     2) scale initial values if necessary
     3) move 'initial values' to the 'fit results' attribute which is the
        semi-permanent container used in the fit optimize loop
-    4) convert original style parameter lists to LMFIT Parameter objects. 
+    4) convert original style parameter lists to LMFIT Parameter objects.
        These will be converted back in the finalize_from_fit() method.
     5) if there are any constraints set, these are applied as part of the
        conversion to Parameter objects
@@ -287,7 +287,7 @@ def initialize_for_fit(chain):
     elif set.optimize_method in [optmeth.LMFIT_DEFAULT, optmeth.LMFIT_JACOBIAN]:
         for i in range(len(a)):
             wig = 0.02       # global wiggle amount in PPM
-                
+
             if set.optimize_constrain_ppm_naa_naag and plabel[i]=='freq_naag' and 'freq_naa' in plabel:
 
                 delta = pkppms['naag'] - pkppms['naa'] + 0.02  # empirical - bjs
@@ -332,14 +332,14 @@ def initialize_for_fit(chain):
 def finalize_from_fit(chain): 
     """
     This is where we:
-    - convert LMFIT Parameter objects back into the lists and numpy arrays 
+    - convert LMFIT Parameter objects back into the lists and numpy arrays
     - undo parameter scaling if necessary
-    
-    
+
+
     """
     set = chain._block.set
-    
-    # Convert Parameters dict to list --- 
+
+    # Convert Parameters dict to list ---
     params = chain.fit_results
 
     a = param2a(chain, params)
@@ -347,16 +347,16 @@ def finalize_from_fit(chain):
     # v = params.valuesdict()
     # a = np.array([item[1] for item in list(v.items())])
 
-    # Scale parameter list values if needed --- 
+    # Scale parameter list values if needed ---
     if set.optimize_scaling_flag:
         chis, wchis, badfit = chain.fit_stats
         a, chis, wchis, baseline = parameter_unscale(chain, a, chain.pscale, chis, wchis, baseline=chain.fit_baseline)
         chain.fit_stats    = np.array([chis, wchis, badfit])
         chain.fit_baseline = baseline
-        
+
     chain.fit_results = a
-            
-            
+
+
 
 def baseline_model(chain): 
     set = chain._block.set
@@ -370,16 +370,16 @@ def baseline_model(chain):
         v = a.valuesdict()
         a0 = np.array([item[1] for item in list(v.items())])
 
-        # Subtract metabolite model from data 
+        # Subtract metabolite model from data
         basr = data.real - model.real
         basi = data.imag - model.imag
 
         hpp = chain._dataset.spectral_hpp
 
         # Smooth the remaining features
-        if set.baseline_smoothing_flag: 
-            if not (chain.iteration == set.optimize_global_iterations and 
-                    set.baseline_skip_last_smooth): 
+        if set.baseline_smoothing_flag:
+            if not (chain.iteration == set.optimize_global_iterations and
+                    set.baseline_skip_last_smooth):
                 wid  = set.baseline_smoothing_width / chain._dataset.sw    # convert Hz into % points
                 basr = lowess.lowess(basr, frac=wid, delta=3.2)
                 basi = lowess.lowess(basi, frac=wid, delta=3.2)
@@ -391,16 +391,16 @@ def baseline_model(chain):
             korder = set.baseline_spline_order
             nknots = set.baseline_spline_nknots
 
-            # Start with evenly distributed interior knots 
+            # Start with evenly distributed interior knots
             baser  = splines.splinevar(basr, nknots, korder, hz_per_pt=hpp)
-            basei  = splines.splinevar(basi, nknots, korder, hz_per_pt=hpp)    
+            basei  = splines.splinevar(basi, nknots, korder, hz_per_pt=hpp)
 
         elif set.baseline_method == constants.FitBaselineMethod.BSPLINE_FIXED_KNOT:
             ny     = np.size(basr)
             korder = set.baseline_spline_order
             nknots  = chain._dataset.sw / (set.baseline_spline_spacing*chain._dataset.spectral_hpp)
 
-            # Calculate an even distribution of the interior knots 
+            # Calculate an even distribution of the interior knots
             baser  = splines.splinefix(basr,nknots,korder)
             basei  = splines.splinefix(basi,nknots,korder)
 
@@ -419,35 +419,35 @@ def baseline_model(chain):
 
         if set.baseline_underestimate_method == constants.FitBaselineUnderestimateMethod.FIRST_ITERATION_ONLY:
 
-            if chain.iteration == 1: 
-                # Account for when metabolites are inverted due to phase 
+            if chain.iteration == 1:
+                # Account for when metabolites are inverted due to phase
                 orient = 1.0
-                if abs(a0[chain.nmet*2+2] / common_constants.DEGREES_TO_RADIANS) > 90.0: 
-                    orient = -1.0 
-    
-                # Set the underestimation for first pass 
+                if abs(a0[chain.nmet*2+2] / common_constants.DEGREES_TO_RADIANS) > 90.0:
+                    orient = -1.0
+
+                # Set the underestimation for first pass
                 baser = baser - (set.baseline_underestimate/100.0)*abs(baser)*orient
                 basei = basei - (set.baseline_underestimate/100.0)*abs(basei)*orient
 
         elif set.baseline_underestimate_method == constants.FitBaselineUnderestimateMethod.MULTI_STEP_UNDERESTIMATION:
-            
-            if chain.iteration <= set.baseline_underestimate_steps:
-                
-                urange = np.linspace(set.baseline_underestimate, set.baseline_underestimate_last, num= set.baseline_underestimate_steps)
-                uscale = urange[chain.iteration-1] 
 
-                # Account for when metabolites are inverted due to phase 
+            if chain.iteration <= set.baseline_underestimate_steps:
+
+                urange = np.linspace(set.baseline_underestimate, set.baseline_underestimate_last, num= set.baseline_underestimate_steps)
+                uscale = urange[chain.iteration-1]
+
+                # Account for when metabolites are inverted due to phase
                 orient = 1.0
-                if abs(a0[chain.nmet*2+2] / common_constants.DEGREES_TO_RADIANS) > 90.0: 
-                    orient = -1.0 
-    
-                # Set the underestimation for first pass 
+                if abs(a0[chain.nmet*2+2] / common_constants.DEGREES_TO_RADIANS) > 90.0:
+                    orient = -1.0
+
+                # Set the underestimation for first pass
                 baser = baser - (uscale/100.0)*abs(baser)*orient
                 basei = basei - (uscale/100.0)*abs(basei)*orient
-            
+
 
         base = baser + 1j * basei  #s Make complex array from real and imaginary parts
-        
+
         chain.fit_baseline = base
     else:
         # Baseline == None, we need to zero the result
@@ -611,7 +611,7 @@ def confidence_intervals(chain):
 
     nmet    = chain.nmet
     dim0    = chain._dataset.spectral_dims[0]
-    dat     = chain.data.copy() 
+    dat     = chain.data.copy()
     bas     = chain.fit_baseline
     ww      = chain.weight_array
     lim     = chain.limits
@@ -684,7 +684,7 @@ def confidence_intervals(chain):
             frelo = a0[cinfo.indx]
 
             if a0[cinfo.indx] > lim[0,cinfo.indx] and \
-               a0[cinfo.indx] < lim[1,cinfo.indx]: 
+               a0[cinfo.indx] < lim[1,cinfo.indx]:
                 xa = a0[cinfo.indx] + 0.0
                 xb = a0[cinfo.indx] + 1.0
                 xc = lim[1,cinfo.indx]     # reasonable limit for upper bound
@@ -699,17 +699,17 @@ def confidence_intervals(chain):
             # save the confidence interval as it's width in PPM (tends to be tight)
             chain.confidence[cinfo.indx] =  (frehi - frelo) / chain._dataset.frequency
 
-    if set.confidence_linewidth_flag: 
-        # Voigt or Lorentzian 
+    if set.confidence_linewidth_flag:
+        # Voigt or Lorentzian
         cinfo.indx = nmet*2 + 0
 
         tahi = a0[cinfo.indx]    # use these if optimization hit a limit
         talo = a0[cinfo.indx]
 
-        if (set.lineshape_model == FitLineshapeModel.VOIGT or 
-            set.lineshape_model == FitLineshapeModel.LORENTZ): 
+        if (set.lineshape_model == FitLineshapeModel.VOIGT or
+            set.lineshape_model == FitLineshapeModel.LORENTZ):
             if a0[cinfo.indx] > lim[0,cinfo.indx] and \
-               a0[cinfo.indx] < lim[1,cinfo.indx]: 
+               a0[cinfo.indx] < lim[1,cinfo.indx]:
                 xa = a0[cinfo.indx] * 1.0
                 xb = a0[cinfo.indx] + abs(a0[cinfo.indx]) * 0.01
                 xc = lim[0,cinfo.indx]        # reasonable limit for upper bound
@@ -728,10 +728,10 @@ def confidence_intervals(chain):
         tbhi = a0[cinfo.indx]    # use these if optimization hit a limit
         tblo = a0[cinfo.indx]
 
-        if (set.lineshape_model == FitLineshapeModel.VOIGT or 
-            set.lineshape_model == FitLineshapeModel.GAUSS): 
+        if (set.lineshape_model == FitLineshapeModel.VOIGT or
+            set.lineshape_model == FitLineshapeModel.GAUSS):
             if a0[cinfo.indx] > lim[0,cinfo.indx] and \
-               a0[cinfo.indx] < lim[1,cinfo.indx]: 
+               a0[cinfo.indx] < lim[1,cinfo.indx]:
                 xa = a0[cinfo.indx] * 1.0
                 xb = a0[cinfo.indx] + abs(a0[cinfo.indx]) * 0.01
                 xc = lim[0,cinfo.indx]        # reasonable limit for upper bound
@@ -752,7 +752,7 @@ def confidence_intervals(chain):
         chain.confidence[nmet*2 + 0] = talo - tahi # lwmin
         chain.confidence[nmet*2 + 1] = tblo - tbhi # lwmax
 
-    if set.confidence_phase_flag: 
+    if set.confidence_phase_flag:
         # Zero Order Phase
         cinfo.indx = nmet*2 + 2
 
@@ -760,7 +760,7 @@ def confidence_intervals(chain):
         ph0lo = a0[cinfo.indx]
 
         if a0[cinfo.indx] > lim[0,cinfo.indx] and \
-           a0[cinfo.indx] < lim[1,cinfo.indx]: 
+           a0[cinfo.indx] < lim[1,cinfo.indx]:
             xa = a0[cinfo.indx]
             xb = a0[cinfo.indx] + abs(a[cinfo.indx]) * 0.01
             xc = lim[1,cinfo.indx]        # reasonable limit for upper bound
@@ -774,7 +774,7 @@ def confidence_intervals(chain):
             ph0lo, _ = minf.minf_parabolic_info(xa, xb, xc, func1, cinfo, tol=1e-6)
 
         # save the confidence interval as it's width in Hz (tends to be tight)
-        chain.confidence[cinfo.indx] =  (ph0hi - ph0lo) * 180.0 / np.pi    
+        chain.confidence[cinfo.indx] =  (ph0hi - ph0lo) * 180.0 / np.pi
 
         # Zero Order Phase
         cinfo.indx = nmet*2 + 3
@@ -783,7 +783,7 @@ def confidence_intervals(chain):
         ph1lo = a0[cinfo.indx]
 
         if a0[cinfo.indx] > lim[0,cinfo.indx] and \
-           a0[cinfo.indx] < lim[1,cinfo.indx]: 
+           a0[cinfo.indx] < lim[1,cinfo.indx]:
             xa = a0[cinfo.indx]
             xb = a0[cinfo.indx] + abs(a0[cinfo.indx]) * 0.01
             xc = lim[1,cinfo.indx]        # reasonable limit for upper bound
@@ -802,9 +802,9 @@ def confidence_intervals(chain):
 
 
 def _confidence_interval_function(xq, cinfo):
-    """ 
+    """
     calculation of the weighted chi squared to adjust the fitted array a
-    
+
     """
     a = cinfo.a.copy()
     a[list(a.keys())[cinfo.indx]].set(value=xq)
@@ -813,19 +813,19 @@ def _confidence_interval_function(xq, cinfo):
     if yfit.dtype in ['complex64','complex128']:
         yfit = np.concatenate([yfit.real,yfit.imag])
     wchisqr1 = np.sum(cinfo.ww*(yfit-cinfo.dat)**2)/cinfo.nfree
-    
+
     goal = abs(wchisqr1-cinfo.wchi*cinfo.factor)
-    
+
     return goal
 
-    
+
 def cramer_rao_bounds(chain):
 
     set = chain._block.set
 
     nmet    = chain.nmet
     dim0    = chain._dataset.spectral_dims[0]
-    dat     = chain.data.copy() 
+    dat     = chain.data.copy()
     a       = chain.fit_results.copy()
     bas     = chain.fit_baseline.copy()
     nparam  = chain.nparam
@@ -843,10 +843,10 @@ def cramer_rao_bounds(chain):
     nend = round(int(chain._dataset.ppm2pts(set.cramer_rao_ppm_start)))
     nend = int(np.where(nend < dim0-1, nend, dim0-1))
 
-    if nstr > nend: 
+    if nstr > nend:
         nstr, nend = nend, nstr     # swap
 
-    # Subtract calculated baseline from data to start residual calculation 
+    # Subtract calculated baseline from data to start residual calculation
     resid = dat-bas
     b = a0.copy()
 
@@ -856,7 +856,7 @@ def cramer_rao_bounds(chain):
     set.optimize_scaling_flag = True
     b, pscale, _, _, _ = parameter_scale(chain, b)
 
-    # Cramer-Rao calcs here for this voxel - stored in fitt_data.cramer_rao 
+    # Cramer-Rao calcs here for this voxel - stored in fitt_data.cramer_rao
     # First dimension organized as follows:
     #     areas (for N metabs), freqs (xN) , Ta, Tb, Ph0, Ph1
     yfit, _ = chain.fit_function(a, pderflg=False, nobase=True)
@@ -864,9 +864,8 @@ def cramer_rao_bounds(chain):
 
     # Finish residual calculation and calculate variance ---
     resid = (resid - yfit) / pscale[0]
-    section = resid[nstr:(nend+1)] 
+    section = resid[nstr:(nend+1)]
     vari  = np.std(np.concatenate((section.real,section.imag)))
-    #vari  = np.std(np.concatenate((resid[nstr:nend+1],resid[dim0+nstr:dim0+nend+1])))
     vari  = vari*vari
 
     """
@@ -882,13 +881,26 @@ def cramer_rao_bounds(chain):
          calculation: invert((transpose(pder)#pder))
     """
 
-    # here we are using only the real part of the PDER array as per Bolan 
+    # here we are using only the real part of the PDER array as per Bolan
     try:
         tmp = np.dot(pder[0:dim0,:].real, pder[0:dim0,:].real.transpose())
         cr = np.linalg.inv(tmp)
 
+        osp_sigma = 1.0 / vari
+        osp_fisher = np.dot(pder[0:dim0,:].real, pder[0:dim0,:].real.transpose())
+        osp_fisher = osp_fisher.real
+        osp_fisher = osp_fisher * osp_sigma
+        osp_crlb_tmp = np.sqrt(np.linalg.inv(osp_fisher))
+        osp_crlb_crdiag = osp_crlb_tmp.diagonal()
+        osp_crlb, _, _, _ = parameter_unscale(chain, osp_crlb_crdiag, pscale)
+        osp_crlb_rel = osp_crlb.copy()
+        osp_crlb_rel[0:nmet]      = osp_crlb_rel[0:nmet] * 100.0 / a0[0:nmet]  # % change in area
+        osp_crlb_rel[nmet:nmet*2] = osp_crlb_rel[nmet:nmet*2]/chain._dataset.frequency # delta Hz to delta PPM
+        osp_crlb_rel[nmet*2+2]    = osp_crlb_rel[nmet*2+2] * 180.0 / np.pi  # radians to deg
+
+
         # If Cramer-Rao is not singular take the sqrt of the diagonal
-        # elements of CR times the estimated variance as CR bounds    
+        # elements of CR times the estimated variance as CR bounds
         crdiag = np.sqrt(vari*cr.diagonal())
 
         crdiag, _, _, _ = parameter_unscale(chain, crdiag, pscale)
@@ -902,14 +914,18 @@ def cramer_rao_bounds(chain):
         crdiag[nmet*2+2]    = crdiag[nmet*2+2] * 180.0 / np.pi  # radians to deg
         chain.cramer_rao = crdiag
 
+        print('crdiag_orig = ', crdiag)
+        print('crdiag_osp  = ', osp_crlb_rel)
+        bob = 11
+
         # this algorithm is based on the example shown in Bolan, MRM 50:1134-1143 (2003)
         # the factor of 2 here is used since we fit the complex data rather than
         # just the real data.
 
-    except np.linalg.LinAlgError:    
+    except np.linalg.LinAlgError:
         # If Cramer-Rao array is singular or contains a small
         # pivot return zero's for CR bounds
-        chain.cramer_rao = np.zeros(nparam, float)    
+        chain.cramer_rao = np.zeros(nparam, float)
 
 
 def parameter_scale(chain, a0, limits=None, data=None, baseline=None):
@@ -943,10 +959,10 @@ def parameter_scale(chain, a0, limits=None, data=None, baseline=None):
         a = np.array([item[1] for item in list(v.items())])
     else:
         a = a0
-    
+
     nmet = chain.nmet
     set  = chain._block.set
-    
+
     pscale = a*0 + 1.0
 
     # Scale the Amplitude parameters ---
@@ -964,7 +980,7 @@ def parameter_scale(chain, a0, limits=None, data=None, baseline=None):
 
     a[0:nmet]      = amp * ampscl
     pscale[0:nmet] = 1.0 / ampscl
-    
+
     if set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET:
         a[-2] = a[-2] * ampscl
         pscale[-2] = 1.0/ampscl
@@ -985,7 +1001,7 @@ def parameter_scale(chain, a0, limits=None, data=None, baseline=None):
         if set.macromol_model == FitMacromoleculeMethod.SINGLE_BASIS_DATASET:
             top[-2] = top[-2] * ampscl
             bot[-2] = bot[-2] * ampscl
-        
+
         limits = np.array([bot,top])
 
     if isinstance(a0, Parameters):
@@ -1050,21 +1066,21 @@ def save_yfit(chain):
 
 #------------------------------------------------------------------------------
 # Method calls for different entry points' processing
-    
+
 def do_processing_initial(chain):
-    """ 
+    """
     - initial values calc
     - save current plot of model with initial values as input
-    
+
     - NB. Never becomes a Parameters set
-    
+
     """
     initial_values(chain)
     save_yini(chain)
-    
-       
+
+
 def do_processing_full_fit(chain):
-    """ 
+    """
     - initial values calc
     - prep values for fitting loop
     Loop
@@ -1081,10 +1097,10 @@ def do_processing_full_fit(chain):
 
     if chain.statusbar: chain.statusbar.SetStatusText(' Functor = initial_values ', 0)
     initial_values(chain)
-    
+
     if chain.statusbar: chain.statusbar.SetStatusText(' Functor = initialize_for_fit ', 0)
     initialize_for_fit(chain)
-    
+
     # fitting loop
     for i in range(niter):
         chain.iteration += 1
@@ -1092,11 +1108,11 @@ def do_processing_full_fit(chain):
         baseline_model(chain)
         if chain.statusbar: chain.statusbar.SetStatusText(' Functor = optimize_model (Loop %d/%d) ' % (i+1,niter), 0)
         optimize_model(chain)
-        
+
     if (set.confidence_intervals_flag==True):
         if chain.statusbar: chain.statusbar.SetStatusText(' Functor = confidence_intervals ', 0)
         confidence_intervals(chain)
-    
+
     if (set.cramer_rao_flag==True):
         if chain.statusbar: chain.statusbar.SetStatusText(' Functor = cramer_rao_bounds ', 0)
         cramer_rao_bounds(chain)
@@ -1104,25 +1120,25 @@ def do_processing_full_fit(chain):
     finalize_from_fit(chain)
 
     if chain.statusbar: chain.statusbar.SetStatusText(' Functor = save_yini ', 0)
-    save_yini(chain)        
+    save_yini(chain)
     if chain.statusbar: chain.statusbar.SetStatusText(' Functor = save_yfit ', 0)
-    save_yfit(chain)        
-        
+    save_yfit(chain)
+
 
 def do_processing_output_refresh(chain):
-    """ 
+    """
     - save current plot of model with initial values as input
-    
+
     """
     save_yfit(chain)
-    
+
 
 def do_processing_plot_refresh(chain):
-    """ 
+    """
     - b0 correction
     - initial values calc
     - save current plot of model with initial values as input
-    
+
     """
     initial_values(chain)
     save_yini(chain)
@@ -1130,17 +1146,17 @@ def do_processing_plot_refresh(chain):
 
 
 def do_processing_voxel_change(chain, flag_auto_initvals=False):
-    """ 
+    """
     - save current plot of model with initial values as input
-    - save current plot of fitted values 
-    
+    - save current plot of fitted values
+
     """
     if flag_auto_initvals:
         initial_values(chain)
     save_yini(chain)
     save_yfit(chain)
 
-        
+
 
 
  
