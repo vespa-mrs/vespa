@@ -127,17 +127,17 @@ class RfResults(object):
         profile, ax = self.get_profile(constants.UsageType.EXCITE)
         
         length = len(self.rf_xaxis)
-        mpgpulms = 1000.0*(self.rf_xaxis[length-1]) + self.dwell_time/1000.0
+        pulse_dur_ms = 1000.0*(self.rf_xaxis[length-1]) + self.dwell_time/1000.0
         
         if val is None:        
             try:
-                val = self.grad_refocus(ax, profile, mpgpulms)
+                val = self.grad_refocus(ax, profile, pulse_dur_ms)
             except PulseFuncException:
                 val = 0.5 
             pass
     
         self.grad_refocus_fraction = val
-        self.refocused_profile = np.exp(1j*2.0*math.pi*val*ax*mpgpulms)*profile
+        self.refocused_profile = np.exp(1j*2.0*math.pi*val*ax*pulse_dur_ms)*profile
 
         return val
 
@@ -261,7 +261,7 @@ class RfResults(object):
 
         fre0 = np.fft.fft(nrpro)
         length = len(fre0)
-        fre =  np.append(fre0[int(math.ceil(length/2)):], fre0[:int(math.ceil(length/2))])
+        fre =  np.append(fre0[int(math.ceil(length/2)):], fre0[:int(math.ceil(length/2))])    # this is a roll?
 
         # If two values in fre are the same in magnitude matlab actually looks 
         # at the phase and finds the one with the biggest phase, which we're 

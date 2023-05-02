@@ -1011,7 +1011,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
         self.FloatGradRefocus.SetSize((75, -1))
         self.FloatGradRefocus.SetDigits(5)
         self.FloatGradRefocus.SetIncrement(0.0005)
-        self.FloatGradRefocus.SetRange(0.0, 1.0)
+        self.FloatGradRefocus.SetRange(0.0, 100.0)
         self.FloatGradRefocus.SetValue(grad_refocus_fraction)      
 
         self.PanelGradRefocus.Hide()
@@ -1204,6 +1204,8 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
         make lines visible or not and xaxis on/off depending on prefs.
         
         '''
+        gamma0 = constants.GAMMA_VALUES[self._pulse_design.gyromagnetic_nuclei] # float MHz/T
+
         update_profiles = outputs["update_profiles"] if "update_profiles" in list(outputs.keys()) else False
         relim_flag      = outputs["relim_flag"]      if "relim_flag"      in list(outputs.keys()) else False
         update_refocus  = outputs["update_refocus"]  if "update_refocus"  in list(outputs.keys()) else False
@@ -1253,7 +1255,6 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
             # Units are in kHz, but remember any gradient other than the
             # default 1g/cm will shove more kHz/cm (or less), so gradient
             # strength has to be part of this calculation.
-            gamma0 = constants.GAMMA_VALUES[self._pulse_design.gyromagnetic_nuclei]           # float MHz/T
             gamma = gamma0 * 0.1                      # for 1H -> 4.2576 kHz/gauss
             g0 = result.first_gradient_value * 0.1    # for gauss/cm
             cm2khz = gamma * g0                       # scaled for gradient
@@ -1270,6 +1271,12 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
                 else:
                     # algo worked
                     val = result.grad_refocus_fraction / cm2khz
+
+                # if self.bloch_range_units == 'cm':
+                #     gamma = gamma0 * 0.1                    # for 1H -> 4.2576 kHz/gauss
+                #     g0 = result.first_gradient_value * 0.1  # for gauss/cm
+                #     cmscale = gamma * g0                      # scaled for gradient
+
                 self.FloatGradRefocus.SetValue(val)
             else:
                 # user provided a value

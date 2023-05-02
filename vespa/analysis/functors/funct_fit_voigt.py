@@ -865,8 +865,8 @@ def cramer_rao_bounds(chain):
     # Finish residual calculation and calculate variance ---
     resid = (resid - yfit) / pscale[0]
     section = resid[nstr:(nend+1)]
-    vari  = np.std(np.concatenate((section.real,section.imag)))
-    vari  = vari*vari
+    vari0  = np.std(np.concatenate((section.real,section.imag)))
+    vari  = vari0*vari0
 
     """
      NB. pder returns a fltarr(dim0*2,nparam), the dim0*2 is because the
