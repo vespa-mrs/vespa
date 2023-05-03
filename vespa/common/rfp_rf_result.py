@@ -120,26 +120,64 @@ class RfResults(object):
             return self.gradient[ig]                # return mT/m
 
       
-    def gradient_refocusing(self, val=None):
+    def gradient_refocusing(self, val, xunits, gamma):
         # This function calls a routine that may throw an exception of type
         #  PulseFuncException
-        
+
+        self.grad_refocus_fraction = val        # assume val if for kHz units xaxis
+
         profile, ax = self.get_profile(constants.UsageType.EXCITE)
-        
         length = len(self.rf_xaxis)
         pulse_dur_ms = 1000.0*(self.rf_xaxis[length-1]) + self.dwell_time/1000.0
-        
-        if val is None:        
-            try:
-                val = self.grad_refocus(ax, profile, pulse_dur_ms)
-            except PulseFuncException:
-                val = 0.5 
-            pass
-    
-        self.grad_refocus_fraction = val
+
+        if xunits == 'cm':
+            gamma0 = gamma * 0.1                    # for 1H -> 4.2576 kHz/gauss
+            g0 = self.first_gradient_value * 0.1    # for gauss/cm
+            scale = gamma0 * g0                     # scaled for gradient
+            val = val * scale
+
         self.refocused_profile = np.exp(1j*2.0*math.pi*val*ax*pulse_dur_ms)*profile
 
         return val
+
+
+    def gradient_refocusing_auto(self, xunits, gamma):
+        # This automatically calculates a value for Gradient Refocus percentage
+        # It does it for an x-axis in kHz units, regardless of what the display
+        # in the GUI is set to.  The 'scale' keyword provides the conversion
+        # factor for cm to kHz if needed. It's set to 1.0 otherwise, no harm no
+        # foul.
+        #
+        # self.grad_refocus_fraction is always assumed to have been relevant to
+        # an x-axis in kHz units.
+        #
+        # This function calls a routine that may throw an exception of type
+        #  PulseFuncException
+
+        gamma0 = gamma * 0.1                    # for 1H -> 4.2576 kHz/gauss
+        g0 = self.first_gradient_value * 0.1    # for gauss/cm
+        scale = gamma0 * g0                     # scaled for gradient
+
+        profile, ax = self.get_profile(constants.UsageType.EXCITE)
+        if xunits == 'cm':
+            ax = ax / scale # if xaxis is cm we have to scale down to kHz, for consistency
+        length = len(self.rf_xaxis)
+        pulse_dur_ms = 1000.0 * (self.rf_xaxis[length - 1]) + self.dwell_time / 1000.0
+
+        try:
+            val = self.grad_refocus(ax, profile, pulse_dur_ms)
+        except PulseFuncException:
+            val = 0.5
+
+        self.grad_refocus_fraction = val
+
+        if xunits == 'cm':
+            val = val * scale
+
+        self.refocused_profile = np.exp(1j*2.0*math.pi*val*ax*pulse_dur_ms)*profile
+
+        return val
+
 
     def interpolate(self, a, a0, a1, b0, b1):
         if not ((a0 <= a and a <= a1) or (a1 <= a and a <= a0)):

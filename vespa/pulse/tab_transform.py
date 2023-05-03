@@ -331,13 +331,39 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
     def on_check_grad_refocus(self, event):
         result = self.transform.result
         if result:
-            self.plot({'update_profiles':True})
+            if self.CheckGradRefocus.GetValue():
+                gamma = constants.GAMMA_VALUES[self._pulse_design.gyromagnetic_nuclei]  # float MHz/T
+                grad_value = self.FloatGradRefocus.GetValue()
+                result.gradient_refocusing(grad_value, self.bloch_range_units, gamma)
+                self.plot({'update_profiles':True})
         
         
     def on_float_grad_refocus(self, event):
         result = self.transform.result
         if result: 
-            self.plot({'update_profiles':True, 'update_refocus':True})
+            if self.CheckGradRefocus.GetValue():
+                gamma = constants.GAMMA_VALUES[self._pulse_design.gyromagnetic_nuclei]  # float MHz/T
+                grad_value = self.FloatGradRefocus.GetValue()
+                result.gradient_refocusing(grad_value, self.bloch_range_units, gamma)
+                self.plot({'update_profiles':True})
+
+
+    def on_grad_refocus_auto(self, event):
+        result = self.transform.result
+        if result:
+
+            if self.CheckGradRefocus.GetValue():
+                gamma = constants.GAMMA_VALUES[self._pulse_design.gyromagnetic_nuclei]  # float MHz/T
+                val = result.gradient_refocusing_auto(self.bloch_range_units, gamma)
+                if not np.isfinite(val):
+                    # algol failed - recalc grad_refocus profile for default val
+                    val = 0.5
+                    result.gradient_refocusing(val, self.bloch_range_units, gamma)
+
+                self.FloatGradRefocus.SetValue(val)
+                self.profile_grad_refocus = result.refocused_profile
+
+                self.plot({'update_profiles': True})
 
 
     def on_menu_view_option(self, event):
@@ -1000,12 +1026,14 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
 
         result = self.transform.result
         if result:
-            if grad_refocus_fraction == 0.0:
-                result.gradient_refocusing()
-                grad_refocus_fraction = result.grad_refocus_fraction
+            gamma = constants.GAMMA_VALUES[self._pulse_design.gyromagnetic_nuclei]  # float MHz/T
+            if grad_refocus_fraction != 0.0:
+                result.gradient_refocusing(grad_refocus_fraction, self.bloch_range_units, gamma)
             else:
-                result.gradient_refocusing(grad_refocus_fraction)
+                val = result.gradient_refocusing_auto(self.bloch_range_units, gamma)
+                self.FloatGradRefocus.SetValue(val)
             self.profile_grad_refocus = result.refocused_profile
+
 
         self.FloatGradRefocus.SetMinSize((75, -1))
         self.FloatGradRefocus.SetSize((75, -1))
@@ -1259,31 +1287,31 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
             g0 = result.first_gradient_value * 0.1    # for gauss/cm
             cm2khz = gamma * g0                       # scaled for gradient
 
-        if self.CheckGradRefocus.GetValue():
-            grad_value = self.FloatGradRefocus.GetValue()
-            if grad_value == 0.0:
-                # request for auto-calculate refocus percentile
-                result.gradient_refocusing()
-                if not np.isfinite(result.grad_refocus_fraction):
-                    # algol failed - recalc grad_refocus profile for default val
-                    val = 0.5
-                    result.gradient_refocusing(val * cm2khz)
-                else:
-                    # algo worked
-                    val = result.grad_refocus_fraction / cm2khz
-
-                # if self.bloch_range_units == 'cm':
-                #     gamma = gamma0 * 0.1                    # for 1H -> 4.2576 kHz/gauss
-                #     g0 = result.first_gradient_value * 0.1  # for gauss/cm
-                #     cmscale = gamma * g0                      # scaled for gradient
-
-                self.FloatGradRefocus.SetValue(val)
-            else:
-                # user provided a value
-                result.gradient_refocusing(grad_value * cm2khz)
-            self.profile_grad_refocus = result.refocused_profile
-        else:
-             self.profile_grad_refocus = self.profile[0] * 0.0
+        # if self.CheckGradRefocus.GetValue():
+        #     grad_value = self.FloatGradRefocus.GetValue()
+        #     if grad_value == 0.0:
+        #         # request for auto-calculate refocus percentile
+        #         result.gradient_refocusing()
+        #         if not np.isfinite(result.grad_refocus_fraction):
+        #             # algol failed - recalc grad_refocus profile for default val
+        #             val = 0.5
+        #             result.gradient_refocusing(val * cm2khz)
+        #         else:
+        #             # algo worked
+        #             val = result.grad_refocus_fraction / cm2khz
+        #
+        #         # if self.bloch_range_units == 'cm':
+        #         #     gamma = gamma0 * 0.1                    # for 1H -> 4.2576 kHz/gauss
+        #         #     g0 = result.first_gradient_value * 0.1  # for gauss/cm
+        #         #     cmscale = gamma * g0                      # scaled for gradient
+        #
+        #         self.FloatGradRefocus.SetValue(val)
+        #     else:
+        #         # user provided a value
+        #         result.gradient_refocusing(grad_value * cm2khz)
+        #     self.profile_grad_refocus = result.refocused_profile
+        # else:
+        #      self.profile_grad_refocus = self.profile[0] * 0.0
 
         # :FIXME: For the next 4 plots .. Will these
         # always be in Frequency or will we allow it 

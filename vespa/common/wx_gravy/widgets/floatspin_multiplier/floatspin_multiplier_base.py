@@ -2,9 +2,8 @@
 """\
 FloatSpinMultiplier objects
 
-@copyright: 2016-2021     Brian J. Soher
+@copyright: 2016-     Brian J. Soher
 @license: MIT (see LICENSE.txt) - THIS PROGRAM COMES WITH NO WARRANTY
-
 """
 
 import wx
