@@ -1428,7 +1428,13 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
 #             axes.lines[1].set_xdata(np.array(fx))
 #             axes.lines[1].set_ydata(np.array([i.imag for i in fy]))
 
-        # Grad Refocused Profile  
+        # Grad Refocused Profile
+
+        if self.CheckGradRefocus.GetValue():
+            grad_value = self.FloatGradRefocus.GetValue()
+            result.gradient_refocusing(grad_value, self.bloch_range_units, gamma0)
+            self.profile_grad_refocus = result.refocused_profile
+
         fy = self.profile_grad_refocus
         _, fx = self.profile
         axes = self.view.all_axes[8]
