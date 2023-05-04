@@ -42,7 +42,7 @@ class PulseDesign(object):
             in the rf pulse plots. This can be in either kHz or cm units
             depending on the value in bloch_range_units attribute.
 
-        bloch_range_units (str): default 'cm', unit of the value in the
+        bloch_range_units (str): default 'kHz', unit of the value in the
             bloch_range_value attribute. Used together with the calc_resolution
             to calculate the point locations for the Bloch calculation.
 
@@ -400,8 +400,8 @@ class PulseDesign(object):
                 outputs = {}
                 outputs['calc_resolution']     = self.calc_resolution
                 outputs['gyromagnetic_nuclei'] = self.gyromagnetic_nuclei
-                outputs['bloch_range_value']   = 25.0  #self.bloch_range_value
-                outputs['bloch_range_units']   = 'cm'  #self.bloch_range_units
+                outputs['bloch_range_value']   = self.bloch_range_value  #25.0
+                outputs['bloch_range_units']   = self.bloch_range_units  #'kHz' 
                 outputs['update_profiles']     = True
                 transform.result.update_profiles(outputs)
 

@@ -273,9 +273,6 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
     def on_usage(self, event):
         
         use_type = self.ComboUsageType.GetStringSelection()
-
-# bjs-start - temporary comment out to do a release without Grad_Refocus
-
         use_type = constants.UsageType.get_type_for_value(use_type, 'display')
         
         if use_type == constants.UsageType.EXCITE:
@@ -287,7 +284,6 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
         self.PanelLeftSide.Refresh()        
         
         self.plot({'update_profiles':True, 'relim_flag':True})
-# bjs-end - temporary comment out to do a release without Grad_Refocus
 
 
     def on_bloch_range_value(self, event):
@@ -295,9 +291,8 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
         self.bloch_range_value = val
         self._inner_notebook.run(self)
         self._last_bloch_range_value = self.bloch_range_value
-        #TODO bjs grad refoc profile not being updated in this call
-        #  not sure where to put the gradient_refocusing(val) call to trigger this, inside notebook.run()?
-    
+
+
     def on_bloch_range_units(self, event):
         unit = self.ComboBlochRangeUnits.GetStringSelection()
         if unit == self.bloch_range_units:
@@ -1202,6 +1197,8 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
             outputs['bloch_range_units']   = self.bloch_range_units
             outputs['bloch_offset_value']  = self.bloch_offset_value
             outputs['update_profiles']     = True
+            outputs['update_refocus']      = True
+
             result = self.transform.result
             
             if 'plot_method' in list(outputs.keys()) and 'update_method' in list(outputs.keys()):
@@ -1251,7 +1248,12 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
     
             self.view.canvas.draw()
             return
-        
+
+        if self.CheckGradRefocus.GetValue() and update_refocus:
+            grad_value = self.FloatGradRefocus.GetValue()
+            self.transform.result.gradient_refocusing(grad_value, self.bloch_range_units, gamma0)
+            self.profile_grad_refocus = self.transform.result.refocused_profile
+
         checks = []
         checks.append(self.CheckProfile.IsChecked())
         checks.append(self.CheckAbsolute.IsChecked()) 
@@ -1263,14 +1265,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
         checks.append(self.CheckWaveformPhase.IsChecked())
 #        checks.append(self.CheckContour.IsChecked())
         checks.append(self.CheckGradRefocus.IsChecked())
-        # tell the view which plot axes to include in the figure
-        self.view.display_naxes(checks)
-        naxes = len(self.view.figure.axes) 
-        
-        if naxes == 0: return
-        
-        fsize = ['medium','medium','small','small','x-small','x-small','x-small','x-small','x-small']
-        fsize = fsize[naxes-1]
+
         use_type = self.ComboUsageType.GetStringSelection()
         use_type = constants.UsageType.get_type_for_value(use_type, 'display')
 
@@ -1291,37 +1286,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
             g0 = result.first_gradient_value * 0.1    # for gauss/cm
             cm2khz = gamma * g0                       # scaled for gradient
 
-        # if self.CheckGradRefocus.GetValue():
-        #     grad_value = self.FloatGradRefocus.GetValue()
-        #     if grad_value == 0.0:
-        #         # request for auto-calculate refocus percentile
-        #         result.gradient_refocusing()
-        #         if not np.isfinite(result.grad_refocus_fraction):
-        #             # algol failed - recalc grad_refocus profile for default val
-        #             val = 0.5
-        #             result.gradient_refocusing(val * cm2khz)
-        #         else:
-        #             # algo worked
-        #             val = result.grad_refocus_fraction / cm2khz
-        #
-        #         # if self.bloch_range_units == 'cm':
-        #         #     gamma = gamma0 * 0.1                    # for 1H -> 4.2576 kHz/gauss
-        #         #     g0 = result.first_gradient_value * 0.1  # for gauss/cm
-        #         #     cmscale = gamma * g0                      # scaled for gradient
-        #
-        #         self.FloatGradRefocus.SetValue(val)
-        #     else:
-        #         # user provided a value
-        #         result.gradient_refocusing(grad_value * cm2khz)
-        #     self.profile_grad_refocus = result.refocused_profile
-        # else:
-        #      self.profile_grad_refocus = self.profile[0] * 0.0
-
-        # :FIXME: For the next 4 plots .. Will these
-        # always be in Frequency or will we allow it 
-        # in spatial coordinates (e.g. millimeters).
-
-        # Frequency Profile  
+        # Frequency Profile
         fy, fx = self.profile
         fx0 = np.array(fx) * cm2khz
         fx1 = np.array(fx) * cm2khz
@@ -1429,12 +1394,6 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
 #             axes.lines[1].set_ydata(np.array([i.imag for i in fy]))
 
         # Grad Refocused Profile
-
-        if self.CheckGradRefocus.GetValue():
-            grad_value = self.FloatGradRefocus.GetValue()
-            result.gradient_refocusing(grad_value, self.bloch_range_units, gamma0)
-            self.profile_grad_refocus = result.refocused_profile
-
         fy = self.profile_grad_refocus
         _, fx = self.profile
         axes = self.view.all_axes[8]
@@ -1442,6 +1401,20 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
         axes.lines[0].set_ydata(np.array([i.real for i in fy]))
         axes.lines[1].set_xdata(np.array(fx * cm2khz))
         axes.lines[1].set_ydata(np.array([i.imag for i in fy]))
+
+        # NB. bjs - moved next 6 lines here as workaround for display bug
+        # where GradRefocus plot first check crashed program. This was after
+        # I changed default units to kHz. Still not sure why, but some sort
+        # of 'broadcast' error in canvas.show() call? fsize move was due to
+        # dependency on naxes.
+
+        # tell the view which plot axes to include in the figure
+        self.view.display_naxes(checks)
+        naxes = len(self.view.figure.axes)
+        if naxes == 0: return
+
+        fsize = ['medium', 'medium', 'small', 'small', 'x-small', 'x-small', 'x-small', 'x-small', 'x-small']
+        fsize = fsize[naxes - 1]
 
         for i in range(9):
             self.format_plot(self.view.all_axes[i], i, use_type,  fsize)
@@ -1460,7 +1433,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
         for i, axes in enumerate(self.view.figure.axes):
             axes.change_geometry(naxes,1,i+1)
 
-        if relim_flag or update_profiles and not update_refocus:
+        if relim_flag or update_profiles:  # and not update_refocus:
             # here we bump out the viewing window a bit on the
             # overall plot so we can get a zoom box around the
             # all sides of the plotted data

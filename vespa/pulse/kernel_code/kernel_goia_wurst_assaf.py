@@ -206,7 +206,7 @@ if __name__ == '__main__':
     bloch_inputs['gamma']             = extra['gamma'] 
     
     bloch_inputs['bloch_range_value'] = 25.0    # unit set below
-    bloch_inputs['bloch_range_units'] = 'khz'   # 'cm' or 'khz'
+    bloch_inputs['bloch_range_units'] = 'kHz'   # 'cm' or 'kHz'
     bloch_inputs['bloch_offset_value'] = 0.0    # in hz
 
     result.update_profiles(bloch_inputs)

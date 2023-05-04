@@ -554,7 +554,7 @@ class PlotPanel(wx.Panel):
         
     def on_middle_motion(self, xcur, ycur, xprev, yprev, indx):
         """ placeholder, overload for user defined event handling """
-        self._dprint('on_middle_move, X(cur,prev)='+str(xstr)+','+str(xprev)+'  Y(cur,prev)='+str(ystr)+','+str(yprev)+'  Index = '+str(indx))
+        self._dprint('on_middle_move, X(cur,prev)='+str(xcur)+','+str(xprev)+'  Y(cur,prev)='+str(ycur)+','+str(yprev)+'  Index = '+str(indx))
 
     def on_middle_press(self, xloc, yloc, indx, bounds=None, xdata=None, ydata=None):
         """ placeholder, overload for user defined event handling """

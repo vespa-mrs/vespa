@@ -164,7 +164,8 @@ class RfResults(object):
             val = self.grad_refocus(ax, profile, pulse_dur_ms)
             val = val / scale
         except PulseFuncException:
-            self.grad_refocus_fraction = 0.5
+            val = 0.5
+            self.grad_refocus_fraction = val
 
         self.refocused_profile = np.exp(1j*2.0*math.pi*val*ax * scale * pulse_dur_ms)*profile
         self.grad_refocus_fraction = val
@@ -378,7 +379,6 @@ class RfResults(object):
         frotn = -pa[1]/(2.0*pa[0])    
 
         # If p[0] > .001, or p[1]>.001, or niter > 19, iterations failed?
-        # :FIXME: Can frotn be greater than 1.0 ??? ask Jerry.
 
         if frotn < 0:
             error_message = 'Invalid Result: Fraction less than zero'
