@@ -295,6 +295,8 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
         self.bloch_range_value = val
         self._inner_notebook.run(self)
         self._last_bloch_range_value = self.bloch_range_value
+        #TODO bjs grad refoc profile not being updated in this call
+        #  not sure where to put the gradient_refocusing(val) call to trigger this, inside notebook.run()?
     
     def on_bloch_range_units(self, event):
         unit = self.ComboBlochRangeUnits.GetStringSelection()
@@ -335,7 +337,8 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
                 gamma = constants.GAMMA_VALUES[self._pulse_design.gyromagnetic_nuclei]  # float MHz/T
                 grad_value = self.FloatGradRefocus.GetValue()
                 result.gradient_refocusing(grad_value, self.bloch_range_units, gamma)
-                self.plot({'update_profiles':True})
+                self.profile_grad_refocus = result.refocused_profile
+            self.plot({'update_profiles':True})
         
         
     def on_float_grad_refocus(self, event):
@@ -345,6 +348,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
                 gamma = constants.GAMMA_VALUES[self._pulse_design.gyromagnetic_nuclei]  # float MHz/T
                 grad_value = self.FloatGradRefocus.GetValue()
                 result.gradient_refocusing(grad_value, self.bloch_range_units, gamma)
+                self.profile_grad_refocus = result.refocused_profile
                 self.plot({'update_profiles':True})
 
 

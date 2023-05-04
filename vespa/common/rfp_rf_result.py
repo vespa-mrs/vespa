@@ -130,13 +130,11 @@ class RfResults(object):
         length = len(self.rf_xaxis)
         pulse_dur_ms = 1000.0*(self.rf_xaxis[length-1]) + self.dwell_time/1000.0
 
-        if xunits == 'cm':
-            gamma0 = gamma * 0.1                    # for 1H -> 4.2576 kHz/gauss
-            g0 = self.first_gradient_value * 0.1    # for gauss/cm
-            scale = gamma0 * g0                     # scaled for gradient
-            val = val * scale
+        gamma0 = gamma * 0.1                    # for 1H -> 4.2576 kHz/gauss
+        g0 = self.first_gradient_value * 0.1    # for gauss/cm
+        scale = gamma0 * g0                     # scaled for gradient
 
-        self.refocused_profile = np.exp(1j*2.0*math.pi*val*ax*pulse_dur_ms)*profile
+        self.refocused_profile = np.exp(1j*2.0*math.pi*val * scale * ax*pulse_dur_ms)*profile
 
         return val
 
@@ -159,25 +157,19 @@ class RfResults(object):
         scale = gamma0 * g0                     # scaled for gradient
 
         profile, ax = self.get_profile(constants.UsageType.EXCITE)
-        if xunits == 'cm':
-            ax = ax / scale # if xaxis is cm we have to scale down to kHz, for consistency
         length = len(self.rf_xaxis)
         pulse_dur_ms = 1000.0 * (self.rf_xaxis[length - 1]) + self.dwell_time / 1000.0
 
         try:
             val = self.grad_refocus(ax, profile, pulse_dur_ms)
+            val = val / scale
         except PulseFuncException:
-            val = 0.5
+            self.grad_refocus_fraction = 0.5
 
+        self.refocused_profile = np.exp(1j*2.0*math.pi*val*ax * scale * pulse_dur_ms)*profile
         self.grad_refocus_fraction = val
 
-        if xunits == 'cm':
-            val = val * scale
-
-        self.refocused_profile = np.exp(1j*2.0*math.pi*val*ax*pulse_dur_ms)*profile
-
         return val
-
 
     def interpolate(self, a, a0, a1, b0, b1):
         if not ((a0 <= a and a <= a1) or (a1 <= a and a <= a0)):
