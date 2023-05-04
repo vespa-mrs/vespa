@@ -265,9 +265,9 @@ def _get_version_info():
     #    python -c "import sys;  print sys.modules"
     #
 
-    # Some don't have a __file__ attr
+    # Some don't have a __file__ attr and some do but they are None, check for both
     modules = [module for module in list(sys.modules.values())
-                                 if hasattr(module, "__file__")]
+                                 if hasattr(module, "__file__") and module.__file__ is not None]
 
     # I figure out where most of the standard library modules are by selecting
     # a module (I picked the re module) and getting that module's path. I
@@ -277,7 +277,7 @@ def _get_version_info():
     standard_library_path = ""
     for module in modules:
         head, tail = os.path.split(module.__file__)
-        if tail == "re.pyc":
+        if tail == "re.pyc" or tail == "re.py":
             standard_library_path = head
 
     # Remove Python modules
@@ -287,8 +287,7 @@ def _get_version_info():
     # What's left should be mostly modules that are not part of the standard
     # library. I build a list of 2-tuples consisting of (module filename,
     # module version).
-    modules = [ (module.__file__, _get_module_version(module)) for module
-                                                               in  modules]
+    modules = [ (module.__file__, _get_module_version(module)) for module in modules]
 
     modules = sorted(modules)
 
