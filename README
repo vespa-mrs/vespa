@@ -31,6 +31,18 @@ database of objects/results. Integration allows one application to use the
 output from another as input. For example, Simulation can make use of an RF 
 pulse designed in Pulse to create a more realistic MR simulation.
 
+#----------------------------------------------------------------------------#
+
+CITATION
+
+If you publish material that makes use of Vespa, please cite the following publication:
+
+Soher B, Semanchuk P, Todd D, Ji X, Deelchand D, Joers J, Oz G and Young K. Vespa: Integrated applications for RF pulse design, spectral simulation and MRS data analysis. Magn Reson Med. 2023;1-16. epub doi: 10.1002/mrm.29686
+
+#----------------------------------------------------------------------------#
+
+HISTORY
+
 The Vespa package is an extensive redesign of three previous MRS software tools:
 
   MatPulse   (Pulse) - software for RF pulse design written in Matlab, 
