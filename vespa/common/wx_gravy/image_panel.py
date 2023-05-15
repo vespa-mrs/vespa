@@ -525,7 +525,7 @@ class ImagePanel(wx.Panel):
             else:
                 yold, xold = -1,-1
             
-            axes.images = []
+            axes.images.clear()
             
             ddict    = self.data[i][0]
             img_norm = self.img_norm[i]
@@ -751,8 +751,12 @@ class ImagePanel(wx.Panel):
 
         # this resets figure to have 1 or 2 or N axes shown
         naxes = len(self.axes)
+        gs = matplotlib.gridspec.GridSpec(naxes,1)
+
         for i in range(naxes):
-            self.figure.axes[i].change_geometry(naxes,1,i+1)
+            self.figure.axes[i].set_subplotspec(gs[i:i+1])
+            # bjs MPL deprecated self.figure.axes[i].change_geometry(naxes,1,i+1)
+
 
         self.canvas.draw()
 
@@ -1671,7 +1675,7 @@ class MyFrame(wx.Frame):
                     ("", "", ""),
                     ("&Quit",    "Quit the program",  self.on_close))),
                  ("Tests", (
-                     ("Show all Three", "", self.on_show_three, wx.ITEM_RADIO),
+                     ("Show Both Images", "", self.on_show_two, wx.ITEM_RADIO),
                      ("Show only One",  "", self.on_show_one,   wx.ITEM_RADIO),
                      ("", "", ""),
                      ("Set Small Images - keep norm",  "", self.on_small_images_keep_norm),
@@ -1703,8 +1707,8 @@ class MyFrame(wx.Frame):
     def on_show_one(self, event):
         self.view.change_naxes(1)
 
-    def on_show_three(self, event):
-        self.view.change_naxes(3)
+    def on_show_two(self, event):
+        self.view.change_naxes(2)
 
     def on_small_images_keep_norm(self, event):
         self.on_small_images(event, keep_norm=True)

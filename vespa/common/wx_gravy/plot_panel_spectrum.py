@@ -760,7 +760,7 @@ class PlotPanelSpectrum(wx.Panel):
             else:
                 old_xmin, old_xmax = axes.get_xlim()
 
-            axes.lines = []
+            axes.lines.clear()
             width  = self.line_width[i]
 
             dlist = self.data[i]
@@ -1282,8 +1282,10 @@ class PlotPanelSpectrum(wx.Panel):
 
         # this resets figure to have 1 or 2 or N axes shown
         naxes = len(self.axes)
+        gs = matplotlib.gridspec.GridSpec(naxes, 1)
         for i in range(naxes):
-            self.figure.axes[i].change_geometry(naxes,1,i+1)
+            self.figure.axes[i].set_subplotspec(gs[i:i+1])
+            # bjs MPL deprecated self.figure.axes[i].change_geometry(naxes,1,i+1)
 
         self.format_axes()
         self.canvas.draw()

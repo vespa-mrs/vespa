@@ -549,7 +549,7 @@ class ImagePanel(wx.Panel):
             else:
                 yold, xold = -1,-1
             
-            axes.images = []
+            axes.images.clear()
             
             ddict    = self.data[i][0]
             img_norm = self.img_norm[i]
@@ -775,8 +775,10 @@ class ImagePanel(wx.Panel):
 
         # this resets figure to have 1 or 2 or N axes shown
         naxes = len(self.axes)
+        gs = matplotlib.gridspec.GridSpec(naxes, 1)
         for i in range(naxes):
-            self.figure.axes[i].change_geometry(naxes,1,i+1)
+            # bjs MPL deprecated self.figure.axes[i].change_geometry(naxes,1,i+1)
+            self.figure.axes[i].set_subplotspec(gs[i:i+1])
 
         self.canvas.draw()
 

@@ -107,7 +107,7 @@ class ImagePanelToolbar2(wx.Panel):
 
         # for images we don't show x or y axis values
         for axes in self.axes:
-            axes.set_adjustable('box-forced')
+            axes.set_adjustable('box')
             axes.xaxis.set_visible(False)
             axes.yaxis.set_visible(False)
 
@@ -416,7 +416,7 @@ class ImagePanelToolbar2(wx.Panel):
             else:
                 yold, xold = -1,-1
             
-            axes.images = []
+            axes.images.clear()
             
             ddict    = self.data[i][0]
             data     = ddict['data'].copy() 
