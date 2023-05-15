@@ -1430,8 +1430,12 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
             axes.lines[2].set_visible(self._prefs.zero_line_show)
             axes.xaxis.set_visible(self._prefs.xaxis_show)
 
-        for i, axes in enumerate(self.view.figure.axes):
-            axes.change_geometry(naxes,1,i+1)
+        naxes = len(self.view.figure.axes)
+        gs = matplotlib.gridspec.GridSpec(naxes,1)
+        for i, ax in enumerate(self.view.figure.axes):
+            ax.set_position(gs[i].get_position(self.figure))
+            ax.set_subplotspec(gs[i])
+            # axes.change_geometry(naxes,1,i+1)
 
         if relim_flag or update_profiles:  # and not update_refocus:
             # here we bump out the viewing window a bit on the

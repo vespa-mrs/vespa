@@ -694,8 +694,8 @@ class ImagePanel(wx.Panel):
         indices = self.parse_indices(index)
         for i in indices:
             data = self.img_hard_limits[i].copy()
-            self.width_base[i] = np.int(np.abs(data.max()) + np.abs(data.min()))
-            self.level_base[i] = np.int(self.width_base[i]*0.5 - np.abs(data.min()))
+            self.width_base[i] = int(np.abs(data.max()) + np.abs(data.min()))
+            self.level_base[i] = int(self.width_base[i]*0.5 - np.abs(data.min()))
 
 
     def apply_norm_widlev(self, index=None, keep_norm=False):
@@ -777,8 +777,9 @@ class ImagePanel(wx.Panel):
         naxes = len(self.axes)
         gs = matplotlib.gridspec.GridSpec(naxes, 1)
         for i in range(naxes):
+            self.figure.axes[i].set_position(gs[i].get_position(self.figure))
+            self.figure.axes[i].set_subplotspec(gs[i])
             # bjs MPL deprecated self.figure.axes[i].change_geometry(naxes,1,i+1)
-            self.figure.axes[i].set_subplotspec(gs[i:i+1])
 
         self.canvas.draw()
 
@@ -2358,7 +2359,7 @@ class MyFrame(wx.Frame):
                     ("Lasso",     "Set ROI shape to lasso",     self.on_roi_lasso),
                     ("Ellipse",   "Set ROI shape to ellipse",   self.on_roi_ellipse))),
                 ("Tests", (
-                     ("Show all Three", "", self.on_show_three, wx.ITEM_RADIO),
+                     ("Show All Images", "", self.on_show_all, wx.ITEM_RADIO),
                      ("Show only One",  "", self.on_show_one,   wx.ITEM_RADIO),
                      ("", "", ""),
                      ("Set Small Images - keep norm",  "", self.on_small_images_keep_norm),
@@ -2445,8 +2446,8 @@ class MyFrame(wx.Frame):
     def on_show_one(self, event):
         self.view.change_naxes(1)
 
-    def on_show_three(self, event):
-        self.view.change_naxes(3)
+    def on_show_all(self, event):
+        self.view.change_naxes(2)
 
     def on_small_images_keep_norm(self, event):
         self.on_small_images(event, keep_norm=True)

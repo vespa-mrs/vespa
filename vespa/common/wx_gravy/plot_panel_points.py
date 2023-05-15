@@ -1012,7 +1012,8 @@ class PlotPanelPoints(wx.Panel):
         naxes = len(self.axes)
         gs = matplotlib.gridspec.GridSpec(naxes, 1)
         for i in range(naxes):
-            self.figure.axes[i].set_subplotspec(gs[i:i+1])
+            self.figure.axes[i].set_position(gs[i].get_position(self.figure))
+            self.figure.axes[i].set_subplotspec(gs[i])
             # bjs MPL deprecated self.figure.axes[i].change_geometry(naxes,1,i+1)
 
         self.format_axes()
