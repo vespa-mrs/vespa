@@ -1502,9 +1502,8 @@ class MiddleEvents:
     
 
 
-#------------------------------------------------
-# Test Code
-#------------------------------------------------
+#-----------------------------------------
+# New test code
 
 if __name__ == '__main__':
 
@@ -1518,50 +1517,85 @@ if __name__ == '__main__':
 
         def __init__( self, parent, **kwargs ):
             # initiate plotter
-            PlotPanel.__init__( self, parent, **kwargs )  
+            PlotPanel.__init__( self, parent, **kwargs )
             self.parent = parent
 
 
     app   = wx.App( False )
     frame = wx.Frame( None, wx.ID_ANY, 'WxPython and Matplotlib - PlotPanel', size=(800,800) )
-    
+
     nb = wx.Notebook(frame, -1, style=wx.BK_BOTTOM)
-    
+
     panel1 = wx.Panel(nb, -1)
-    view = DemoPlotPanel( panel1, naxes=2,
-                                  zoom='span', 
+    view = DemoPlotPanel( panel1, naxes=9,
+                                  zoom='box',
                                   reference=True,
-                                  middle=True,
-                                  unlink=False,
-                                  do_zoom_select_event=True,
+                                  unlink=True,
+                                  do_zoom_select_event=False,
                                   do_zoom_motion_event=True,
-                                  do_refs_select_event=True,
+                                  do_refs_select_event=False,
                                   do_refs_motion_event=True,
-                                  do_middle_select_event=True,
-                                  do_middle_motion_event=True,
-                                  do_scroll_event=True )
+                                  xscale_bump = 0.02,
+                                  yscale_bump = 0.1,
+                                  props_zoom=dict(alpha=0.2, facecolor='yellow'),
+                                  props_cursor=dict(alpha=0.1, facecolor='gray') )
 
     sizer = wx.BoxSizer(wx.VERTICAL)
     sizer.Add(view, 1, wx.LEFT | wx.TOP | wx.EXPAND)
     panel1.SetSizer(sizer)
-    view.Fit()    
+    view.Fit()
+
+    view.figure.set_facecolor('white')
+    for axes in view.axes:
+        axes.set_facecolor('gray')
+        matplotlib.artist.setp(axes.axes.xaxis, visible=True)
+    view.figure.set_tight_layout(True)
+
+    for i, axes in enumerate(view.all_axes):
+        axes.cla()
+        x = np.arange(255) * 10 / 255.0
+        y = (np.arange(255) * 10 / 255.0) - 5  # np.zeros(255)
+
+        width = 1.0
+        color_real = 'black'
+        color_imag = 'red'
+        color_magn = 'blue'
+        color_phas = 'yellow'
+
+        if i == 0 or i == 2:  # waveform and extended waveform
+            axes.plot(x, y, color=color_real, linewidth=width)
+            axes.plot(x, y, color=color_imag, linewidth=width)
+        elif i == 1 or i == 3:  # absolute and absolute extended waveforms
+            axes.plot(x, y, color=color_magn, linewidth=width)
+            axes.plot(x, y, color=color_imag, linewidth=width)
+        elif i == 4:  # time waveform
+            axes.step(x, y, where='post', color=color_real, linewidth=width)
+            axes.step(x, y, where='post', color=color_imag, linewidth=width)
+        elif i == 5:  # time waveform magnitude
+            axes.step(x, y, where='post', color=color_magn, linewidth=width)
+            axes.step(x, y, where='post', color=color_imag, linewidth=width)
+        elif i == 6:  # time waveform phase-degrees
+            axes.step(x, y, where='post', color=color_phas, linewidth=width)
+            axes.step(x, y, where='post', color=color_imag, linewidth=width)
+        elif i == 7:  # contour plot FIXME bjs figure out a real contour plot please
+            axes.plot(x, y, color=color_real, linewidth=width)
+            axes.plot(x, y, color=color_imag, linewidth=width)
+        elif i == 8:  # grad_refocus
+            axes.plot(x, y, color=color_real, linewidth=width)
+            axes.plot(x, y, color=color_imag, linewidth=width)
+
+        axes.axhline(0, color='goldenrod', linewidth=width)
+
+        bob = 10
+
 
     nb.AddPage(panel1, "One")
-    
-    t = np.arange(0.0, 2.0, 0.01)
-    s = 1.0*np.sin(2*np.pi*t)
-    c = 1.0*np.cos(2*np.pi*t)
 
-    view.set_color( (255,255,255) )
 
-    line1 = view.axes[0].plot(t, s, 'b', linewidth=1.0)
-    line2 = view.axes[1].plot(t, c, 'g', linewidth=3.0)
-    view.axes[0].set_xlabel('time (s)')
-    for axes in view.axes:
-        axes.set_ylabel('voltage (mV)')
-        axes.grid(True)
-    view.axes[0].set_title('About as simple as it gets, folks')
-    
+
+
+    view.axes[0].set_title('Still as simple as it gets, folks')
+
     view.canvas.figure.subplots_adjust(left=0.20,
                                          right=0.95,
                                          bottom=0.15,
@@ -1574,3 +1608,80 @@ if __name__ == '__main__':
 
 
 
+
+
+
+
+
+#------------------------------------------------
+# Test Code
+#------------------------------------------------
+
+# if __name__ == '__main__':
+#
+#     import numpy as np
+#
+#     class DemoPlotPanel(PlotPanel):
+#         """Plots several lines in distinct colors."""
+#
+#         # Activate event messages
+#         _EVENT_DEBUG = True
+#
+#         def __init__( self, parent, **kwargs ):
+#             # initiate plotter
+#             PlotPanel.__init__( self, parent, **kwargs )
+#             self.parent = parent
+#
+#
+#     app   = wx.App( False )
+#     frame = wx.Frame( None, wx.ID_ANY, 'WxPython and Matplotlib - PlotPanel', size=(800,800) )
+#
+#     nb = wx.Notebook(frame, -1, style=wx.BK_BOTTOM)
+#
+#     panel1 = wx.Panel(nb, -1)
+#     view = DemoPlotPanel( panel1, naxes=2,
+#                                   zoom='span',
+#                                   reference=True,
+#                                   middle=True,
+#                                   unlink=False,
+#                                   do_zoom_select_event=True,
+#                                   do_zoom_motion_event=True,
+#                                   do_refs_select_event=True,
+#                                   do_refs_motion_event=True,
+#                                   do_middle_select_event=True,
+#                                   do_middle_motion_event=True,
+#                                   do_scroll_event=True )
+#
+#     sizer = wx.BoxSizer(wx.VERTICAL)
+#     sizer.Add(view, 1, wx.LEFT | wx.TOP | wx.EXPAND)
+#     panel1.SetSizer(sizer)
+#     view.Fit()
+#
+#     nb.AddPage(panel1, "One")
+#
+#     t = np.arange(0.0, 2.0, 0.01)
+#     s = 1.0*np.sin(2*np.pi*t)
+#     c = 1.0*np.cos(2*np.pi*t)
+#
+#     view.set_color( (255,255,255) )
+#
+#     line1 = view.axes[0].plot(t, s, 'b', linewidth=1.0)
+#     line2 = view.axes[1].plot(t, c, 'g', linewidth=3.0)
+#     view.axes[0].set_xlabel('time (s)')
+#     for axes in view.axes:
+#         axes.set_ylabel('voltage (mV)')
+#         axes.grid(True)
+#     view.axes[0].set_title('About as simple as it gets, folks')
+#
+#     view.canvas.figure.subplots_adjust(left=0.20,
+#                                          right=0.95,
+#                                          bottom=0.15,
+#                                          top=0.95,
+#                                          wspace=0.0,
+#                                          hspace=0.01)
+#     view.canvas.draw()
+#     frame.Show()
+#     app.MainLoop()
+#
+#
+#

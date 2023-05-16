@@ -110,7 +110,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
             self.view = self.view_1d
             
             # create placeholder line2D objs in all 9 axes created for dispaly
-            self.plot_init()
+            #self.plot_init()
             
             # we default to not showing any axes on initialization
             self.view.display_naxes([False,False,False,False,False,False,False,False,False])
@@ -1013,7 +1013,49 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
             axes.set_facecolor(self._prefs.bgcolor)
             mpl.artist.setp(axes.axes.xaxis, visible=True)
         self.view_1d.figure.set_tight_layout(True)
-        
+
+        for i, axes in enumerate(self.view_1d.all_axes):
+            axes.cla()
+            x = np.arange(255) * 10 / 255.0
+            y = (np.arange(255) * 10 / 255.0) - 5  # np.zeros(255)
+
+            width = self._prefs.line_width
+            color_real = self._prefs.line_color_real
+            color_imag = self._prefs.line_color_imaginary
+            color_magn = self._prefs.line_color_magnitude
+            color_phas = self._prefs.line_color_phase_degrees
+
+            if i == 0 or i == 2:  # waveform and extended waveform
+                axes.plot(x, y, color=color_real, linewidth=width)
+                axes.plot(x, y, color=color_imag, linewidth=width)
+            elif i == 1 or i == 3:  # absolute and absolute extended waveforms
+                axes.plot(x, y, color=color_magn, linewidth=width)
+                axes.plot(x, y, color=color_imag, linewidth=width)
+            elif i == 4:  # time waveform
+                axes.step(x, y, where='post', color=color_real, linewidth=width)
+                axes.step(x, y, where='post', color=color_imag, linewidth=width)
+            elif i == 5:  # time waveform magnitude
+                axes.step(x, y, where='post', color=color_magn, linewidth=width)
+                axes.step(x, y, where='post', color=color_imag, linewidth=width)
+            elif i == 6:  # time waveform phase-degrees
+                axes.step(x, y, where='post', color=color_phas, linewidth=width)
+                axes.step(x, y, where='post', color=color_imag, linewidth=width)
+            elif i == 7:  # contour plot FIXME bjs figure out a real contour plot please
+                axes.plot(x, y, color=color_real, linewidth=width)
+                axes.plot(x, y, color=color_imag, linewidth=width)
+            elif i == 8:  # grad_refocus
+                axes.plot(x, y, color=color_real, linewidth=width)
+                axes.plot(x, y, color=color_imag, linewidth=width)
+
+            axes.axhline(0, color=self._prefs.zero_line_color,
+                         linestyle=self._prefs.zero_line_style,
+                         linewidth=width)
+
+            bob = 10
+
+
+
+
         # default plot settings on startup for all transforms
         self.CheckWaveform.SetValue(True)        
         self.ComboUsageType.SetStringSelection(constants.UsageType.EXCITE['display'])
@@ -1480,7 +1522,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
         for i,axes in enumerate(self.view.all_axes):
             axes.cla()
             x = np.arange(255)*10/255.0
-            y = np.zeros(255)
+            y = (np.arange(255)*10/255.0)-5 #np.zeros(255)
             
             width = self._prefs.line_width
             color_real = self._prefs.line_color_real
@@ -1510,9 +1552,11 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
                 axes.plot(x, y, color=color_real, linewidth=width)
                 axes.plot(x, y, color=color_imag, linewidth=width)
                 
-            axes.axhline(0, color=self._prefs.zero_line_color, 
-                            linestyle=self._prefs.zero_line_style, 
-                            linewidth=width)  
+            axes.axhline(0, color=self._prefs.zero_line_color,
+                            linestyle=self._prefs.zero_line_style,
+                            linewidth=width)
+
+            bob = 10
 
                 
     def format_plot(self, axes, plot, use_type, fsize):
