@@ -105,9 +105,8 @@ def add_ok_cancel(dialog, placeholder, ok_event_handler=None,
 
     button_sizer.Realize()
 
-    containing_sizer.Add(button_sizer, 1,
-                         wx.BOTTOM | wx.ALIGN_BOTTOM | wx.ALIGN_RIGHT,
-                         10)
+    # bjs containing_sizer.Add(button_sizer, 1, wx.BOTTOM | wx.ALIGN_BOTTOM | wx.ALIGN_RIGHT, 10)
+    containing_sizer.Add(button_sizer, 1, wx.BOTTOM | wx.ALIGN_BOTTOM, 10)
     containing_sizer.Fit(dialog)
 
     # Under wx, creation order = tab order. Since I created the OK button
