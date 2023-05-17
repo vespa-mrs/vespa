@@ -886,18 +886,20 @@ def cramer_rao_bounds(chain):
         tmp = np.dot(pder[0:dim0,:].real, pder[0:dim0,:].real.transpose())
         cr = np.linalg.inv(tmp)
 
-        osp_sigma = 1.0 / vari
-        osp_fisher = np.dot(pder[0:dim0,:].real, pder[0:dim0,:].real.transpose())
-        osp_fisher = osp_fisher.real
-        osp_fisher = osp_fisher * osp_sigma
-        osp_crlb_tmp = np.sqrt(np.linalg.inv(osp_fisher))
-        osp_crlb_crdiag = osp_crlb_tmp.diagonal()
-        osp_crlb, _, _, _ = parameter_unscale(chain, osp_crlb_crdiag, pscale)
-        osp_crlb_rel = osp_crlb.copy()
-        osp_crlb_rel[0:nmet]      = osp_crlb_rel[0:nmet] * 100.0 / a0[0:nmet]  # % change in area
-        osp_crlb_rel[nmet:nmet*2] = osp_crlb_rel[nmet:nmet*2]/chain._dataset.frequency # delta Hz to delta PPM
-        osp_crlb_rel[nmet*2+2]    = osp_crlb_rel[nmet*2+2] * 180.0 / np.pi  # radians to deg
-
+        # this was an external test of our CRLB calcs for the MRM Vespa paper, based
+        # on code from Matlab/Osprey ... leaving it here for posterity for now.
+        #
+        # osp_sigma = 1.0 / vari
+        # osp_fisher = np.dot(pder[0:dim0,:].real, pder[0:dim0,:].real.transpose())
+        # osp_fisher = osp_fisher.real
+        # osp_fisher = osp_fisher * osp_sigma
+        # osp_crlb_tmp = np.sqrt(np.linalg.inv(osp_fisher))
+        # osp_crlb_crdiag = osp_crlb_tmp.diagonal()
+        # osp_crlb, _, _, _ = parameter_unscale(chain, osp_crlb_crdiag, pscale)
+        # osp_crlb_rel = osp_crlb.copy()
+        # osp_crlb_rel[0:nmet]      = osp_crlb_rel[0:nmet] * 100.0 / a0[0:nmet]  # % change in area
+        # osp_crlb_rel[nmet:nmet*2] = osp_crlb_rel[nmet:nmet*2]/chain._dataset.frequency # delta Hz to delta PPM
+        # osp_crlb_rel[nmet*2+2]    = osp_crlb_rel[nmet*2+2] * 180.0 / np.pi  # radians to deg
 
         # If Cramer-Rao is not singular take the sqrt of the diagonal
         # elements of CR times the estimated variance as CR bounds
@@ -914,9 +916,8 @@ def cramer_rao_bounds(chain):
         crdiag[nmet*2+2]    = crdiag[nmet*2+2] * 180.0 / np.pi  # radians to deg
         chain.cramer_rao = crdiag
 
-        print('crdiag_orig = ', crdiag)
-        print('crdiag_osp  = ', osp_crlb_rel)
-        bob = 11
+        # print('crdiag_orig = ', crdiag)
+        # print('crdiag_osp  = ', osp_crlb_rel)
 
         # this algorithm is based on the example shown in Bolan, MRM 50:1134-1143 (2003)
         # the factor of 2 here is used since we fit the complex data rather than

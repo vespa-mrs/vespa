@@ -365,7 +365,8 @@ class PlotPanelSpectrum(wx.Panel):
         
         self.do_scroll_event = do_scroll_event
         if self.do_scroll_event:
-            self.scroll_id = self.canvas.mpl_connect('scroll_event', self._on_scroll)
+            #self.scroll_id = self.canvas.mpl_connect('scroll_event', self._on_scroll)
+            self.figure.canvas.mpl_connect('scroll_event', self._on_scroll)
 
         self.shift_is_held = False      # flag for shift+ButtonLeft or shift+ButtonRight
         self.canvas.mpl_connect('key_press_event', self._on_key_press)

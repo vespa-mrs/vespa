@@ -306,7 +306,7 @@ class TabDatasim(datasim_ui.DatasimUI):
 
         self.grid_set_values(grid=obj)
 
-        print('on_label_left_clicked')
+        #print('on_label_left_clicked')
 
 
     def on_activation(self):
@@ -828,7 +828,8 @@ class TabDatasim(datasim_ui.DatasimUI):
                     grid.SetCellValue(row, col, str(float(item)))
                     grid.SetCellEditor(row, col, gridlib.GridCellFloatEditor())
                     grid.SetReadOnly(row, col, isReadOnly=True)
-                grid.SetCellAlignment(wx.ALIGN_CENTER, row, col)
+                # bjs grid.SetCellAlignment(wx.ALIGN_CENTER, row, col)
+                grid.SetCellAlignment(row, col, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
         grid.EndBatch()
 
         grid.SetColLabelAlignment(wx.ALIGN_CENTER, wx.ALIGN_CENTER)
@@ -895,9 +896,9 @@ class TabDatasim(datasim_ui.DatasimUI):
             try:
                 importer = util_import.AnalysisHlsvdImporter(fname)
             except IOError:
-                msg = """I can't read the file "%s".""" % filename
+                msg = """I can't read the file "%s".""" % fname
             except SyntaxError:
-                msg = """The file "%s" isn't valid Vespa Interchange File Format.""" % filename
+                msg = """The file "%s" isn't valid Vespa Interchange File Format.""" % fname
 
             if msg:
                 common_dialogs.message(msg, "TabDatasim - Import Analysis Hlsvd Results File", common_dialogs.E_OK)

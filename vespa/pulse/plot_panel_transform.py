@@ -6,14 +6,13 @@ import wx
 
 # Our modules
 import vespa.common.wx_gravy.plot_panel as plot_panel
-import vespa.common.wx_gravy.plot_panel_points as plot_panel_points
 
 
-class PlotPanelTransform(plot_panel_points.PlotPanelPoints):
+class PlotPanelTransform(plot_panel.PlotPanel):
 
     def __init__(self, parent, **kwargs):
 
-        plot_panel_points.PlotPanelPoints.__init__(self, parent, **kwargs)
+        plot_panel.PlotPanel.__init__(self, parent, **kwargs)
 
         # The status bar (which this code uses a lot) is available on the
         # global vespa object which hangs off of the app object.

@@ -2,35 +2,33 @@
 """\
 FloatSpinMultiplier objects
 
-@copyright: 2016-2019     Brian J. Soher
+@copyright: 2016-2021     Brian J. Soher
 @license: MIT (see LICENSE.txt) - THIS PROGRAM COMES WITH NO WARRANTY
 """
 
 import wx
 
 from edit_windows import ManagedBase, EditStylesMixin
-from tree import Node
+import time
 import common, compat, config, misc
 import new_properties as np
 from collections import OrderedDict
 
 from wx.lib.agw.floatspin import FloatSpin, EVT_FLOATSPIN, FS_LEFT, FS_RIGHT, FS_CENTRE, FS_READONLY
+
 from .floatspin_multiplier_base import *
 
 
 
+
 class EditFloatSpinMultiplier(ManagedBase, EditStylesMixin):
-    """\
-    Class to handle FloatSpinMultiplier objects
-    
-    """
+    """  Class to handle FloatSpinMultiplier objects  """
+    WX_CLASS = 'FloatSpinMultiplier'
     _PROPERTIES = ["Widget", "range", "value", "increment", "digits", "extrastyle", "style"]
     PROPERTIES = ManagedBase.PROPERTIES + _PROPERTIES + ManagedBase.EXTRA_PROPERTIES
 
-    def __init__(self, name, parent, id, sizer, pos):
-
-        # Initialise parent classes
-        ManagedBase.__init__(self, name, 'FloatSpinMultiplier', parent, id, sizer, pos)
+    def __init__(self, name, parent, index):
+        ManagedBase.__init__(self, name, parent, index)
         EditStylesMixin.__init__(self)
 
         # initialise instance properties
@@ -51,25 +49,26 @@ class EditFloatSpinMultiplier(ManagedBase, EditStylesMixin):
         mult   = self.properties["multiplier"].get()
         digits = self.properties["digits"].get()
         
-        self.widget = FloatSpinMultiplier(self.parent.widget, self.id, min_val=mi, max_val=ma,
+        self.widget = FloatSpinMultiplier(self.parent_window.widget, wx.ID_ANY, min_val=mi, max_val=ma,
                                           value=value, multiplier=mult, digits=digits)
 
 
-    def finish_widget_creation(self, sel_marker_parent=None, re_add=True):
-        ManagedBase.finish_widget_creation(self, sel_marker_parent, re_add)
+    def finish_widget_creation(self, level, sel_marker_parent=None):
+        ManagedBase.finish_widget_creation(self, level, sel_marker_parent)
         self.widget.Bind(wx.EVT_CHILD_FOCUS, self._on_set_focus)
         self.widget.Bind(wx.EVT_SET_FOCUS, self._on_set_focus)
         self.widget.Bind(wx.EVT_SPIN, self.on_set_focus)
 
 
     def _on_set_focus(self, event):
-        # don't set focused_widget during event, as this may cause crashes
-        if not misc.focused_widget is self:
+        # within a short time window, we ignore focus events as these seem due losing focus
+        if not misc.focused_widget is self and time.time()-misc.focused_time > 0.05:
+            # don't set focused_widget during event, as this may cause crashes; use delay instead
             misc.set_focused_widget(self, delayed=True)
         event.Skip()
 
 
-    def properties_changed(self, modified):  # from SpinCtrlDouble
+    def _properties_changed(self, modified, actions):  # from SpinCtrlDouble
 
         if not modified or "range" in modified and self.widget:
             mi,ma = self.properties["range"].get_tuple()
@@ -100,8 +99,8 @@ class EditFloatSpinMultiplier(ManagedBase, EditStylesMixin):
 
         # FS style changes do not need any action here
         
-        EditStylesMixin.properties_changed(self, modified)
-        ManagedBase.properties_changed(self, modified)
+        EditStylesMixin._properties_changed(self, modified, actions)
+        ManagedBase._properties_changed(self, modified, actions)
 
 # end of class EditFloatSpinMultiplier
 
@@ -189,55 +188,30 @@ class WidgetExtraStyleProperty(np.WidgetStyleProperty):
                 checkbox.Bind(wx.EVT_CHECKBOX, self.on_checkbox)     
 
 
-def builder(parent, sizer, pos, number=[1]):
-    """\
-    factory function for EditFloatSpin objects.
-    """
-    name = 'float_spin_multiplier_%d' % number[0]
-    while common.app_tree.has_name(name):
-        number[0] += 1
-        name = 'float_spin_multiplier_%d' % number[0]
-        
+def builder(parent, index):
+    """  factory function for EditFloatSpin objects.  """
+    name = parent.toplevel_parent.get_next_contained_name('float_spin_multiplier_%d')
     with parent.frozen():
-        spin = EditFloatSpinMultiplier(name, parent, wx.ID_ANY, sizer, pos)
-        spin.properties["style"].set_to_default()
-        spin.check_defaults()
-        node = Node(spin)
-        spin.node = node
-        if parent.widget: spin.create()
-    common.app_tree.insert(node, sizer.node, pos - 1)
+        editor = EditFloatSpinMultiplier(name, parent, index)
+        editor.properties["style"].set_to_default()
+        editor.check_defaults()
+        if parent.widget: editor.create()
+    return editor
 
 
-def xml_builder(attrs, parent, sizer, sizeritem, pos=None):
+def xml_builder(parser, base, name, parent, index):
     """ factory function to build EditFloatSpinMultiplier objects from a XML file """
-    from xml_parse import XmlParsingError
-    try:
-        name = attrs['name']
-    except KeyError:
-        raise XmlParsingError(_("'name' attribute missing"))
-    if sizer is None or sizeritem is None:
-        raise XmlParsingError(_("sizer or sizeritem object cannot be None"))
-
-    spin = EditFloatSpinMultiplier( name, parent, wx.ID_ANY, sizer, pos )
-    spin.properties["value"].set_active(False)
-    node = Node(spin)
-    spin.node = node
-    if pos is None:
-        common.app_tree.add(node, sizer.node)
-    else:
-        common.app_tree.insert(node, sizer.node, pos-1)
-    return spin
+    editor = EditFloatSpinMultiplier(name, parent, index)
+    editor.properties["value"].set_active(False)
+    return editor
 
 
 def initialize():
-    """\
-    initialization function for the module: returns a wxBitmapButton to be
-    added to the main palette.
-    """
+    """ initialization function for the module: returns a wxBitmapButton to be added to the main palette. """
     import os
+    common.widget_classes['EditFloatSpinMultiplier'] = EditFloatSpinMultiplier
     common.widgets['EditFloatSpinMultiplier'] = builder
     common.widgets_from_xml['EditFloatSpinMultiplier'] = xml_builder
-
-    return common.make_object_button('EditFloatSpinMultiplier', os.path.join(os.path.dirname(__file__), 'floatspinmultiplier.xpm'))
+    return common.make_object_button('EditFloatSpinMultiplier', os.path.join(os.path.dirname(__file__), 'floatspinmultiplier.png'))
 
 
