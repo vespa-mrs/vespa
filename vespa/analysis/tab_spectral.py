@@ -246,10 +246,10 @@ def derived_dataset(ds, dsB, view, _tab_dataset, top, mode):
         stamp = util_time.now(util_time.ISO_TIMESTAMP_FORMAT).split('T')
         if mode == 'plotc_a_plus_b':
             labl_func = 'PlotA + PlotB'
-            dat = view.get_data(0)+view.get_data(1)
+            dat = view.get_data_phased(0)+view.get_data_phased(1)
         elif mode == 'plotc_a_minus_b':
             labl_func = 'PlotA - PlotB'
-            dat = view.get_data(0)-view.get_data(1)
+            dat = view.get_data_phased(0)-view.get_data_phased(1)
         dat = dat.ravel()
         dat = np.fft.ifft(np.fft.fftshift(dat))*len(dat)
         dat.shape = 1, 1, 1, len(dat)

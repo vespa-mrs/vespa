@@ -820,6 +820,28 @@ class PlotPanelSpectrum(wx.Panel):
             return self.data[index][0]['data'].copy()
 
 
+    def get_data_phased(self, index):
+        """ Return a copy of one and only one of the data sets. """
+
+        if index < 0 or index >= self.naxes:
+            return None
+        else:
+            axes = self.all_axes[index]
+            dim0 = self.dim0
+            piv = (dim0 / 2) - (self.frequency * (self.pivot - self.resppm) / (self.sw / dim0))
+            arr1 = (np.arange(dim0) - piv) / dim0
+
+            phase0 = self.phase0[index] * DEGREES_TO_RADIANS
+            phase1 = self.phase1[index] * DEGREES_TO_RADIANS
+            phase1 = phase1 * arr1
+            phase = np.exp(1j * (phase0 + phase1))
+
+            dat = self.data[index][0]['data'].copy()
+            dat *= phase
+
+            return dat
+
+
     def set_data_direct(self, data, index):
         """
         Convenience function to simplify direct change to data arrays.
