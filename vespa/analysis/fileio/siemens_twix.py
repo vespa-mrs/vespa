@@ -105,7 +105,7 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
 
         if 'sProtConsistencyInfo.tBaselineString' not in list(header.keys()):
             if "syngo MR XA" in hdr_dicom:
-                software = 'nx_va'
+                software_version = 'nx_va'
             else:
                 software_version = 'xx'
         else:
