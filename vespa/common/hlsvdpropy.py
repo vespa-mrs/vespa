@@ -261,9 +261,12 @@ def create_hlsvd_fids(result, npts, dwell, sum_results=False, convert=True):
         else:
             fids[i,:] = fids[i,:] * 0
 
-    if sum_results: result = np.sum(fids, axis=0)
+    if sum_results: 
+		r = np.sum(fids, axis=0)
+	else: 
+		r = fids
 
-    return result
+    return r
 
 
 def get_testdata():
