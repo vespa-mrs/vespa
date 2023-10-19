@@ -150,10 +150,10 @@ class PlotPanelPrepMegalaser(plot_panel_spectrum.PlotPanelSpectrum):
         index = self.tab.fid_index
         if iplot == 0:
             self.tab.block.phase_0[index] += dy
-            self.tab.block.phase_0[index] = self.tab.block.phase_0[index] % 360
+#            self.tab.block.phase_0[index] = self.tab.block.phase_0[index] % 360
         elif iplot == 1 or iplot == 2:
             self.tab.block.phase_0 += dy
-            self.tab.block.phase_0 = self.tab.block.phase_0 % 360
+#            self.tab.block.phase_0 = self.tab.block.phase_0 % 360
 
         val = self.tab.block.phase_0[index]
         self.tab.FloatPhase0.SetValue(val)

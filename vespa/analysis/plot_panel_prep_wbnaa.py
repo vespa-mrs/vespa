@@ -164,10 +164,10 @@ class PlotPanelPrepWbnaa(PlotPanelSpectrum):
 
             if iplot == 0:
                 self.tab.block.phase_0[index] += dy
-                self.tab.block.phase_0[index] = self.tab.block.phase_0[index] % 360
+#                self.tab.block.phase_0[index] = self.tab.block.phase_0[index] % 360
             elif iplot == 1 or iplot == 2:
                 self.tab.block.phase_0 += dy
-                self.tab.block.phase_0 = self.tab.block.phase_0 % 360
+#                self.tab.block.phase_0 = self.tab.block.phase_0 % 360
 
 # not going to do Phase1 interactive for now, bjs, bust save for future. - not working completely.
 #
@@ -175,10 +175,10 @@ class PlotPanelPrepWbnaa(PlotPanelSpectrum):
 #                 # 0 order phase
 #                 if iplot == 0:
 #                     self.tab.block.phase_0[index] += dy
-#                     self.tab.block.phase_0[index] = self.tab.block.phase_0[index] % 360
+#                     #self.tab.block.phase_0[index] = self.tab.block.phase_0[index] % 360
 #                 elif iplot == 1 or iplot == 2:
 #                     self.tab.block.phase_0 += dy
-#                     self.tab.block.phase_0 = self.tab.block.phase_0 % 360
+#                     #self.tab.block.phase_0 = self.tab.block.phase_0 % 360
 #             else:
 #                 delta = dx*10
 #                 self.tab.block.set.global_phase1 += dx

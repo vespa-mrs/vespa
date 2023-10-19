@@ -51,7 +51,7 @@ def optimize_phase0_correlation(data, modfn, pts, nlag, cdeg):
     ph = phaseat * RTOD
     if ph > 360.0:
         ph = ph - 360.0
-    if ph < 0:
+    if ph < -360:
         ph = ph + 360.0
 
     return ph, info['csum']
@@ -123,7 +123,7 @@ def optimize_phase0_integration(data, weight):
     ph = phaseat * RTOD
     if ph > 360.0:
         ph = ph - 360.0
-    if ph < 0:
+    if ph < -360:
         ph = ph + 360.0
 
     return ph

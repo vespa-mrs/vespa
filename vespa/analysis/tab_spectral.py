@@ -502,7 +502,7 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
         wx_util.configure_spin(self.FloatFrequency,   70, 3, 0.5, (-1e4, 1e4))
         wx_util.configure_spin(self.FloatAmplitude,   70, 3, None, (0,1e12))
         self.FloatAmplitude.multiplier = 1.1
-        wx_util.configure_spin(self.FloatPhase0,      70, 3, 1.0, (0.0, 360.0))
+        wx_util.configure_spin(self.FloatPhase0,      70, 3, 1.0, (-360.0, 360.0))
         wx_util.configure_spin(self.FloatPhase1,      70, 3, 10.0, (-1e5, 1e5))
         wx_util.configure_spin(self.FloatPhase1Pivot, 70, 3, 0.5, (-1000.0, 1000.0))
         wx_util.configure_spin(self.FloatDcOffset,    70, 3, 0.25, (-1e5, 1e5))

@@ -593,7 +593,7 @@ class TabDataset(dataset_module.DatasetUI):
         fitting_tab  = self._tabs["fit"]
 
         phase_0 = spectral_tab.block.get_phase_0(voxel)
-        phase_0 = (phase_0  + delta) % 360
+        phase_0 = (phase_0  + delta) # % 360
         spectral_tab.block.set_phase_0(phase_0,voxel)
         spectral_tab.FloatPhase0.SetValue(phase_0)
 

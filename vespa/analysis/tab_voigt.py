@@ -399,7 +399,7 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
                        (constants.FitOptimizationAmplitudeBoundPercentMin.MIN,
                         constants.FitOptimizationAmplitudeBoundPercentMin.MAX))
         # Range is # of degrees in a circle
-        wx_util.configure_spin(self.FloatOptimizeBoundsRangePhase0,  70, 3, 10, (1, 360))
+        wx_util.configure_spin(self.FloatOptimizeBoundsRangePhase0,  70, 3, 10, (-360, 360))
         wx_util.configure_spin(self.FloatOptimizeBoundsRangePpm, 70, 3, 1,
                        (constants.FitOptimizationFrequency.MIN,
                         constants.FitOptimizationFrequency.MAX))

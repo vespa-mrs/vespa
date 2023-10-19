@@ -174,10 +174,10 @@ class PlotPanelPrepFidsum(PlotPanelSpectrum):
                     # 0 order phase
                     if iplot == 0:
                         block.phase_0[index] += dy
-                        block.phase_0[index] = block.phase_0[index] % 360
+                        #block.phase_0[index] = block.phase_0[index] % 360
                     elif iplot == 1:
                         block.phase_0 += dy
-                        block.phase_0 = block.phase_0 % 360
+                        #block.phase_0 = block.phase_0 % 360
                 else:
                     if not set.zero_phase1:
                         delta = dx*10
@@ -191,7 +191,7 @@ class PlotPanelPrepFidsum(PlotPanelSpectrum):
                     # 0 order phase
                     if iplot in [0, 1]:
                         set.global_phase0 += dy
-                        set.global_phase0 = set.global_phase0 % 360
+                        #set.global_phase0 = set.global_phase0 % 360
                 else:
                     if not set.zero_phase1:
                         delta = dx*10

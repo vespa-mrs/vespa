@@ -284,7 +284,7 @@ class TabGiso(tab_base.Tab, giso.PanelGisoUI):
                        (constants.FitOptimizationAmplitude.MIN,
                         constants.FitOptimizationAmplitude.MAX))
         # Range is # of degrees in a circle
-        wx_util.configure_spin(self.FloatOptimzeLimitsRangePhase0,  70, 3, 10, (1, 360))
+        wx_util.configure_spin(self.FloatOptimzeLimitsRangePhase0,  70, 3, 10, (-360, 360))
         wx_util.configure_spin(self.FloatOptimizeLimitsRangePpm, 70, 3, 1,
                        (constants.FitOptimizationFrequency.MIN,
                         constants.FitOptimizationFrequency.MAX))

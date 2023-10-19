@@ -2515,7 +2515,7 @@ class Dataset(object):
     def automatic_phasing_max_real_freq(self, freq):
         """ Return phase 0 that produces largest summed area under real data """
         max_freq = -1e40
-        for i in range(0,360):
+        for i in range(-179,180):
             phase = np.exp(1j * i * common_constants.DEGREES_TO_RADIANS)
             max_  = np.sum((freq * phase).real)
             if max_ > max_freq:
