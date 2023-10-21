@@ -10,8 +10,17 @@ save figures, and undo/home the images in the axes. Note that standard
 settings are for multiple axes to be linked for pan/zoom operations.  
 
 Brian J. Soher, Duke University, April, 2014
+
+Update - 31 July 2022 - Py3 and Newer wx
+
+- all .lines = [] to .lines.clear()
+- all .patches = [] to .patches.clear()
+- all .images = [] to .images.clear()
+
+
 """
 # Python modules
+
 import os
 
 # third party modules
@@ -23,6 +32,7 @@ import matplotlib.cm as cm
 matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.backend_bases          import NavigationToolbar2, cursors
+from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 
 from matplotlib.figure    import Figure
 from numpy.random         import rand
@@ -68,6 +78,7 @@ class ImagePanelToolbar2(wx.Panel):
                                horizOn=False,
                                lcolor='gold', 
                                lw=0.5,
+                               layout='vertical',
                                **kwargs):
         
         # initialize Panel
@@ -77,7 +88,7 @@ class ImagePanelToolbar2(wx.Panel):
             kwargs['style'] = wx.NO_FULL_REPAINT_ON_RESIZE
         wx.Panel.__init__( self, parent, **kwargs )
 
-        self.figure = Figure(figsize=(5,4), dpi=100)
+        self.figure = Figure(figsize=(4,4), dpi=100)
 
         self.cmap       = [cm.gray for i in range(naxes)]
         self.imageid    = [None    for i in range(naxes)]
@@ -93,11 +104,18 @@ class ImagePanelToolbar2(wx.Panel):
         # or removed from the figure as the user requests 1-N axes be displayed
         self.naxes = naxes   
         self.axes  = []
+
+        if layout == 'vertical':
         self.axes.append(self.figure.add_subplot(naxes,1,1))
         if naxes > 1:
-            iaxes = np.arange(naxes-1,dtype=np.uint16)+1
-            for i in iaxes:
-                self.axes.append(self.figure.add_subplot(naxes,1,i+1, sharex=self.axes[0], sharey=self.axes[0]))
+                for i in range(naxes-1):
+                    self.axes.append(self.figure.add_subplot(naxes,1,i+2, sharex=self.axes[0], sharey=self.axes[0]))
+        else:
+            self.axes.append(self.figure.add_subplot(1,naxes,1))
+            if naxes > 1:
+                for i in range(naxes - 1):
+                    self.axes.append(self.figure.add_subplot(1,naxes,i+2, sharex=self.axes[0], sharey=self.axes[0]))
+
         self.all_axes = list(self.axes)
  
         self.canvas = FigureCanvas(self, -1, self.figure)
@@ -119,12 +137,20 @@ class ImagePanelToolbar2(wx.Panel):
         self.set_data(data)
         self.update(no_draw=True)   # we don't have a canvas yet
 
-
-
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.canvas, 1, wx.TOP | wx.LEFT | wx.EXPAND)
+
+        if layout == 'vertical':
+            self.sizer_canvas = wx.BoxSizer(wx.VERTICAL)
+            self.sizer_canvas.Add(self.canvas, 1, wx.EXPAND, 10)
+        else:
+            self.sizer_canvas = wx.BoxSizer(wx.HORIZONTAL)
+            self.sizer_canvas.Add(self.canvas, 1, wx.EXPAND, 10)
+
+        self.sizer.Add(self.sizer_canvas, 1, wx.TOP | wx.LEFT | wx.EXPAND)
+
         # Capture the paint message
-        wx.EVT_PAINT(self, self.on_paint)
+#        wx.EVT_PAINT(self, self.on_paint)
+        wx.EvtHandler.Bind(self, wx.EVT_PAINT, self.on_paint)
 
         self.toolbar = NavigationToolbar3Wx(self.canvas, 
                                             self, 
@@ -132,6 +158,9 @@ class ImagePanelToolbar2(wx.Panel):
                                             horizOn=horizOn,
                                             lcolor=lcolor,
                                             lw=lw)
+
+        #self.toolbar = NavigationToolbar2Wx(self.canvas)
+
         self.toolbar.Realize()
         if wx.Platform == '__WXMAC__':
             # Mac platform (OSX 10.3, MacPython) does not seem to cope with
@@ -141,14 +170,15 @@ class ImagePanelToolbar2(wx.Panel):
         else:
             # On Windows platform, default window size is incorrect, so set
             # toolbar width to figure width.
-            tw, th = self.toolbar.GetSize()
-            fw, fh = self.canvas.GetSize()
+#            tw, th = self.toolbar.GetSize()
+#            fw, fh = self.canvas.GetSize()
             # By adding toolbar in sizer, we are able to put it at the bottom
             # of the frame - so appearance is closer to GTK version.
             # As noted above, doesn't work for Mac.
-            self.toolbar.SetSize(wx.Size(fw, th))
+#            self.toolbar.SetSize(wx.Size(fw, th))
             #self.sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
-            self.sizer.Add(self.toolbar, 0, wx.ALIGN_CENTER | wx.EXPAND)
+            #self.sizer.Add(self.toolbar, 0, wx.ALIGN_CENTER | wx.EXPAND)
+            self.sizer.Add(self.toolbar, 0, wx.EXPAND)
 
         # update the axes menu on the toolbar
         self.toolbar.update()
@@ -160,12 +190,24 @@ class ImagePanelToolbar2(wx.Panel):
         # is overloaded by the user.
         self.scroll_id = self.canvas.mpl_connect('scroll_event', self._on_scroll)
 
+        self.keypress_id   = self.canvas.mpl_connect('key_press_event',   self.on_key_press)
+        self.keyrelease_id = self.canvas.mpl_connect('key_release_event', self.on_key_release)
+        self.shift_is_held = False
+
 
     #=======================================================
     #
     #           Internal Helper Functions  
     #
     #=======================================================
+
+    def on_key_press(self, event):
+        if event.key == 'shift':
+            self.shift_is_held = True
+    
+    def on_key_release(self, event):
+        if event.key == 'shift':
+            self.shift_is_held = False
 
     def _dprint(self, a_string):
         if self._EVENT_DEBUG:
@@ -318,6 +360,10 @@ class ImagePanelToolbar2(wx.Panel):
                         dat['vmin'] = dat['data'].min()
                     if 'keep_norm' not in list(dat.keys()):
                         dat['keep_norm'] = keep_norm
+                    if 'patches' not in list(dat.keys()):
+                        dat['patches'] = None
+                    if 'lines' not in dat.keys():
+                        dat['lines'] = None
                 else:
                     # Only data in this item, so add all default values 
                     dat = { 'data'      : dat,
@@ -325,7 +371,9 @@ class ImagePanelToolbar2(wx.Panel):
                             'cmap'      : self.cmap[i],
                             'vmax'      : dat.max(),
                             'vmin'      : dat.min(),
-                            'keep_norm' : keep_norm
+                            'keep_norm' : keep_norm,
+                            'patches'   : None,
+                            'lines'     : None
                           }
                         
                 item[j] = dat
@@ -424,6 +472,8 @@ class ImagePanelToolbar2(wx.Panel):
             cmap     = ddict['cmap']
             vmax     = self.vmax[i]
             vmin     = self.vmin[i]
+            patches  = ddict['patches']
+            lines    = ddict['lines']
                 
             xmin, xwid, ymin, ywid = 0, data.shape[1], 0, data.shape[0]
             
@@ -435,6 +485,20 @@ class ImagePanelToolbar2(wx.Panel):
                                                 vmin=vmin, 
                                                 aspect='equal', 
                                                 origin='upper') 
+
+            if patches is not None:
+                self.imageid[i].axes.patches = []
+                for patch in patches:
+                    self.imageid[i].axes.add_patch(patch)
+            else:
+                self.imageid[i].axes.patches.clear()
+            
+            if len(self.imageid[i].axes.lines) > 2:
+                # should be two lines in here for cursor tracking
+                self.imageid[i].axes.lines = self.imageid[i].axes.lines[0:2]
+            if lines is not None:
+                for line in lines:
+                    self.imageid[i].axes.add_line(line)
 
             if xold != xwid or yold!=ywid or force_bounds: 
                 xmin -= 0.5     # this centers the image range to voxel centers
@@ -552,19 +616,56 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
       )
     
     
-    def __init__(self, canvas, parent, vertOn=False, horizOn=False, lcolor='gold', lw=0.5):
+    def __init__(self, canvas, parent, vertOn=False, horizOn=False, lcolor='gold', lw=0.5, coordinates=True):
         wx.ToolBar.__init__(self, canvas.GetParent(), -1)
+
+        if 'wxMac' in wx.PlatformInfo:
+            self.SetToolBitmapSize((24, 24))
+        self.wx_ids = {}
+        for text, tooltip_text, image_file, callback in self.toolitems:
+
+            if text is None:
+                self.AddSeparator()
+                continue
+
+            bmp = nav3_catalog[image_file].GetBitmap()
+
+            self.wx_ids[text] = wx.NewIdRef()
+            if text in ['Pan', 'Level', 'Cursors']:
+                self.AddCheckTool(self.wx_ids[text], ' ', bmp, shortHelp=text, longHelp=tooltip_text)
+            elif text in ['Zoom', 'Subplots']:
+                pass  # don't want this in my toolbar
+            else:
+                self.AddTool(self.wx_ids[text], ' ', bmp, text)
+
+            self.Bind(wx.EVT_TOOL, getattr(self, callback), id=self.wx_ids[text])
+
+        self._coordinates = coordinates
+        if self._coordinates:
+            self.AddStretchableSpace()
+            self._label_text = wx.StaticText(self)
+            self.AddControl(self._label_text)
+
+        self.Realize()
+
         NavigationToolbar2.__init__(self, canvas)
+
+        # bjs-start
+
         self.canvas = canvas
         self.parent = parent
         self._idle = True
-        self.statbar = self._parent.statusbar
-        self._idRelease  = self.canvas.mpl_connect('button_release_event', self.release)
+        self.statbar = self.parent.statusbar
+
+        self._button_pressed = None
+        self._xypress = None
+
         # turn off crosshair cursors when mouse outside canvas
         self._idAxLeave  = self.canvas.mpl_connect('axes_leave_event', self.leave)
         self._idFigLeave = self.canvas.mpl_connect('figure_leave_event', self.leave)
-
-        axes = self.parent.axes
+        self._idRelease = self.canvas.mpl_connect('button_release_event', self.release_local)
+        self._idPress = None
+        self._idDrag = self.canvas.mpl_connect( 'motion_notify_event', self.mouse_move)
         
         # set up control params for cursor crosshair functionality
         self._cursors = False
@@ -572,63 +673,47 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
         self.horizOn = horizOn
         self.vlines = []
         self.hlines = []
-        if vertOn:  self.vlines = [ax.axvline(0, visible=False, color=lcolor, lw=lw) for ax in axes]
-        if horizOn: self.hlines = [ax.axhline(0, visible=False, color=lcolor, lw=lw) for ax in axes]
+        if vertOn:  self.vlines = [ax.axvline(0, visible=False, color=lcolor, lw=lw) for ax in self.parent.axes]
+        if horizOn: self.hlines = [ax.axhline(0, visible=False, color=lcolor, lw=lw) for ax in self.parent.axes]
 
         
     def get_canvas(self, frame, fig):
         # saw this in NavigationToolbar2WxAgg, so included here
         return FigureCanvasWxAgg(frame, -1, fig)
 
-    def _init_toolbar(self):
-        self._parent = self.canvas.GetParent()
-
-        self.wx_ids = {}
-        for text, tooltip_text, image_file, callback in self.toolitems:
-            if text is None:
-                self.AddSeparator()
-                continue
-            
-            bmp = nav3_catalog[image_file].GetBitmap()
-            
-            self.wx_ids[text] = wx.NewIdRef()
-            if text in ['Pan', 'Level', 'Cursors']:
-                self.AddCheckTool(self.wx_ids[text], ' ', bmp, shortHelp=text, longHelp=tooltip_text)
-            elif text in ['Zoom', 'Subplots']:
-                pass    # don't want this in my toolbar
-            else:
-                #self.AddTool(self.wx_ids[text],  bmp, text, tooltip_text) bjs as of wxPython 4.0.4?
-                self.AddTool(self.wx_ids[text], ' ', bmp, text)
-            
-            self.Bind(wx.EVT_TOOL, getattr(self, callback), id=self.wx_ids[text])
-
-        self.Realize()
-
 
     def zoom(self, *args):
-        if 'Pan' in list(self.wx_ids.keys()):
-            self.ToggleTool(self.wx_ids['Pan'], False)
-        if 'Level' in list(self.wx_ids.keys()):
-            self.ToggleTool(self.wx_ids['Level'], False)
+            
+        for item in ['Pan', 'Level']:
+            if item in list(self.wx_ids.keys()): self.ToggleTool(self.wx_ids[item], False)
+            
+        # if 'Pan' in list(self.wx_ids.keys()):
+        #     self.ToggleTool(self.wx_ids['Pan'], False)
+        # if 'Level' in list(self.wx_ids.keys()):
+        #     self.ToggleTool(self.wx_ids['Level'], False)
 
-        if not self._active:
+        if self.parent.axes[0].get_navigate_mode() is None:
             self._idRelease = self.canvas.mpl_disconnect(self._idRelease)
         NavigationToolbar2.zoom(self, *args)
-        if not self._active:
-            self._idRelease = self.canvas.mpl_connect('button_release_event', self.release)
+        if self.parent.axes[0].get_navigate_mode() is None:
+            self._idRelease = self.canvas.mpl_connect('button_release_event', self.release_local)
 
  
     def pan(self, *args):
-        if 'Zoom' in list(self.wx_ids.keys()):
-            self.ToggleTool(self.wx_ids['Zoom'], False)
-        if 'Level' in list(self.wx_ids.keys()):
-            self.ToggleTool(self.wx_ids['Level'], False)
 
-        if not self._active:
+        for item in ['Zoom', 'Level']:
+            if item in list(self.wx_ids.keys()): self.ToggleTool(self.wx_ids[item], False)
+
+        # if 'Zoom' in list(self.wx_ids.keys()):
+        #     self.ToggleTool(self.wx_ids['Zoom'], False)
+        # if 'Level' in list(self.wx_ids.keys()):
+        #     self.ToggleTool(self.wx_ids['Level'], False)
+
+        if self.parent.axes[0].get_navigate_mode() is None:
             self._idRelease = self.canvas.mpl_disconnect(self._idRelease)
         NavigationToolbar2.pan(self, *args)
-        if not self._active:
-            self._idRelease = self.canvas.mpl_connect('button_release_event', self.release)
+        if self.parent.axes[0].get_navigate_mode() is None:
+            self._idRelease = self.canvas.mpl_connect('button_release_event', self.release_local)
 
 
     def drag_pan(self, event):
@@ -638,11 +723,11 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
         
     def level(self, *args):
         """Activate the width/level tool. change values with right button"""
-        if not self._active:
+        if self.parent.axes[0].get_navigate_mode() is None:
             self._idRelease = self.canvas.mpl_disconnect(self._idRelease)
 
         
-        if self._active == 'LEVEL':
+        if self.parent.axes[0].get_navigate_mode() == 'LEVEL':
             if 'Level' in list(self.wx_ids.keys()):
                 self.ToggleTool(self.wx_ids['Level'], False)
         else: 
@@ -656,10 +741,11 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
         # set the pointer icon and button press funcs to the
         # appropriate callbacks
     
-        if self._active == 'LEVEL':
-            self._active = None
+        if self.parent.axes[0].get_navigate_mode() == 'LEVEL':
+            self.parent.axes[0].set_navigate_mode(None)
         else:
-            self._active = 'LEVEL'
+            self.parent.axes[0].set_navigate_mode('LEVEL')
+
         if self._idPress is not None:
             self._idPress = self.canvas.mpl_disconnect(self._idPress)
             self.mode = ''
@@ -668,7 +754,7 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
             self._idRelease = self.canvas.mpl_disconnect(self._idRelease)
             self.mode = ''
     
-        if self._active:
+        if self.parent.axes[0].get_navigate_mode() == 'LEVEL':
             self._idPress   = self.canvas.mpl_connect( 'button_press_event',   self.press_level)
             self._idRelease = self.canvas.mpl_connect( 'button_release_event', self.release_level)
             self.mode = 'width/level'
@@ -677,12 +763,12 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
             self.canvas.widgetlock.release(self)
     
         for a in self.canvas.figure.get_axes():
-            a.set_navigate_mode(self._active)
+            a.set_navigate_mode(self.parent.axes[0].get_navigate_mode())
     
         self.set_message(self.mode)
  
-        if not self._active:
-            self._idRelease = self.canvas.mpl_connect('button_release_event', self.release)
+        if self.parent.axes[0].get_navigate_mode() is None:
+            self._idRelease = self.canvas.mpl_connect('button_release_event', self.release_local)
 
  
     def press_level(self, event):
@@ -707,7 +793,7 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
                 self.canvas.mpl_disconnect(self._idDrag)
                 self._idDrag = self.canvas.mpl_connect('motion_notify_event', self.drag_level)
         
-        self.press(event)
+        self.press_local(event)
  
  
     def drag_level(self, event):
@@ -763,8 +849,8 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
         self._xypress = []
         self._button_pressed = None
         self.push_current()
-        self.release(event)
-        self.draw()
+        self.release_local(event)
+        self.canvas.draw()
 
 
     def cursors(self, *args):
@@ -831,9 +917,10 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
         cursor =wx.Cursor(cursord[cursor])
         self.canvas.SetCursor( cursor )
 
-    def press(self, event):
+    def press_local(self, event):
         
         xloc, yloc = self.get_bounded_xyloc(event)        
+        if len(self._xypress)>0:
         item = self._xypress[0]
         axes, iplot = item[0], item[1]
         if self.mode == 'pan/zoom':
@@ -863,7 +950,7 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
             # catch all
             pass
     
-    def release(self, event):
+    def release_local(self, event):
         # legacy code from NavigationToolbar2Wx
         try: 
             del self.lastrect
@@ -895,8 +982,7 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
     def leave(self, event):
         """ Turn off the cursors as we move mouse outside axes or figure """
 
-        for line in self.vlines+self.hlines:
-            line.set_visible(False)
+        for line in self.vlines+self.hlines: line.set_visible(False)
         self.dynamic_update()            
             
 
@@ -958,8 +1044,8 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
         # call base event
         NavigationToolbar2.mouse_move(self, event)
 
-        if event.inaxes and self._active:
-            if (self._active == 'LEVEL' and self._lastCursor != 4):
+        if event.inaxes and self.parent.axes[0].get_navigate_mode():
+            if (self.parent.axes[0].get_navigate_mode() == 'LEVEL' and self._lastCursor != 4):
                 self.set_cursor(4)
                 self._lastCursor = 4
         
@@ -973,20 +1059,14 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
 
         xloc, yloc = event.xdata, event.ydata
         
-        # now we bound these values to be inside the size of the image. This
-        # is needed, because a pan event could yield negative locations.
+        # bound these values to be inside the size of the image.
+        # - a pan event could yield negative locations.
         x0, y0, x1, y1 = event.inaxes.dataLim.bounds
-        xmin,xmax = x0+0.5, x0+x1
-        ymin,ymax = y0+0.5, y0+y1     # position swap due to 0,0 location 'upper'
+        xmin,xmax = x0+0.5, x0+0.5+x1-1
+        ymin,ymax = y0+0.5, y0+0.5+y1-1     # position swap due to 0,0 location 'upper'
         xloc = max(0, min(xmax, xloc))
         yloc = max(0, min(ymax, yloc))
 
-#         # if the data was padded to create a square image for clarity in display,
-#         # then we need to adjust the x,y display values to data array values.
-#         for i,axes in enumerate(self.parent.axes):
-#             if axes == event.inaxes:
-#                 iplot = i
-        
         return xloc,yloc
     
     
@@ -1051,7 +1131,11 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
         can_forward = (self._nav_stack._pos < len(self._nav_stack._elements) - 1)
         self.EnableTool(self.wx_ids['Back'], can_backward)
         self.EnableTool(self.wx_ids['Forward'], can_forward)
-
+        # try:
+        #     self.EnableTool(self.wx_ids['Back'], can_backward)
+        #     self.EnableTool(self.wx_ids['Forward'], can_forward)
+        # except:
+        #     bob = 10
 
 # ***************** Shortcuts to wxPython standard cursors************
 
@@ -1413,11 +1497,18 @@ class MyFrame(wx.Frame):
          
         data = [[data1], [data2]]
          
+        # data1 = {'data': self.dist(self.size_medium),
+        #          'alpha': 1.0
+        #          }
+        #
+        # data = [[data1],]
+         
         self.nb = wx.Notebook(self, -1, style=wx.BK_BOTTOM)
          
         panel1 = wx.Panel(self.nb, -1)
          
         self.view = DemoImagePanel(panel1, self, self.statusbar, naxes=2, data=data)
+#        self.view = DemoImagePanel(panel1, self, self.statusbar, naxes=1, data=data)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.view, 1, wx.LEFT | wx.TOP | wx.EXPAND)
