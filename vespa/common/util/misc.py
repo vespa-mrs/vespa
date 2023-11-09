@@ -7,8 +7,13 @@ import uuid as uuid_module
 import sys
 import re
 
-# 3rd party imports
-import pkg_resources
+try:
+    import importlib.metadata 
+    version_method = 'importlib'
+except:
+    # 3rd party imports
+    import pkg_resources
+    version_method = 'pkg_resources'
 
 # Beware -- lots of other Vespa modules import this one. If you import
 # other Vespa modules here you will almost certainly create circular imports!
@@ -342,7 +347,10 @@ def get_vespa_version():
         version = open(path).read().strip()
     else:
         # This is an end-user installation.
-        version = pkg_resources.get_distribution('vespa-suite').version
+        if version_method == 'pkg_resources':
+            version = pkg_resources.get_distribution('vespa-suite').version
+        else:
+            version = importlib.metadata.version('vespa-suite')
 
     return version
 
