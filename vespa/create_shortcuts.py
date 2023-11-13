@@ -60,7 +60,7 @@ if platform == "osx":
 
         # Create a command string that will run this app. The path to Python must be
         # fully qualified.
-        path = os.path.join(vespa_install_path, application, "src", "main.py")
+        path = os.path.join(vespa_install_path, application, "main.py")
         executable = sys.executable
         if 'conda' in executable:
             # Mini/Anaconda on the Mac requires pythonw to launch GUI apps.
@@ -81,7 +81,7 @@ elif platform == "linux":
         print("Creating a shortcut for %s..." % application.capitalize())
 
         # Create a command string that will run this app
-        app_path = os.path.join(vespa_install_path, application, "src", "main.py")
+        app_path = os.path.join(vespa_install_path, application, "main.py")
 
         app_name = application.capitalize()
 
@@ -139,7 +139,7 @@ elif platform == "windows":
         print("Creating a shortcut for %s..." % application.capitalize())
 
         # Create the path to main.py for this app
-        app_path = os.path.join(vespa_install_path, application, "src", "main.py")
+        app_path = os.path.join(vespa_install_path, application, "main.py")
 
         name = application.capitalize()
 
@@ -162,7 +162,7 @@ End Function
         # I create a temp file from which to execute the script. The temp
         # file must have a .vbs extension.
         fd, filename = tempfile.mkstemp(".vbs")
-        os.write(fd, content)
+        os.write(fd, content.encode('utf-8'))
         os.close(fd)
 
         # Execute it
