@@ -537,11 +537,11 @@ class TabWatref(tab_base.Tab, watref.PanelWatrefUI):
                 mime_type = "image/png"
 
             # Get matplotlib to write the image to our StringIO object
-            fake_file = StringIO.StringIO()
+            fake_file = StringIO.BytesIO()
         
             tab_fit.view.figure.savefig(fake_file, dpi=300, format=format)
             
-            image_data = base64.b64encode(fake_file.getvalue())
+            image_data = base64.encodebytes(fake_file.getvalue()).decode()
         
             fake_file.close()
 

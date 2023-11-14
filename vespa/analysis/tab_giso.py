@@ -1523,11 +1523,11 @@ class TabGiso(tab_base.Tab, giso.PanelGisoUI):
                 mime_type = "image/png"
 
             # Get matplotlib to write the image to our StringIO object
-            fake_file = StringIO.StringIO()
+            fake_file = StringIO.BytesIO()
         
             self.view.figure.savefig(fake_file, dpi=300, format=format)
             
-            image_data = base64.b64encode(fake_file.getvalue())
+            image_data = base64.encodebytes(fake_file.getvalue()).decode()
         
             fake_file.close()
 

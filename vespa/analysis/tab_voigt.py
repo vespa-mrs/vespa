@@ -1,6 +1,6 @@
 # Python modules
 import os
-import io as StringIO
+import io
 import base64
 import datetime
 
@@ -2048,29 +2048,22 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
                 format = "png"
                 mime_type = "image/png"
 
-            # Get matplotlib to write the image to our StringIO object
-            fake_file = StringIO.StringIO()
-        
+            # Get matplotlib to write the image to our io object
+            fake_file = io.BytesIO()
             self.view.figure.savefig(fake_file, dpi=300, format=format)
-            
-            image_data = base64.b64encode(fake_file.getvalue())
-        
+            image_data = base64.encodebytes(fake_file.getvalue()).decode()
             fake_file.close()
-
 
             voxel = self._tab_dataset.voxel
             raw   = self.dataset.blocks["raw"]
-
             data_source = raw.get_data_source(voxel)
             
-            #html = self.block.results_as_html(voxel, self.plot_results['fitted_lw'],
             html = self.dataset.fit_results_as_html(voxel, self.plot_results['fitted_lw'],
                                                       self.plot_results['minmaxlw'][0],
                                                       self.plot_results['minmaxlw'][1], 
                                                       data_source,
                                                       (mime_type, image_data)
                                                      )
-
             open(filename, "wb").write(html)
             
             # We saved results, so we write the path to the INI file.
