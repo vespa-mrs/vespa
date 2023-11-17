@@ -245,7 +245,7 @@ def create_hlsvd_fids(result, npts, dwell, sum_results=False, convert=True):
 
     freqs, damps, areas, phase = result[2:6]
 
-    fids = np.zeros((len(freqs), npts), dtype=np.complex)
+    fids = np.zeros((len(freqs), npts), dtype=np.complex64)
     t = np.arange(npts) * dwell
     k = 1j * 2 * np.pi
 
