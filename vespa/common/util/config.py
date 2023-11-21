@@ -33,7 +33,7 @@ class BaseConfig(configobj.ConfigObj):
     configobj.ConfigObj which is a 3rd party INI file parser that we've 
     adopted. It's a lot nicer than the Python standard library's ConfigParser.
     
-    There's docmentation for ConfigObj here:
+    There's documentation for ConfigObj here:
     http://www.voidspace.org.uk/python/configobj.html
     
     This class focuses on saving config values (like window size & position). 
