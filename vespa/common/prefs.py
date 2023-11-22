@@ -55,6 +55,29 @@ to put the prefs attribute in the inflate() method.  If you are setting the
 value in the util_menu module, you can set a default here, or just let the 
 menu handling code default on its own.   
 
+BJS - additional comments 
+----------------------------------
+
+So I admit that I do not completely understand how these Prefs work.  So what
+I write here is mostly empirical and some trial/error practicality.
+
+Most of the  Prefs attributes are filled by turning the ViewIdsXxxx values in 
+util_menu.py module from UPPER_CASE to lower_case and using these strings as
+argument to setattr().  The ViewIdsXxxx values specific to the Tab being
+instantiated are used (as listed in the __init__ call at the top of the tab's
+__init__ code).  Yes, double inits.  
+
+A second way to set a Prefs attribute is in the local prefs.py module in the
+inflate() method for whatever tab (e.g. PrefsSpectral class). The attributes
+listed in this location are NOT modified by a menu item, thus I consider them
+to be 'static' prefs. Modifiable in the INI file, but not dynamically in the 
+program.  But, can also be values other than Boolean, which is nice.
+
+So, when should we add something to the common/default_ini_file_content?  By
+trial and error, I deduced that you HAVE to add a value here if you are going
+to put the prefs attribute in the inflate() method.  If you are setting the
+value in the util_menu module, you can set a default here, or just let the 
+menu handling code default on its own.   
 
 """
 
