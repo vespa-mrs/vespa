@@ -99,7 +99,7 @@ def hlsvdpro(data, nsv_sought, m=None, sparse=False):
             the Hankel matrix used to compute the singular values. Hankel 
             matrix shape is (L+1,L) where L = len(data)-m-1
 
-        sparse (bool): (optional) default True. If set to True, the  
+        sparse (bool): (optional) default False. If set to True, the  
             scipy.sparse.linalg.svds() is used to calculate singular values and 
             nsv_sought is passed in as a parameter. If False, scipy.linalg.svd()
             is used to calculate the singular values, and nsv_sought is used to 
@@ -149,7 +149,8 @@ def hlsvdpro(data, nsv_sought, m=None, sparse=False):
 
     k = min(k,len(s))               # number of singular values found
         
-    uk = np.mat(u[:, :k])           # trucated U matrix of rank K
+    # uk = np.mat(u[:, :k])           # trucated U matrix of rank K
+    uk = u[:, :k]                   # trucated U matrix of rank K
     ub = uk[:-1]                    # Uk with bottom row removed
     ut = uk[1:]                     # Uk with top row removed
 
@@ -245,7 +246,7 @@ def create_hlsvd_fids(result, npts, dwell, sum_results=False, convert=True):
 
     freqs, damps, areas, phase = result[2:6]
 
-    fids = np.zeros((len(freqs), npts), dtype=np.complex64)
+    fids = np.zeros((len(freqs), npts), dtype=np.complex128) 
     t = np.arange(npts) * dwell
     k = 1j * 2 * np.pi
 

@@ -532,9 +532,10 @@ class BlockSpectral(block_spectral_identity.BlockSpectralIdentity):
         x, y, z = xyz
         if self.phase_lock:
             self._phase_0 += (phase_0 - self._phase_0[x, y, z])
+            self._phase_0 = (self._phase_0+180)%360-180
             #self._phase_0 %= 360
         else:
-            phase_0 %= 360
+            phase_0 = (phase_0+180)%360-180
             self._phase_0[x, y, z] = phase_0
 
 
