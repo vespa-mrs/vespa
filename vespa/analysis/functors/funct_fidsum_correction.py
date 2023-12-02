@@ -49,8 +49,8 @@ def correction_optimized_search_vespa(raw, chain):
     #------------------------------------------------------
     # Global inits and one time calculations
 
-    corr_freq = np.zeros([nfids,], dtype=np.float)
-    corr_phas = np.zeros([nfids,], dtype=np.float)
+    corr_freq = np.zeros([nfids,], dtype=np.float32)
+    corr_phas = np.zeros([nfids,], dtype=np.float32)
 
     zfmult = 4      # larger zfmult here improves peak shift accuracy
     raw_dim0 = ds.raw_shape[-1]
@@ -61,7 +61,7 @@ def correction_optimized_search_vespa(raw, chain):
     # temporary arrays
     xx = np.arange(raw_dim0) / ds.sw
     search = np.zeros((fid_dim0,),complex)
-    tmp_summed = np.zeros((raw_dim0,), dtype=np.complex)
+    tmp_summed = np.zeros((raw_dim0,), dtype=np.complex64)
 
     # one time calculations
     if set.chop_data:
@@ -157,8 +157,8 @@ def correction_correlation_vespa(raw, chain):
     #------------------------------------------------------
     # Global inits and one time calculations
 
-    corr_freq = np.zeros([nfids,], dtype=np.float)
-    corr_phas = np.zeros([nfids,], dtype=np.float)
+    corr_freq = np.zeros([nfids,], dtype=np.float32)
+    corr_phas = np.zeros([nfids,], dtype=np.float32)
 
     raw_dim0 = ds.raw_shape[-1]
     raw_hpp  = ds.sw / raw_dim0
@@ -183,7 +183,7 @@ def correction_correlation_vespa(raw, chain):
     min1, max1 = int(ds.ppm2pts(2.75)), int(ds.ppm2pts(3.6))  # prior.auto_phase1_range_start, prior.auto_phase1_range_end
     pts4 = [max0 * newzf, min0 * newzf, max1 * newzf, min1 * newzf]
 
-    tmp = np.zeros([ds.raw_shape[-1]*newzf,], dtype=np.complex)
+    tmp = np.zeros([ds.raw_shape[-1]*newzf,], dtype=np.complex64)
 
     for i in range(nfids):
 
@@ -232,8 +232,8 @@ def correction_spectral_registration_suspect(raw, chain):
     fr_init = set.suspect_initial_guess_freq
     ph_init = set.suspect_initial_guess_phase * DTOR
 
-    corr_freq = np.zeros([nfids,], dtype=np.float)
-    corr_phas = np.zeros([nfids,], dtype=np.float)
+    corr_freq = np.zeros([nfids,], dtype=np.float32)
+    corr_phas = np.zeros([nfids,], dtype=np.float32)
 
     if set.suspect_target_method == 'Average all':
         fstart, fend = 0, nfids
@@ -296,8 +296,8 @@ def correction_rats_suspect(raw, chain):
 
     _, ncoil, nfids, npts = raw.shape
 
-    corr_freq = np.zeros([nfids,], dtype=np.float)
-    corr_phas = np.zeros([nfids,], dtype=np.float)
+    corr_freq = np.zeros([nfids,], dtype=np.float32)
+    corr_phas = np.zeros([nfids,], dtype=np.float32)
 
     opt_str = set.rats_optimization_range_start
     opt_end = set.rats_optimization_range_end

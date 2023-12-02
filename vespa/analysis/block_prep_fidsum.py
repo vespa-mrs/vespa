@@ -410,11 +410,11 @@ class BlockPrepFidsum(block_prep_identity.BlockPrepIdentity):
         ncoil = raw.shape[1]
         nfids = raw.shape[2]
 
-        self.coil_combine_weights = np.zeros([ncoil], dtype=np.float)
-        self.coil_combine_phases  = np.zeros([ncoil], dtype=np.float)
+        self.coil_combine_weights = np.zeros([ncoil], dtype=np.float32)
+        self.coil_combine_phases  = np.zeros([ncoil], dtype=np.float32)
         self.exclude_indices = []
-        self.frequency_shift = np.zeros([nfids], dtype=np.float)
-        self.phase_0         = np.zeros([nfids], dtype=np.float)
+        self.frequency_shift = np.zeros([nfids], dtype=np.float32)
+        self.phase_0         = np.zeros([nfids], dtype=np.float32)
 
         self.data = np.zeros((1,1,1,raw.shape[-1]), dtype=raw.dtype)
         if self.chain is not None:

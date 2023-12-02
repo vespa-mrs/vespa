@@ -593,7 +593,7 @@ class TwixRaid(object):
             msg = "ICE indices are not unique, can not return in a Loop Counter dimensioned numpy array."
             raise ValueError(msg)
 
-        nparr = np.zeros(self.dims, np.complex)
+        nparr = np.zeros(self.dims, np.complex64)
 
         for i, scan in enumerate(self.scans):
             indx = self.get_ice_index(i)
@@ -608,9 +608,9 @@ class TwixRaid(object):
         nscan = len(self.scans)
         npts = self.scans[0].samples_in_scan
 
-        nparr = np.zeros([nscan, npts], np.complex)
+        nparr = np.zeros([nscan, npts], np.complex64)
 
-        nparr = np.zeros([len(self.scans), self.scans[0].samples_in_scan], np.complex)
+        nparr = np.zeros([len(self.scans), self.scans[0].samples_in_scan], np.complex64)
 
         for i, scan in enumerate(self.scans):
             nparr[i, :] = np.array(scan.data)
@@ -637,7 +637,7 @@ class TwixRaid(object):
 
         nfid = int(nscan / ncha)
 
-        nparr = np.zeros([ncha, nfid, npts], np.complex)
+        nparr = np.zeros([ncha, nfid, npts], np.complex64)
 
         for j in range(nfid):
             for i in range(ncha):
@@ -667,7 +667,7 @@ class TwixRaid(object):
 
         nfid = int(nscan / ncha)
 
-        nparr = np.zeros([ncha, nfid, npts], np.complex)
+        nparr = np.zeros([ncha, nfid, npts], np.complex64)
 
         for j in range(nfid):
             for i in range(ncha):
@@ -717,13 +717,13 @@ class TwixRaid(object):
 
         prep_arr = None
         if nprep != 0:
-            prep_arr = np.zeros([ncha, nprep, npts], np.complex)
+            prep_arr = np.zeros([ncha, nprep, npts], np.complex64)
             for iscan, scan in enumerate(self.scans[0:int(nprep * ncha)]):
                 ifid = iscan // ncha
                 icha = scan.channel_id
                 prep_arr[icha, ifid, :] = np.array(scan.data)
 
-        nparr = np.zeros([ncha, nfid-nprep, npts], np.complex)
+        nparr = np.zeros([ncha, nfid-nprep, npts], np.complex64)
 
         for iscan, scan in enumerate(self.scans[int(nprep * ncha):]):
             ifid = iscan // ncha
@@ -758,7 +758,7 @@ class TwixRaid(object):
         ncha = self.dims[SCAN_INDICES.index('channel_id')]  # number of channels, may be 1
         npts = self.scans[0].samples_in_scan
 
-        nparr = np.zeros([nrep, ncha, nset, npts], np.complex)
+        nparr = np.zeros([nrep, ncha, nset, npts], np.complex64)
 
         prep_arr = None
         if return_prep:
@@ -776,7 +776,7 @@ class TwixRaid(object):
 
             prep_arr = None
             if nprep != 0:
-                prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex)
+                prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex64)
                 for iscan, scan in enumerate(self.scans[0:int(nprep * ncha)]):
                     irep = scan.repetition
                     if scan.set == 0:
@@ -822,7 +822,7 @@ class TwixRaid(object):
         ncha = self.dims[SCAN_INDICES.index('channel_id')]  # number of channels, may be 1
         npts = self.scans[0].samples_in_scan
 
-        nparr = np.zeros([nrep, ncha, nset, npts], np.complex)
+        nparr = np.zeros([nrep, ncha, nset, npts], np.complex64)
 
         prep_arr = None
         if return_prep:
@@ -833,7 +833,7 @@ class TwixRaid(object):
 
             prep_arr = None
             if nprep != 0:
-                prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex)
+                prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex64)
                 for iscan, scan in enumerate(self.scans[0:int(nprep * ncha)]):
                     irep = scan.echo
                     if scan.set == 0:

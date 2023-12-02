@@ -203,7 +203,7 @@ class GenericBasis(object):
         off  = round(1.0 * dim0 * dataset.echopeak / 100.0) * td
         xx   = np.arange(dim0) * td
         xxx  = abs(xx - off)
-        tmp  = np.zeros(int(dim0 * zfmult), dtype=np.complex)
+        tmp  = np.zeros(int(dim0 * zfmult), dtype=np.complex64)
 
         npk = len(self.area)
         fids = []
@@ -231,9 +231,9 @@ class GenericBasis(object):
             self._spectrum_all = np.array(specs)
 
         else:
-            self._fid          = np.zeros((dim0 * zfmult), dtype=np.complex)
-            self._spectrum_sum = np.zeros((dim0 * zfmult), dtype=np.complex)
-            self._spectrum_all = np.zeros((dim0 * zfmult), dtype=np.complex)
+            self._fid          = np.zeros((dim0 * zfmult), dtype=np.complex64)
+            self._spectrum_sum = np.zeros((dim0 * zfmult), dtype=np.complex64)
+            self._spectrum_all = np.zeros((dim0 * zfmult), dtype=np.complex64)
 
         return True
 

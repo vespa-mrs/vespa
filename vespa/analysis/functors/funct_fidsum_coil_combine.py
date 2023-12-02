@@ -49,9 +49,9 @@ def siemens(raw):
 
     """
     nrep, ncoil, nfid, npts = raw.shape
-    dat_comb = np.zeros([nfid, npts], dtype=np.complex)
-    weight   = np.zeros([nfid, ncoil], dtype=np.float)
-    phases   = np.zeros([nfid, ncoil], dtype=np.complex)
+    dat_comb = np.zeros([nfid, npts], dtype=np.complex64)
+    weight   = np.zeros([nfid, ncoil], dtype=np.float32)
+    phases   = np.zeros([nfid, ncoil], dtype=np.complex64)
 
     flag_norm_to_sum = False  # default for now
 
@@ -116,8 +116,8 @@ def cmrr_standard(raw, delta=0.0):
     xaxis  = list(range(npts))
     flag_norm_to_sum = False  # default for now
 
-    weight = np.zeros([ncoil,], dtype=np.float)
-    phases = np.zeros([ncoil,], dtype=np.complex)
+    weight = np.zeros([ncoil,], dtype=np.float32)
+    phases = np.zeros([ncoil,], dtype=np.complex64)
 
 
     # --------------------------------------------------------------------------
@@ -186,9 +186,9 @@ def cmrr_sequential(raw):
    
     """
     nrep, ncoil, nfid, npts = raw.shape
-    dat_comb   = np.ndarray([nfid,npts], dtype=np.complex)
-    all_weight = np.ndarray([nfid,ncoil], dtype=np.float)
-    all_phases = np.ndarray([nfid,ncoil], dtype=np.complex)
+    dat_comb   = np.ndarray([nfid,npts], dtype=np.complex64)
+    all_weight = np.ndarray([nfid,ncoil], dtype=np.float32)
+    all_phases = np.ndarray([nfid,ncoil], dtype=np.complex64)
 
     xaxis = list(range(npts))
     flag_norm_to_sum = False                    # default for now
@@ -319,7 +319,7 @@ def external_dataset(chain, delta=0.0):
     
     """
     nrep, ncoil, nfid, npts = chain.raw.shape
-    dat_comb   = np.ndarray([nfid,npts],  dtype=np.complex)
+    dat_comb   = np.ndarray([nfid,npts],  dtype=np.complex64)
     all_weight = chain.weights.copy()
     all_phases = chain.phases.copy() * np.exp(1j*delta)
 

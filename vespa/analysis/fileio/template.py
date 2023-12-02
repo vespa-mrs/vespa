@@ -123,7 +123,7 @@ class RawReaderAcme(raw_reader.RawReader):
         shape = (1, 1, 1, 2048)
 
         if ignore_data:
-            complex_data = np.zeros(shape, np.complex)    # Create zero data
+            complex_data = np.zeros(shape, np.complex63)    # Create zero data
         else:
             complex_data = _read_data(filename)
             complex_data.shape = shape

@@ -334,10 +334,10 @@ def _traf_gm( siglen, t2e, sw):
        complex TRAF filter
     
     """
-    eps   = np.sqrt(np.finfo(np.float).eps)
+    eps   = np.sqrt(np.finfo(np.float32).eps)
     dwell = 1.0/float(sw)
     tim = np.arange(siglen)*dwell
-    traff = np.array(np.zeros(siglen),np.complex)
+    traff = np.array(np.zeros(siglen),np.complex64)
     
     mE = np.zeros(siglen)
     mF = np.zeros(siglen)
@@ -592,7 +592,7 @@ def _test():
     # testing phase()
 
     # npts = 256
-    # y0 = 4 * 360.0 * np.arange(npts, dtype=np.float)/(npts-1)
+    # y0 = 4 * 360.0 * np.arange(npts, dtype=np.float32)/(npts-1)
     # y1 = y0 % 360.0
     # y1 = np.exp(1j * (y1 * np.pi / 180.0))
     # y2 = phase(y1)

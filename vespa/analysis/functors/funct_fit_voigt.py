@@ -565,7 +565,7 @@ def _test_pder_vs_pdiff(chain, a, min1):
 
     res = min1.prepare_fit(par)
     f1 = min1._Minimizer__residual(x_fvars, apply_bounds_transformation=False)
-    diff = np.zeros([npar,len(f1)], dtype=np.float64)
+    diff = np.zeros([npar,len(f1)], dtype=np.float32)
     rel_step = 1.4901161193847656e-08     # empirical from _numdiff
     h = rel_step * np.maximum(1.0, np.abs(x_fvars))
     h_vecs = np.diag(h)

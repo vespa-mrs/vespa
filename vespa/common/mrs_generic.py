@@ -73,7 +73,7 @@ def create_fid(area, ppm, phase, sw, frequency, dim0,
     """
     npk  = len(area)
     hpp  = sw/dim0
-    arr1 = np.zeros(dim0, np.float) + 1.0
+    arr1 = np.zeros(dim0, np.float32) + 1.0
     t = (np.arange(npk * dim0, dtype='float') % dim0) * (1.0 / sw)
     t.shape = npk, dim0
 
@@ -147,7 +147,7 @@ def create_spectrum(area, ppm, phase, sw, frequency, dim0, zfmult=1,
     zfmult = 1 if acq else zfmult
     zfmult = zforce if zforce is not None else zfmult
 
-    spectrum = np.zeros(int(round(dim0 * zfmult)), np.complex)
+    spectrum = np.zeros(int(round(dim0 * zfmult)), np.complex64)
     spectrum[0:dim0] = fid
     spectrum[0] *= 0.5
     spectrum = np.fft.fft(spectrum) / len(spectrum)

@@ -48,7 +48,7 @@ def op_rmNworstaverages(data, n, sw):
 
     metric = np.sum( (infilt.real - inmed.real)**2, axis=1)
 
-    # metric = np.zeros([nfid, ], dtype=np.float)
+    # metric = np.zeros([nfid, ], dtype=np.float32)
     # for k in range(nfid):
     #     metric[k]=np.sum( (infilt[k,:].real - inmed.real)**2)       # freq domain
 

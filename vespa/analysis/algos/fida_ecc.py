@@ -37,7 +37,7 @@ def op_ecc(data, chain):
     ds = chain._dataset
     dwell = 1.0 / ds.sw
     t  = np.arange(npts)/dwell
-    t150 = (npts * dwell) * np.arange(150, dtype=np.float)/149.0
+    t150 = (npts * dwell) * np.arange(150, dtype=np.float32)/149.0
 
     if ncoil != 1 or nfid != 0:
         msg = 'ERROR:  Must combine receivers and averages prior to running ecc!! ABORTING!!'
@@ -110,7 +110,7 @@ def _test():
 
     npts = 256
 
-    y = 4 * 360.0 * np.arange(npts, dtype=np.float)/(npts-1)
+    y = 4 * 360.0 * np.arange(npts, dtype=np.float32)/(npts-1)
     y = y % 360.0
     y = np.exp(1j * (y * np.pi / 180.0))
 

@@ -182,7 +182,7 @@ def transformation_matrix(x_vector, y_vector, translation, spacing):
         matrix (array)
 
     """
-    matrix = np.zeros((4, 4), dtype=np.float)
+    matrix = np.zeros((4, 4), dtype=np.float64)
     matrix[:3, 0] = x_vector
     matrix[:3, 1] = y_vector
     z_vector = np.cross(x_vector, y_vector)

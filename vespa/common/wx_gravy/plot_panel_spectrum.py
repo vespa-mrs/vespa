@@ -62,14 +62,14 @@ import math
 import warnings
 
 # 3rd party modules
-import matplotlib
+import matplotlib as mpl
 import wx
 import numpy as np
 
 # If we set the backend unconditionally, we sometimes get an undesirable
 # message. 
-if matplotlib.get_backend() != "WXAgg":
-    matplotlib.use('WXAgg')
+if mpl.get_backend() != "WXAgg":
+    mpl.use('WXAgg')
 
 from matplotlib.transforms import blended_transform_factory
 from matplotlib.patches    import Rectangle
@@ -506,6 +506,11 @@ class PlotPanelSpectrum(wx.Panel):
         external user defined event handler for scroll events. In here we 
         determine which axis we are in, then call the (hopefully) overloaded 
         on_scroll() method
+
+        Note. event.step was reporting wildly large values in wxpython 4.1.1 and mpl 3.5.x
+        see link for details: https://github.com/wxWidgets/Phoenix/issues/1707
+        bjs was a contributor to this link!  The solution is to NOT use wxpython 4.1.1 but
+        rather an earlier or later version ...
         
         """
         iaxis = None
@@ -528,8 +533,8 @@ class PlotPanelSpectrum(wx.Panel):
     def _default_data(self):
         data = []
         for i in range(self.naxes):
-            data.append([np.arange(1024).astype(np.complex)])
-            # data.append([np.zeros([1, 1024], dtype=complex)])
+            data.append([np.arange(1024).astype(np.complex64)])
+            # data.append([np.zeros([1, 1024], dtype=complex64)])
         return data
 
 
@@ -761,7 +766,10 @@ class PlotPanelSpectrum(wx.Panel):
             else:
                 old_xmin, old_xmax = axes.get_xlim()
 
-            axes.lines.clear()
+            #axes.lines.clear()
+            for ii in reversed(range(len(axes.lines))):
+                axes.lines[ii].remove()
+
             width  = self.line_width[i]
 
             dlist = self.data[i]
@@ -1305,7 +1313,7 @@ class PlotPanelSpectrum(wx.Panel):
 
         # this resets figure to have 1 or 2 or N axes shown
         naxes = len(self.axes)
-        gs = matplotlib.gridspec.GridSpec(naxes, 1)
+        gs = mpl.gridspec.GridSpec(naxes, 1)
         for i in range(naxes):
             self.figure.axes[i].set_position(gs[i].get_position(self.figure))
             self.figure.axes[i].set_subplotspec(gs[i])
@@ -1357,7 +1365,7 @@ class PlotPanelSpectrum(wx.Panel):
     def new_axes(self, axes):
         if isinstance(axes, list):
             self.axes = axes
-        elif isinstance(axes, matplotlib.axes.Axes):
+        elif isinstance(axes, mpl.axes.Axes):
             self.axes = [axes]
         else:
             return
@@ -1543,7 +1551,8 @@ class ZoomSpan:
         # remove the dynamic artist(s) from background bbox(s)
         for axes, rect in zip(self.axes, self.rect):
             if rect in axes.patches:
-                axes.patches.remove(rect)
+                #axes.patches.remove(rect)
+                rect.remove()
                 self.canvas.draw()
 
         for rect in self.rect:
@@ -1798,7 +1807,8 @@ class CursorSpan:
         # remove the dynamic artist(s) from background bbox(s)
         for axes, rect in zip(self.axes, self.rect):
             if rect in axes.patches:
-                axes.patches.remove(rect)
+                #axes.patches.remove(rect)
+                rect.remove()
                 self.canvas.draw()
         
         for rect in self.rect:

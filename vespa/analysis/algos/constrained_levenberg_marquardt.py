@@ -152,7 +152,7 @@ def constrained_levenberg_marquardt(y, w, a, limits, function=None,
         w = np.concatenate([w, w])
     
     nterms = len(a)   # number of parameters 
-    eps = np.sqrt(np.finfo(np.float).eps)
+    eps = np.sqrt(np.finfo(np.float32).eps)
 
     # order limits [lowerlimit,upperlimit]
     limits = np.array([np.where(limits[0,:] < limits[1,:], limits[0,:], limits[1,:]), 

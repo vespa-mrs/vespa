@@ -920,7 +920,7 @@ class TwixMeasurement(object):
             msg = "ICE indices are not unique, can not return in a Loop Counter dimensioned numpy array."
             raise ValueError(msg)
 
-        nparr = np.zeros(self.dims, np.complex)
+        nparr = np.zeros(self.dims, np.complex64)
 
         for i, scan in enumerate(self.scans):
             loops = self.get_ice_index(i)
@@ -948,7 +948,7 @@ class TwixMeasurement(object):
         ncha = self.scans[0].scan_header.used_channels
         npts = self.scans[0].scan_header.samples_in_scan
 
-        nparr = np.zeros([len(self.scans) * ncha, npts], np.complex)
+        nparr = np.zeros([len(self.scans) * ncha, npts], np.complex64)
 
         for i, scan in enumerate(self.scans):
             for j, chan in enumerate(scan.channels):
@@ -974,7 +974,7 @@ class TwixMeasurement(object):
         nscan = len(self.scans)
         ncha = self.scans[0].scan_header.used_channels
 
-        nparr = np.zeros([ncha, nscan, npts], np.complex)
+        nparr = np.zeros([ncha, nscan, npts], np.complex64)
 
         for i, scan in enumerate(self.scans):
             for j, chan in enumerate(scan.channels):
@@ -1001,7 +1001,7 @@ class TwixMeasurement(object):
         npts  = self.scans[0].scan_header.samples_in_scan
         nscan = len(self.scans)
         ncha  = self.scans[0].scan_header.used_channels
-        nparr = np.zeros([ncha, nscan, npts], np.complex)
+        nparr = np.zeros([ncha, nscan, npts], np.complex64)
 
         for i, scan in enumerate(self.scans):
             for j, chan in enumerate(scan.channels):
@@ -1049,13 +1049,13 @@ class TwixMeasurement(object):
 
         prep_arr = None
         if nprep != 0:
-            prep_arr = np.zeros([ncha, nprep, npts], np.complex)
+            prep_arr = np.zeros([ncha, nprep, npts], np.complex64)
             for iscan, scan in enumerate(self.scans[0:int(nprep * ncha)]):
                 ifid = iscan // ncha
                 icha = scan.channel_id
                 prep_arr[icha, ifid, :] = np.array(scan.data)
 
-        nparr = np.zeros([ncha, nfid-nprep, npts], np.complex)
+        nparr = np.zeros([ncha, nfid-nprep, npts], np.complex64)
 
         for iscan, scan in enumerate(self.scans[int(nprep * ncha):]):
             ifid = iscan // ncha
@@ -1094,7 +1094,7 @@ class TwixMeasurement(object):
         ncha = self.scans[0].scan_header.used_channels
         npts = self.scans[0].scan_header.samples_in_scan
 
-        nparr = np.zeros([nrep, ncha, nset, npts], np.complex)
+        nparr = np.zeros([nrep, ncha, nset, npts], np.complex64)
 
         prep_arr = None
         if return_prep:
@@ -1112,7 +1112,7 @@ class TwixMeasurement(object):
 
             prep_arr = None
             if nprep != 0:
-                prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex)
+                prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex64)
                 for iscan, scan in enumerate(self.scans[0:nprep]):
                     irep = scan.scan_header.repetition
                     if scan.scan_header.set == 0:
@@ -1163,7 +1163,7 @@ class TwixMeasurement(object):
         ncha = self.scans[0].scan_header.used_channels
         npts = self.scans[0].scan_header.samples_in_scan
 
-        nparr = np.zeros([nrep, ncha, nset, npts], np.complex)
+        nparr = np.zeros([nrep, ncha, nset, npts], np.complex64)
 
         prep_arr = None
         if return_prep:
@@ -1181,7 +1181,7 @@ class TwixMeasurement(object):
 
             prep_arr = None
             if nprep != 0:
-                prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex)
+                prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex64)
                 for iscan, scan in enumerate(self.scans[0:nprep]):
                     irep = scan.scan_header.echo
                     if scan.scan_header.set == 0:

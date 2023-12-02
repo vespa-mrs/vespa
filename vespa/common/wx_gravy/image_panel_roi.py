@@ -2418,7 +2418,7 @@ class MyFrame(wx.Frame):
         bmasks = []
         for mask in masks:
             bmask = [1.0 if item else 0.0 for item in mask]
-            bmask = np.array(bmask, dtype=np.float)
+            bmask = np.array(bmask, dtype=np.float32)
             bmask.shape = dims
             np.flipud(bmask)
             bmasks.append(bmask)
