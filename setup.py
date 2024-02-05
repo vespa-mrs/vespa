@@ -66,9 +66,9 @@ setuptools.setup(name=NAME,
                  platforms=PLATFORMS,
                  keywords=KEYWORDS,
                  # setuptools should be installed along with Vespa; the latter requires the
-                 # former to run. (Vespa uses setuptools' pkg_resources in get_vespa_version()
-                 # to get the package version.) Since Vespa is distributed as a wheel which can
-                 # only be installed by pip, and pip installs setuptools, this 'install_requires'
-                 # is probably superfluous and just serves as documentation.
+                 # former to run. (Vespa uses setuptools' pkg_resources or importlib.metadata
+                 # in get_vespa_version() to get the package version.) Since Vespa is distributed 
+                 # as a wheel which can only be installed by pip, and pip installs setuptools, 
+                 # this 'install_requires' is probably superfluous and just serves as documentation.
                  install_requires=['setuptools'],
                  )
