@@ -329,6 +329,74 @@ class RawReaderDicomSiemensFidsumXaEjaSvsMpressOnOff(RawReaderDicomSiemensFidsum
         return self.raws
 
 
+class RawReaderDicomSiemensFidsumXaEjaSvsMpressOnOffAdv(RawReaderDicomSiemensFidsumXaEjaSvsMpress):
+    """ Read multiple Siemens DICOMs file into a DataRawFidsum object """
+
+    def __init__(self):
+        RawReaderDicomSiemensXaEjaSvsMpress.__init__(self)
+        self.multiple = True
+
+
+    def read_raws(self, ignore_data=False, *args, **kwargs):
+        """
+        Calls read_raw() once for each filename in self.filenames.
+        - returns list with four DataRawEditFidsum objects for ON, OFF, SUM and DIFF
+        - read_raw() method should return one FID data set per file.
+
+        """
+        self.raws_on = []
+        self.raws_off = []
+
+        nfiles = len(self.filenames)
+        get_header = True
+
+        raws = []
+        raw_avgs = 0
+
+        for i, fname in enumerate(self.filenames):
+            get_header = (i==0) or (i==int(nfiles/2))
+            raw = self.read_raw(fname, ignore_data, get_header=get_header, *args, **kwargs)
+            raw_avgs += raw[0]['data'].shape[0]
+            raws.append(raw)
+
+        tmp_raw = raws[0][0].copy()
+
+        avg_cnt = 0
+        for raw in raws:
+            for j in range(raw[0]['data'].shape[0]):
+
+                tmp_raw['data'] = raw[0]['data'][j,0,0,:].copy()
+                tmp_raw['data'] = tmp_raw['data'].conjugate()
+                tmp_raw['data'].shape = 1,1,1,len(tmp_raw['data'])
+
+                if avg_cnt < int(raw_avgs/2):
+                    self.raws_off.append(tmp_raw.copy())
+                else:
+                    self.raws_on.append(tmp_raw.copy())
+                avg_cnt += 1
+
+        d = self.raws_on[0]
+        d["data_source"] = d["data_source"]+'.EditON'
+        raw_on = DataRawEditFidsum(d)
+        for d in self.raws_on[1:]:
+            raw_on.concatenate(DataRawEditFidsum(d))
+
+        d = self.raws_off[0]
+        d["data_source"] = d["data_source"]+'.EditOFF'
+        raw_off = DataRawEditFidsum(d)
+        for d in self.raws_off[1:]:
+            raw_off.concatenate(DataRawEditFidsum(d))
+
+        self.raws = [raw_on, raw_off]
+
+        self._check_consistency(fidsum=True)
+        self._check_for_si()
+        if 'open_dataset' in list(kwargs.keys()):
+            if kwargs['open_dataset'] is not None:
+                self._check_compatibility(self.raws, kwargs['open_dataset'], fidsum=True)
+
+        return self.raws
+
 
 
 

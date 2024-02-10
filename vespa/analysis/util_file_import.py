@@ -226,6 +226,11 @@ STANDARD_CLASSES_LOFL = [
     'class_name=RawReaderDicomSiemensFidsumXaEjaSvsMpressOnOff',
     'menu_item_text=SiemensXA DICOM eja_svs_mpress Fidsum - On/Off only',
     'ini_file_name=import_siemens_dicom_eja_svs_mpress_fidsum_onoff',
+'[import_siemens_dicom_eja_svs_mpress_fidsum_onoff_adv]',
+    'path=vespa.analysis.fileio.dicom_siemens_eja_svs_mpress',
+    'class_name=RawReaderDicomSiemensFidsumXaEjaSvsMpressOnOffAdv',
+    'menu_item_text=SiemensXA DICOM Advanced eja_svs_mpress Fidsum - On/Off only',
+    'ini_file_name=import_siemens_dicom_eja_svs_mpress_fidsum_onoff_adv',
 '[separator102]',
 ]
 
