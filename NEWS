@@ -1,3 +1,18 @@
+
+Version 1.1.1rc1 - 11 Feb, 2024
+------------------------------------------------------------------------------
+New icon for Datasim, some updates for Python 3.9 and later, bugfix for Linux
+shortcut creation.
+
+Analysis
+- New file parser format for Analysis to read Advanced (multi-frame) DICOM 
+  files for eja_svs_mpress sequence data.
+- bugfix in twix reader, saving plots to file
+
+Pulse
+- refactor algorithm for refocus gradient calculation.
+
+
 Version 1.1.0 - 10 May, 2023
 ------------------------------------------------------------------------------
 Some updates for XA software data formats on Siemens, bugfixes, and a couple 
