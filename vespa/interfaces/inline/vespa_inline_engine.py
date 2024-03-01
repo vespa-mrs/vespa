@@ -569,7 +569,13 @@ def _load_preset(presetfile, verbose=False, process_id='single'):
 
 
 def analysis_kernel(params, verbose=False, process_id='single', exception_as_list=False):
-
+    """
+    This kernel is used in Philips PRIDE2 inline workflow 
+    - data is read from file
+    - basis sets, presets, etc. are loaded from file
+    - output is RGB and PDF buffers that are manipulated outside this method
+    
+    """
     png_buf, pdf_buf = None, None   # defaults
     try:
         fdatasets, fpresets, fbasis_mmol, settings = params
@@ -633,6 +639,79 @@ def analysis_kernel(params, verbose=False, process_id='single', exception_as_lis
 
     return png_buf, pdf_buf, ''
     
+
+
+def analysis_fire_kernel(params, verbose=False, process_id='single', exception_as_list=False):
+    """
+    This kernel is used in Siemens FIRE inline workflow 
+    - data is sent in as a list of transients, needs sorting and load into Dataset object
+    - basis sets, presets, etc. are loaded from file
+    - output is RGB buffer that is manipulated outside this method
+    
+    """
+    png_buf, pdf_buf = None, None   # defaults
+    try:
+        fdatasets, fpresets, fbasis_mmol, settings = params
+
+        if verbose:
+            print(process_id + ' - Begin - metab filename = ' + fdatasets['metab'])
+
+        msg = 'begin loading presets'
+        presets = []
+        for key in ['metab','water','ecc','coil']:
+            fname = fpresets[key]
+            if fname is not None:
+                presets.append(_load_preset(fname, verbose=True, process_id=process_id))
+            else:
+                presets.append(None)
+
+        msg = 'begin loading datasets'
+        datasets = []
+        if settings.dataformat in ['philips_press28_dicom', 'philips_slaser30_cmrr_spar', 'vasf']:
+            for key in ['metab', 'water', 'ecc', 'coil']:
+                fname = fdatasets[key]
+                if fname is not None:
+                    dataset = util_file_import.get_datasets_cli(fname, settings.import_class, None)
+                    datasets.append(dataset[0])
+                else:
+                    datasets.append(None)
+
+        elif settings.dataformat in ['slaser_cmrr',]:
+            fname = fdatasets['metab']
+            if fname is not None:
+                dataset = util_file_import.get_datasets_cli(fname, settings.import_class, None)
+                datasets.append(dataset[0],dataset[1],dataset[2],dataset[3])            # all files in one
+
+        else:
+            msg = "VIE.analysis_kernel: Unknown 'settings.dataformat' name, can not load dataset, returning."
+            raise ValueError(msg)
+
+        msg = 'begin loading mmol basis'
+        if fbasis_mmol is not None:
+            basis_mmol, msg = util_file_import.open_viff_dataset_file([fbasis_mmol,])
+            basis_mmol = basis_mmol[0]
+        else:
+            basis_mmol = None
+
+        msg = 'begin run cli_chain'
+        data_metab = analysis_cli_chain(datasets, presets, basis_mmol,
+                                        verbose=verbose,
+                                        process_id=process_id)
+        msg = 'begin run cli_output'
+        png_buf, pdf_buf = analysis_cli_output(data_metab, settings,
+                                               verbose=verbose,
+                                               process_id=process_id)
+        if verbose:
+            print(process_id+' - Finish - metab filename = ' + fdatasets['metab'])
+
+    except Exception as e:
+        if exception_as_list:
+            return png_buf, pdf_buf, _repackage_exception()  # report from multiprocess
+        else:
+            raise VespaInlineError(_repackage_exception()) # single thread
+
+    return png_buf, '', ''
+
 
 
 
