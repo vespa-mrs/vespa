@@ -8,28 +8,25 @@ import multiprocessing
 import ismrmrd.xsd
 import importlib
 import os
-import json
 
 import simplefft
 import invertcontrast
 import analyzeflow
+import spectroscopy
 
 class Server:
     """
     Something something docstring.
     """
 
-    def __init__(self, address, port, defaultConfig, savedata, savedataFolder, multiprocessing):
+    def __init__(self, address, port, savedata, savedataFolder, multiprocessing):
         logging.info("Starting server and listening for data at %s:%d", address, port)
-
-        logging.info("Default config is %s", defaultConfig)
         if (savedata is True):
             logging.debug("Saving incoming data is enabled.")
 
         if (multiprocessing is True):
             logging.debug("Multiprocessing is enabled.")
 
-        self.defaultConfig = defaultConfig
         self.multiprocessing = multiprocessing
         self.savedata = savedata
         self.savedataFolder = savedataFolder
@@ -78,37 +75,20 @@ class Server:
                 logging.warning("Metadata is not a valid MRD XML structure.  Passing on metadata as text")
                 metadata = metadata_xml
 
-            # Support additional config parameters passed through a JSON text message
-            if connection.peek_mrd_message_identifier() == constants.MRD_MESSAGE_TEXT:
-                configAdditionalText = next(connection)
-                logging.info("Received additional config text: %s", configAdditionalText)
-                try:
-                    configAdditional = json.loads(configAdditionalText)
-
-                    if ('parameters' in configAdditional):
-                        if ('config' in configAdditional['parameters']):
-                            logging.info("Changing config to: %s", configAdditional['parameters']['config'])
-                            config = configAdditional['parameters']['config']
-
-                        if ('customconfig' in configAdditional['parameters']) and (configAdditional['parameters']['customconfig'] != ""):
-                            logging.info("Changing config to: %s", configAdditional['parameters']['customconfig'])
-                            config = configAdditional['parameters']['customconfig']
-                except:
-                    logging.error("Failed to parse as JSON")
-            else:
-                configAdditional = config
-
             # Decide what program to use based on config
             # If not one of these explicit cases, try to load file matching name of config
             if (config == "simplefft"):
                 logging.info("Starting simplefft processing based on config")
-                simplefft.process(connection, configAdditional, metadata)
+                simplefft.process(connection, config, metadata)
             elif (config == "invertcontrast"):
                 logging.info("Starting invertcontrast processing based on config")
-                invertcontrast.process(connection, configAdditional, metadata)
+                invertcontrast.process(connection, config, metadata)
+            elif (config == "spectroscopy"):
+                logging.info("Starting spectroscopy processing based on config")
+                spectroscopy.process(connection, config, metadata)
             elif (config == "analyzeflow"):
                 logging.info("Starting analyzeflow processing based on config")
-                analyzeflow.process(connection, configAdditional, metadata)
+                analyzeflow.process(connection, config, metadata)
             elif (config == "null"):
                 logging.info("No processing based on config")
                 try:
@@ -130,21 +110,23 @@ class Server:
                     # Load module from file having exact name as config
                     module = importlib.import_module(config)
                     logging.info("Starting config %s", config)
-                    module.process(connection, configAdditional, metadata)
+                    module.process(connection, config, metadata)
                 except ImportError:
-                    logging.info("Unknown config '%s'.  Falling back to default config: '%s'", config, self.defaultConfig)
-                    try:
-                        module = importlib.import_module(self.defaultConfig)
-                        logging.info("Starting config %s", self.defaultConfig)
-                        module.process(connection, configAdditional, metadata)
-                    except ImportError:
-                        logging.info("Failed to load default config '%s'", self.defaultConfig)
+                    logging.info("Unknown config '%s'.  Falling back to 'invertcontrast'", config)
+                    invertcontrast.process(connection, config, metadata)
 
         except Exception as e:
             logging.exception(e)
 
         finally:
-            connection.shutdown_close()
+            # Encapsulate shutdown in a try block because the socket may have
+            # already been closed on the other side
+            try:
+                sock.shutdown(socket.SHUT_RDWR)
+            except:
+                pass
+            sock.close()
+            logging.info("Socket closed")
 
             # Dataset may not be closed properly if a close message is not received
             if connection.savedata is True:
