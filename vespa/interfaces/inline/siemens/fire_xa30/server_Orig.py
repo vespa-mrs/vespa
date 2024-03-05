@@ -13,7 +13,6 @@ import json
 import simplefft
 import invertcontrast
 import analyzeflow
-import spectroscopy
 
 class Server:
     """
@@ -107,9 +106,6 @@ class Server:
             elif (config == "invertcontrast"):
                 logging.info("Starting invertcontrast processing based on config")
                 invertcontrast.process(connection, configAdditional, metadata)
-            elif (config == "spectroscopy"):
-                logging.info("Starting spectroscopy processing based on config")
-                spectroscopy.process(connection, config, metadata)
             elif (config == "analyzeflow"):
                 logging.info("Starting analyzeflow processing based on config")
                 analyzeflow.process(connection, configAdditional, metadata)
