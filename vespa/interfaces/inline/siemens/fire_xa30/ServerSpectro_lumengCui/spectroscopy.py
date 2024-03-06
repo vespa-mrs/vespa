@@ -196,15 +196,21 @@ def process_raw(group, connection, config, metadata):
 
     # Collapse into shape [RO lin seg]
     data = np.squeeze(data)
+    isMultiCha = False          # bjs workaround for svs_se
 
     # Send data back as complex singles
     data = data.astype(np.complex64)
 
     if isMultiCha:
-    # Transpose to shape [SEG LIN COL]
+        # Transpose to shape [SEG LIN COL]
         data = np.transpose(data, (0, 3, 2, 1))
     else:
         data = data.transpose()
+
+    # sum all FIDs into averaged spectrum
+    data = np.mean(data, axis=1, keepdims=True)
+    data = np.squeeze(data)
+
     logging.info("Outgoing spectroscopy data is shape %s" % (data.shape,))
 
     # Create new MRD instance for the processed image
@@ -216,16 +222,20 @@ def process_raw(group, connection, config, metadata):
     # Set the header information
     tmpImg.setHead(mrdhelper.update_img_header_from_raw(tmpImg.getHead(), group[0].getHead()))
 
-    if data.ndim > 1:
-        # 2D spectroscopic imaging
-        tmpImg.field_of_view = (ctypes.c_float(data.shape[2]/data.shape[1]*metadata.encoding[0].reconSpace.fieldOfView_mm.y),
-                                ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.y),
-                                ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.z))
-    else:
-        # Single voxel
-        tmpImg.field_of_view = (ctypes.c_float(data.shape[0]*metadata.encoding[0].reconSpace.fieldOfView_mm.y/2),
-                                ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.y/2),
-                                ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.z))
+    tmpImg.field_of_view = (ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.x),
+                            ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.y),
+                            ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.z))
+
+    # if data.ndim > 1:
+    #     # 2D spectroscopic imaging
+    #     tmpImg.field_of_view = (ctypes.c_float(data.shape[2]/data.shape[1]*metadata.encoding[0].reconSpace.fieldOfView_mm.y),
+    #                             ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.y),
+    #                             ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.z))
+    # else:
+    #     # Single voxel
+    #     tmpImg.field_of_view = (ctypes.c_float(data.shape[0]*metadata.encoding[0].reconSpace.fieldOfView_mm.y/2),
+    #                             ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.y/2),
+    #                             ctypes.c_float(metadata.encoding[0].reconSpace.fieldOfView_mm.z))
 
     tmpImg.image_index   = 1
     tmpImg.flags         = 2**5   # IMAGE_LAST_IN_AVERAGE
