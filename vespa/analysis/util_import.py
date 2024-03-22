@@ -16,7 +16,8 @@ class DatasetImporter(Importer):
         Importer.__init__(self, source, None, False)
 
     def go(self, add_history_comment=False):
-        for element in self.root.getiterator("dataset"):
+        #for element in self.root.getiterator("dataset"):
+        for element in self.root.findall("dataset"):
             self.found_count += 1
 
             dataset = mrs_dataset.Dataset(element)
@@ -33,7 +34,8 @@ class DatasetCliImporter(Importer):
         Importer.__init__(self, source, None, False)
 
     def go(self, add_history_comment=False):
-        for element in self.root.getiterator("dataset"):
+        #for element in self.root.getiterator("dataset"):
+        for element in self.root.findall("dataset"):
             self.found_count += 1
 
             dataset = mrs_dataset.Dataset(element)
@@ -50,7 +52,8 @@ class DataRawImporter(Importer):
         Importer.__init__(self, source, None, False)
 
     def go(self, add_history_comment=False):
-        for element in self.root.getiterator("data_raw"):
+        #for element in self.root.getiterator("data_raw"):
+        for element in self.root.findall("data_raw"):
             self.found_count += 1
 
             data = mrs_data_raw.DataRaw(element)
@@ -68,7 +71,8 @@ class PriorImporter(Importer):
 
 
     def go(self, add_history_comment=False):
-        for element in self.root.getiterator("prior"):
+        #for element in self.root.getiterator("prior"):
+        for element in self.root.findall("prior"):
             self.found_count += 1
 
             prior = mrs_prior.Prior(element)
@@ -85,7 +89,8 @@ class MetinfoImporter(Importer):
         Importer.__init__(self, source, None, False)
 
     def go(self, add_history_comment=False):
-        for element in self.root.getiterator("metinfo"):
+        #for element in self.root.getiterator("metinfo"):
+        for element in self.root.findall("metinfo"):
             self.found_count += 1
 
             metinfo = mrs_metinfo.MetInfo(element)

@@ -188,8 +188,8 @@ class ProcessChain(block_fit_voigt._Settings):
 #                     setattr(self, attribute, item)
 
             # lists
-            self.raw_dims       = [int(val.text) for val in source.getiterator("raw_dims")]
-            self.spectral_dims  = [int(val.text) for val in source.getiterator("spectral_dims")]
+            self.raw_dims       = [int(val.text) for val in source.findall("raw_dims")]
+            self.spectral_dims  = [int(val.text) for val in source.findall("spectral_dims")]
 
 
     def fit_function(self, a,   pderflg=True, 

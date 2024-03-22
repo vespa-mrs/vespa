@@ -324,7 +324,7 @@ class BlockPrepWbnaa(block_prep_identity.BlockPrepIdentity):
 
             if not self.behave_as_preset:
 
-                self.exclude_indices = [int(val.text) for val in source.getiterator("exclude_indices")]
+                self.exclude_indices = [int(val.text) for val in source.findall("exclude_indices")]
             
                 # Now I inflate the attribs that are specific to this class
                 temp = source.find("frequency_shift")

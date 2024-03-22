@@ -18,7 +18,7 @@ class DatasimImporter(Importer):
         Importer.__init__(self, source, None, False)
 
     def go(self, add_history_comment=False):
-        for element in self.root.getiterator("datasim"):
+        for element in self.root.findall("datasim"):
             self.found_count += 1
             datasim = mrs_datasim.Datasim(element)
             self.imported.append(datasim)
@@ -33,7 +33,7 @@ class AnalysisHlsvdImporter(Importer):
         Importer.__init__(self, source, None, False)
 
     def go(self, add_history_comment=False):
-        for element in self.root.getiterator("analysis_export_hlsvd"):
+        for element in self.root.findall("analysis_export_hlsvd"):
             self.found_count += 1
             self.imported.append(element)
 

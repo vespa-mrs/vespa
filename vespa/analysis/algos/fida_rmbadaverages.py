@@ -66,6 +66,6 @@ def op_rmbadaverages( data, sw, nsd='3', domain='t'):
     # mask FIDs with metrics > nsd standard deviations from the mean metric value
     
     mask = zmetric > pval+nsd
-    badAverages = np.array(x[mask], dtype=np.int)      # these are the corrupted indices
+    badAverages = np.array(x[mask], dtype=np.int16)      # these are the corrupted indices
 
     return badAverages, metric

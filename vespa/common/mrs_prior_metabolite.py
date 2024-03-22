@@ -99,10 +99,10 @@ class PriorMetabolite(object):
             dims = [int(round(float(dim.text))) for dim in source.findall("dim")]
             self.dims   = [source.findtext("name")] + dims
             self.spins  = int(source.findtext("spins"))
-            self.group  = [group.text        for group in source.getiterator("group")]
-            self.ppms   = [float(ppm.text)   for ppm   in source.getiterator("ppm")]
-            self.areas  = [float(area.text)  for area  in source.getiterator("area")]
-            self.phases = [float(phase.text) for phase in source.getiterator("phase")]
+            self.group  = [group.text        for group in source.iter("group")]
+            self.ppms   = [float(ppm.text)   for ppm   in source.iter("ppm")]
+            self.areas  = [float(area.text)  for area  in source.iter("area")]
+            self.phases = [float(phase.text) for phase in source.iter("phase")]
         
         elif hasattr(source, "keys"):
             # Quacks like a dict

@@ -104,7 +104,7 @@ def run(trans_desc):
     # transform algorithm code starts here
 
     # it is best if the waveform array is complex, even if the waveform is real only
-    rf_waveform = np.zeros([time_steps,], dtype=np.complex)
+    rf_waveform = np.zeros([time_steps,], dtype=np.complex128)
     
     npts = time_steps - 8       # 8 is for the padding
     

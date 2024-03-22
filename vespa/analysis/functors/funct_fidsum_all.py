@@ -99,7 +99,7 @@ def run_calculations(chain):
         else:
             chain.exclude_indices = exclude_indices.tolist()
 
-    chain.results_indices = np.delete(np.arange(nfids, dtype=np.int), chain.exclude_indices)
+    chain.results_indices = np.delete(np.arange(nfids, dtype=np.int16), chain.exclude_indices)
 
     #--------------------------------------------------------------------------
     # FID Correction Section
@@ -109,7 +109,7 @@ def run_calculations(chain):
     # - only reset results if we are recalculating, not if 'Manual'
 
     data = chain.raw_combined.copy()
-    results_indices = np.arange(nfids, dtype=np.int)       # start with all indices
+    results_indices = np.arange(nfids, dtype=np.int16)       # start with all indices
     if set.apply_data_exclusion:
         results_indices = chain.results_indices            # keep certain indices if exclude True
         data = np.delete(data, chain.exclude_indices, axis=2)

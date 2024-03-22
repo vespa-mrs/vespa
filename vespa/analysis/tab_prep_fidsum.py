@@ -1082,8 +1082,8 @@ class TabPrepFidsum(tab_base.Tab, fidsum.PanelPrepFidsumUI):
             if plot_entry != 'no_image':
 
                 # do view_image here
-                istr = np.int(self.dataset.ppm2pts(self.waterfall_range_start, acq=True))
-                iend = np.int(self.dataset.ppm2pts(self.waterfall_range_end, acq=True))
+                istr = int(self.dataset.ppm2pts(self.waterfall_range_start, acq=True))
+                iend = int(self.dataset.ppm2pts(self.waterfall_range_end, acq=True))
 
                 img0 = np.squeeze(results['freq_adjusted'])
                 if len(img0.shape) == 1:

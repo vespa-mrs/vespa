@@ -98,7 +98,7 @@ def run(trans_desc):
     #--------------------------------------------------------------------------
     # transform algorithm code starts here
 
-    rf_waveform = np.zeros([time_steps,], dtype=np.complex)
+    rf_waveform = np.zeros([time_steps,], dtype=np.complex128)
     rf_xaxis    = np.arange([time_steps,]) * dwell_time
     
     gradient    = None

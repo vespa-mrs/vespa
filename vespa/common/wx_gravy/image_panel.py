@@ -670,8 +670,8 @@ class ImagePanel(wx.Panel):
         indices = self.parse_indices(index)
         for i in indices:
             data = self.img_hard_limits[i].copy()
-            self.width_base[i] = np.int(np.abs(data.max()) + np.abs(data.min()))
-            self.level_base[i] = np.int(self.width_base[i]*0.5 - np.abs(data.min()))
+            self.width_base[i] = int(np.abs(data.max()) + np.abs(data.min()))
+            self.level_base[i] = int(self.width_base[i]*0.5 - np.abs(data.min()))
 
 
     def apply_norm_widlev(self, index=None, keep_norm=False):
@@ -1355,8 +1355,8 @@ class WidLevEvents:
         self.prevxy = event.x, event.y
 
         indx  = self.axes_index
-        xdelt = np.int((xprev-xcurr))  # user set divide to slow down change 
-        ydelt = np.int((yprev-ycurr))  #  due to mouse motion.
+        xdelt = int((xprev-xcurr))  # user set divide to slow down change 
+        ydelt = int((yprev-ycurr))  #  due to mouse motion.
         
         if abs(ydelt) >= abs(xdelt):    
             self.parent.level[indx] += ydelt

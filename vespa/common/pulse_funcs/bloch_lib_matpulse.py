@@ -111,7 +111,7 @@ def bloch_b1(b1,g1const,extended,convert,offset,dwell,resol,vn,gx):
 
         # and zero small b1's...
         if np.absolute(b1[j]) < reps:
-            b1[j] = np.complex(0,0)
+            b1[j] = complex(0,0)
 
         tempdiv = constb / np.absolute(phib)
         nx = np.real(b1[j]) * tempdiv
@@ -250,7 +250,7 @@ def bloch_b2g2( b2, g3, f2, extended, offset, dwell, resol):
 
         # and zero small b1's...
         if np.absolute(b2[j]) < reps:   # For avoid divide by zero
-            b2[j] = np.complex(0,0) 
+            b2[j] = complex(0,0) 
 
         tempdiv = constb / np.absolute(phib)
         nx = np.real(b2[j]) * tempdiv         # real b1 along x

@@ -183,7 +183,7 @@ class ExperimentImporter(Importer):
     def go(self, add_history_comment=True):
         log = logging.getLogger(util_logging.Log.IMPORT)
 
-        for element in self.root.getiterator("experiment"):
+        for element in self.root.findall("experiment"):
             self.found_count += 1
             id_ = element.get("id")
 
@@ -238,7 +238,7 @@ class MetaboliteImporter(Importer):
     def go(self, add_history_comment=True):
         log = logging.getLogger(util_logging.Log.IMPORT)
 
-        for element in self.root.getiterator("metabolite"):
+        for element in self.root.findall("metabolite"):
             self.found_count += 1
             id_ = element.get("id")
 
@@ -296,7 +296,7 @@ class MetaboliteImporter(Importer):
 #     def go(self, add_history_comment=True):
 #         log = logging.getLogger(util_logging.Log.IMPORT)
 #
-#         for element in self.root.getiterator("pulse_project"):
+#         for element in self.root.findall("pulse_project"):
 #
 #             self.found_count += 1
 #             id_ = element.get("id")
@@ -346,7 +346,7 @@ class PulseDesignImporter(Importer):
     def go(self, add_history_comment=True):
         log = logging.getLogger(util_logging.Log.IMPORT)
 
-        for element in self.root.getiterator("pulse_design"):
+        for element in self.root.findall("pulse_design"):
             self.found_count += 1
             id_ = element.get("id")
 
@@ -389,7 +389,7 @@ class PulseSequenceImporter(Importer):
     def go(self, add_history_comment=True):
         log = logging.getLogger(util_logging.Log.IMPORT)
 
-        for element in self.root.getiterator("pulse_sequence"):
+        for element in self.root.findall("pulse_sequence"):
             self.found_count += 1
             id_ = element.get("id")
 
@@ -412,7 +412,7 @@ class PulseSequenceImporter(Importer):
                 if importer.imported == []:
 
                     # check if any PulseProjects in this import
-                    for bob in element.getiterator("pulse_project"):
+                    for bob in element.findall("pulse_project"):
                         seqname = str(bob.findtext('name'))
                         msg = "An RFPulse PulseProject object was found in this pulse sequence. \n name = %s, id = %s. \nVespa >= 1.0.0. does not support RFPulse-PulseProject conversions. \nThis pulse sequence will not be imported.  Returning. " % (seqname, id_ )
                         print(msg)
@@ -485,7 +485,7 @@ class TransformKernelImporter(Importer):
     def go(self, add_history_comment=True):
         log = logging.getLogger(util_logging.Log.IMPORT)
 
-        for element in self.root.getiterator("transform_kernel"):
+        for element in self.root.findall("transform_kernel"):
             self.found_count += 1
             id_ = element.get("id")
 

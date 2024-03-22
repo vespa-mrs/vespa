@@ -728,7 +728,7 @@ def run(trans_desc):
         bb = (n-odd)/2 - 1
         wm = np.vstack( [1, 2*np.ones((aa,1)), 1, np.zeros((bb,1))] )
 
-        yhat = np.zeros(np.size(x), dtype=np.complex)
+        yhat = np.zeros(np.size(x), dtype=np.complex128)
 
         yhat[:] = np.real(np.transpose(wm) * xhat)
 
@@ -1160,7 +1160,7 @@ def run(trans_desc):
         bb = (n-odd)/2 - 1
         wm = np.vstack([1, 2*np.ones((aa,1)), 1, np.zeros((bb,1))])
 
-        yhat = np.zeros( x.size, dtype=np.complex)
+        yhat = np.zeros( x.size, dtype=np.complex128)
 
         yhat[:] = np.real(wm.transpose() * xhat)
 

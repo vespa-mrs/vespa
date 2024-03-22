@@ -531,7 +531,7 @@ class BlockPrepFidsum(block_prep_identity.BlockPrepIdentity):
                         self.coil_combine_phases = util_xml.element_to_numpy_array(val)
 
                 # lists
-                self.exclude_indices = [val.text for val in source.getiterator("exclude_indices")]
+                self.exclude_indices = [val.text for val in source.findall("exclude_indices")]
 
                 # Now I inflate the attribs that are specific to this class
                 temp = source.find("frequency_shift")

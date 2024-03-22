@@ -1379,8 +1379,8 @@ class WidLevEvents:
         self.prevxy = event.x, event.y
 
         indx  = self.axes_index
-        xdelt = np.int((xprev-xcurr))  # user set divide to slow down change 
-        ydelt = np.int((yprev-ycurr))  #  due to mouse motion.
+        xdelt = int((xprev-xcurr))  # user set divide to slow down change 
+        ydelt = int((yprev-ycurr))  #  due to mouse motion.
         
         if abs(ydelt) >= abs(xdelt):    
             self.parent.level[indx] += ydelt

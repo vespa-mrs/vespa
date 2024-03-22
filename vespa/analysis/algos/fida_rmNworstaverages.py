@@ -61,6 +61,6 @@ def op_rmNworstaverages(data, n, sw):
     # sort the zmetric array to find the n highest values:
     delta = zmetric - np.polyval(pfit,x)         # FIXME bjs - should this be abs() here to find greatest + or - distance from median??
     badAverages = np.argsort(delta)[::-1]        # sort descending order
-    badAverages = np.array(badAverages[0:n], dtype=np.int)
+    badAverages = np.array(badAverages[0:n], dtype=np.int16)
 
     return badAverages, metric

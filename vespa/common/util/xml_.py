@@ -480,7 +480,7 @@ def element_to_array3d(e):
     # numpy array, and store it in the flat numpy array. 
     # This should be possible to do with one line of code which is faster
     # and more readable, IMO:
-    #    array3d = np.array(map(element_to_numpy_array, e.getiterator("array")))
+    #    array3d = np.array(map(element_to_numpy_array, e.findall("array")))
     # However when numpy sees the arrays inside the list that map() generates,
     # it combines them into one single 2D array. I don't want a 2D array, I 
     # want a 1D array that happens to have numpy arrays in each element.
@@ -488,7 +488,7 @@ def element_to_array3d(e):
 
     array3d = np.empty(size, object)
     i = 0
-    for array_element in e.getiterator("array"):
+    for array_element in e.findall("array"):
         array3d[i] = element_to_numpy_array(array_element)
         i += 1
 

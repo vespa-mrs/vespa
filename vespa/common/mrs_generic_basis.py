@@ -302,15 +302,15 @@ class GenericBasis(object):
             # Quacks like an ElementTree.Element
             self.source     = source.findtext("source")
             self.source_id  = source.findtext("source_id")
-            self.check      = [util_xml.BOOLEANS[val.text] for val in source.getiterator("check")]
-            self.ppm        = [float(val.text) for val in source.getiterator("ppm")]
-            self.area       = [float(val.text) for val in source.getiterator("area")]
-            self.phase      = [float(val.text) for val in source.getiterator("phase")]
-            self.lw         = [float(val.text) for val in source.getiterator("lw")]
-            self.ppm_lim    = [float(val.text) for val in source.getiterator("ppm_lim")]
-            self.area_lim   = [float(val.text) for val in source.getiterator("area_lim")]
-            self.phase_lim  = [float(val.text) for val in source.getiterator("phase_lim")]
-            self.lw_lim     = [float(val.text) for val in source.getiterator("lw_lim")]
+            self.check      = [util_xml.BOOLEANS[val.text] for val in source.iter("check")]
+            self.ppm        = [float(val.text) for val in source.iter("ppm")]
+            self.area       = [float(val.text) for val in source.iter("area")]
+            self.phase      = [float(val.text) for val in source.iter("phase")]
+            self.lw         = [float(val.text) for val in source.iter("lw")]
+            self.ppm_lim    = [float(val.text) for val in source.iter("ppm_lim")]
+            self.area_lim   = [float(val.text) for val in source.iter("area_lim")]
+            self.phase_lim  = [float(val.text) for val in source.iter("phase_lim")]
+            self.lw_lim     = [float(val.text) for val in source.iter("lw_lim")]
 
 
         elif hasattr(source, "keys"):

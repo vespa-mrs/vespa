@@ -342,7 +342,7 @@ class DataRaw(BaseTransform):
 
                 self.nucleus = source.findtext("nucleus")
 
-                self.voxel_dimensions = [float(val.text) for val in source.getiterator("voxel_dimensions")]
+                self.voxel_dimensions = [float(val.text) for val in source.findall("voxel_dimensions")]
                 
                 if source.findtext("transform") is not None:
                     self.transform = util_xml.element_to_numpy_array(source.find("transform"))

@@ -221,11 +221,11 @@ class Simulation(object):
                 s_e = source.find("spectrum")
                 if s_e is not None:
                     self.ppms = [float(ppm.text) for ppm 
-                                                 in s_e.getiterator("ppm")]
+                                                 in s_e.findall("ppm")]
                     self.areas = [float(area.text) for area 
-                                                   in s_e.getiterator("area")]
+                                                   in s_e.findall("area")]
                     self.phases = [float(phase.text) for phase 
-                                                     in s_e.getiterator("phase")]
+                                                     in s_e.findall("phase")]
             else:
                 # In XML versions > 1.0.0, we dispense with the spectrum
                 # element and write ppms, areas and phases as base64 encoded

@@ -1391,15 +1391,15 @@ class TabDatasim(datasim_ui.DatasimUI):
         ds.mets_decays = decays
 
         # get the proper loop and metabolite names
-        metab_time     = np.zeros((1,dims[0]), np.complex)
-        metab_freq     = np.zeros((1,dims[0]), np.complex)
-        metab_freq_sum = np.zeros((1,dims[0]), np.complex)
-        metab_time_sum = np.zeros((1,dims[0]), np.complex)
+        metab_time     = np.zeros((1,dims[0]), np.complex128)
+        metab_freq     = np.zeros((1,dims[0]), np.complex128)
+        metab_freq_sum = np.zeros((1,dims[0]), np.complex128)
+        metab_time_sum = np.zeros((1,dims[0]), np.complex128)
 
         indx  = np.where(flags)[0]
         if len(indx) > 0:
             metab_time = ds.basis[loop[2],loop[1],loop[0],indx,:].copy()
-            metab_freq = np.zeros((len(indx),dims[0]), np.complex)
+            metab_freq = np.zeros((len(indx),dims[0]), np.complex128)
             arr_ta = np.array(decays)[indx]
             area   = np.array(scales)[indx]
             tb     = -(xx/ds.tb)**2
@@ -1432,10 +1432,10 @@ class TabDatasim(datasim_ui.DatasimUI):
         #----------------------------------------------------------------------
         # MACROMOLECULE Section
 
-        mmol_time     = np.zeros((1,dims[0]), np.complex)
-        mmol_freq     = np.zeros((1,dims[0]), np.complex)
-        mmol_time_sum = np.zeros((1,dims[0]), np.complex)
-        mmol_freq_sum = np.zeros((1,dims[0]), np.complex)
+        mmol_time     = np.zeros((1,dims[0]), np.complex128)
+        mmol_freq     = np.zeros((1,dims[0]), np.complex128)
+        mmol_time_sum = np.zeros((1,dims[0]), np.complex128)
+        mmol_freq_sum = np.zeros((1,dims[0]), np.complex128)
 
         if ds.macromolecule_basis is not None:
             r = self.grid_get_values(grid=self.GridMmol)
@@ -1450,7 +1450,7 @@ class TabDatasim(datasim_ui.DatasimUI):
             indx = np.where(flags)[0]
             if len(indx) > 0:
                 mmol_time = ds.macromolecule_basis[indx,:].copy() * ds.mmol_group_scale
-                mmol_freq = np.zeros((len(indx),dims[0]), np.complex)
+                mmol_freq = np.zeros((len(indx),dims[0]), np.complex128)
                 for i, time in enumerate(mmol_time):
                     time = time.copy() * b0
                     mmol_time[i,:] = _chop(mmol_time[i,:]) # consistent with Analysis
@@ -1472,10 +1472,10 @@ class TabDatasim(datasim_ui.DatasimUI):
         #----------------------------------------------------------------------
         # BASELINE Section
 
-        base_time     = np.zeros((1,dims[0]), np.complex)
-        base_freq     = np.zeros((1,dims[0]), np.complex)
-        base_time_sum = np.zeros((1,dims[0]), np.complex)
-        base_freq_sum = np.zeros((1,dims[0]), np.complex)
+        base_time     = np.zeros((1,dims[0]), np.complex128)
+        base_freq     = np.zeros((1,dims[0]), np.complex128)
+        base_time_sum = np.zeros((1,dims[0]), np.complex128)
+        base_freq_sum = np.zeros((1,dims[0]), np.complex128)
 
         if ds.baseline_basis is not None:
             r = self.grid_get_values(grid=self.GridBase)
@@ -1490,7 +1490,7 @@ class TabDatasim(datasim_ui.DatasimUI):
             indx = np.where(flags)[0]
             if len(indx) > 0:
                 base_time = ds.baseline_basis[indx, :].copy() * ds.base_group_scale
-                base_freq = np.zeros((len(indx), dims[0]), np.complex)
+                base_freq = np.zeros((len(indx), dims[0]), np.complex128)
                 for i, time in enumerate(base_time):
                     time = time.copy() * b0
                     base_time[i, :] = _chop(base_time[i, :])  # consistent with Analysis
@@ -1512,8 +1512,8 @@ class TabDatasim(datasim_ui.DatasimUI):
         #----------------------------------------------------------------------
         # NOISE Section
             
-        self.noise_time = np.zeros(dims[0], np.complex)
-        self.noise_freq = np.zeros(dims[0], np.complex)
+        self.noise_time = np.zeros(dims[0], np.complex128)
+        self.noise_freq = np.zeros(dims[0], np.complex128)
         self.snr_actual = 0.0
         
         if self.display_noise_in_plot:

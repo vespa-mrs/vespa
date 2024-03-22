@@ -384,13 +384,13 @@ class _Settings(object):
                     setattr(self, attribute, item)
 
             # lists
-            self.prior_list       = [val.text for val in source.getiterator("prior_list")]
-            self.prior_area_scale = [float(val.text) for val in source.getiterator("prior_area_scale")]
-            self.prior_peak_ppm   = [float(val.text) for val in source.getiterator("prior_peak_ppm")]
-            self.prior_search_ppm = [float(val.text) for val in source.getiterator("prior_search_ppm")]
-            self.prior_db_ppm     = [util_xml.BOOLEANS[val.text] for val in source.getiterator("prior_db_ppm")]
-            self.prior_fix_t2     = [float(val.text) for val in source.getiterator("prior_fix_t2")]
-            self.prior_search_ph0 = [float(val.text) for val in source.getiterator("prior_search_ph0")]
+            self.prior_list       = [val.text for val in source.findall("prior_list")]
+            self.prior_area_scale = [float(val.text) for val in source.findall("prior_area_scale")]
+            self.prior_peak_ppm   = [float(val.text) for val in source.findall("prior_peak_ppm")]
+            self.prior_search_ppm = [float(val.text) for val in source.findall("prior_search_ppm")]
+            self.prior_db_ppm     = [util_xml.BOOLEANS[val.text] for val in source.findall("prior_db_ppm")]
+            self.prior_fix_t2     = [float(val.text) for val in source.findall("prior_fix_t2")]
+            self.prior_search_ph0 = [float(val.text) for val in source.findall("prior_search_ph0")]
             
             nmet = len(self.prior_list)
             if not self.prior_area_scale:
@@ -404,9 +404,9 @@ class _Settings(object):
             if not self.prior_search_ph0:
                 self.prior_search_ph0 = [0.0 for i in range(nmet)]
 
-            self.prior_xrange     = [int(val.text) for val in source.getiterator("prior_xrange")]
-            self.prior_yrange     = [int(val.text) for val in source.getiterator("prior_yrange")]
-            self.prior_zrange     = [int(val.text) for val in source.getiterator("prior_zrange")]
+            self.prior_xrange     = [int(val.text) for val in source.findall("prior_xrange")]
+            self.prior_yrange     = [int(val.text) for val in source.findall("prior_yrange")]
+            self.prior_zrange     = [int(val.text) for val in source.findall("prior_zrange")]
             
             # subobjects
             self.prior = mrs_prior.Prior(source.find("prior"))

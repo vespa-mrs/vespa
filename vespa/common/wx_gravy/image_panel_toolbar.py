@@ -801,8 +801,8 @@ class NavigationToolbar3Wx(NavigationToolbar2, wx.ToolBar):
         
         for a, indx, xprev, yprev in self._xypress:
             
-            xdelt = np.int((event.x-xprev))   
-            ydelt = np.int((event.y-yprev))  
+            xdelt = int((event.x-xprev))   
+            ydelt = int((event.y-yprev))  
         
             if abs(ydelt) >= abs(xdelt):    
                 self.parent.level[indx] += ydelt
