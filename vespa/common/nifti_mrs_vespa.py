@@ -41,13 +41,10 @@ def nifti_mrs(data, bandwidth, imagingfreq, nucleus, fout, comment=''):
 
     nifti_orientation = NIFTIOrient(affine)
 
-    img_out = [gen_nifti_mrs_hdr_ext(data, dwelltime, meta, nifti_orientation.Q44, no_conj=True), ]
-
-    # File names
-    fname_out = [fout, ]
+    img_out = gen_nifti_mrs_hdr_ext(data, dwelltime, meta, nifti_orientation.Q44, no_conj=True)
 
     # Place in data output format
-    return img_out, fname_out
+    return img_out
 
 
 

@@ -30,6 +30,7 @@ import vespa.common.mrs_prior_metabolite as mrs_prior_metabolite
 from wx.lib.agw.floatspin import FloatSpin, EVT_FLOATSPIN, FS_LEFT, FS_RIGHT, FS_CENTRE, FS_READONLY
 from vespa.common.wx_gravy.widgets.floatspin_multiplier.floatspin_multiplier_base import FloatSpinMultiplier
 from vespa.common.constants import Deflate
+from vespa.common.nifti_mrs_vespa import nifti_mrs
 
 PI = math.pi
 
@@ -441,8 +442,8 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
                 default_filename = "analysis_prior_output.xml"
                 filter_ = "Analysis Prior Mixed Output Filename (*.xml)|*.xml"
             elif self.format == constants.ThirdPartyExportTypes.NIFTI_MRS:
-                default_filename = "nifti_mrs_output.nii"
-                filter_ = "NIfTI-MRS Mixed Output Filename (*.nii)|*.nii"
+                default_filename = "nifti_mrs_output_3T_"
+                filter_ = "NIfTI-MRS Mixed Output Filename (*.*)|*.*"
 
             filename = common_dialogs.save_as(filetype_filter=filter_,
                                               default_path=default_path,
@@ -858,6 +859,12 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
             self.SetTitle("Analysis Prior Selection ")
             self.panel_grid_loop.Show()
 #            self.panel_output_location.Hide()
+        elif self.format == constants.ThirdPartyExportTypes.NIFTI_MRS:
+            self.SetTitle("Third Party Export to NIfTI-MRS")
+            self.panel_grid_loop.Show()
+            self.panel_output_location.Show()
+            self.panel_format_specific_parameters.Show()
+            self.panel_parameters_jmruitext.Show()
 
 
         #-----------------------------
@@ -1615,6 +1622,8 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
 
     def _do_output_nifti_mrs(self, all_lines, output_list):
 
+        lines = "\n".join(all_lines)
+
         # Create a dictionary of all metabolites that exist
         # for this step (ie. loop1, loop2, loop3) of the Experiment
 
@@ -1652,83 +1661,46 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
         # parameters for calculating the FIDS
 
         sw = self.FloatJmruiSweepWidth.GetValue()
-        dwell = 1000.0 / float(sw)  # in [ms]
         npts = self.SpinJmruiDataPoints.GetValue()
         apod = self.FloatJmruiApodize.GetValue()
-        b0 = float(self.experiment.b0) * 1e6
-
+        b0 = float(self.experiment.b0)
+        nucleus = self.experiment.isotope
         broad = self.ChoiceJmruiLineshape.GetStringSelection()
-        sw_str = str(sw)
-        dwell_str = "%6.5E" % dwell
-        vsize = str(npts)
-        apod_str = str(apod)
-        b0_str = "%6.5E" % b0
 
-        if self.experiment.isotope == "1H":
-            # should be 4.7
-            resppm = common_constants.DEFAULT_PROTON_CENTER_PPM
+        if nucleus == "1H":
+            resppm = common_constants.DEFAULT_PROTON_CENTER_PPM     # 4.7
         else:
-            # should be 0.0
-            resppm = common_constants.DEFAULT_XNUCLEI_CENTER_PPM
+            resppm = common_constants.DEFAULT_XNUCLEI_CENTER_PPM    # 0.0
 
-            # retrieve path from label
         path = self.LabelFilename.GetLabel()
-        filename = os.path.join(path, "jmrui-text_output_summary.txt")
 
-        # save the Mixed Output and jMRUI common headers out into
-        # an informative text file in the directory that will contain
-        # the jMRUI text files.
-        _write_lines(filename, all_lines)
+        # parse metabolites in dynanic list into time FID data
 
-        # parse all of the metabolites in the dynanic metabolite list
-        # into time and frequency FID data with LCModel headers
+        imgs = []
+        fnames = []
 
         for vals in output_list:
 
             abbr = vals["abbr"]
-            filename_data = os.path.join(path, abbr + '.txt')
+            filename_data = os.path.join(path+'_'+abbr+'.nii')
 
-            jheader = ["jMRUI Data Textfile"]
-            jheader.append(" ")
-            jheader.append("Filename: " + abbr + ".txt")
-            jheader.append(" ")
-            jheader.append("PointsInDataset: " + vsize)
-            jheader.append("DatasetsInFile: 1")
-            jheader.append("SamplingInterval: " + dwell_str)
-            jheader.append("ZeroOrderPhase: 0E0")
-            jheader.append("BeginTime: 0E0")
-            jheader.append("TransmitterFrequency: " + b0_str)
-            jheader.append("MagneticField: 0E0")
-            jheader.append("TypeOfNucleus: 0E0")
-            jheader.append("NameOfPatient: ")
-            jheader.append("DateOfExperiment: ")
-            jheader.append("Spectrometer: Vespa-Simulation")
-            jheader.append("AdditionalInfo: see 'readme' file for Vespa-Simulation output synopsis")
-            jheader.append(" ")
-            jheader.append("  ")
-            jheader.append("Signal and FFT ")
-            jheader.append("sig(real)\tsig(imag)\tfft(real)\tfft(imag)")
-            jheader.append("Signal 1 out of 1 in file")
+            time = _make_basis(vals, metabs_dict, npts, sw, apod, broad, b0, resppm, False)
+            # time = np.conj(time)
 
-            time = _make_basis(vals, metabs_dict, npts, sw, apod,
-                               broad, b0 / 1e6, resppm, False)
+            # nucleus - str, '1H'
+            # b0      - float, MHz
+            # sw      - float, Hz
 
-            # time = np.conj(time[:])
+            # had to set encoding='utf-8' in definitions.py line 21 .read_text(encoding='utf-8')
+            # confused by gen_nifti_mrs_hdr_ext(data, dwelltime, meta, nifti_orientation.Q44, no_conj=True)
+            #   in create_nmrs.py, appears that conj() is applied when True
 
-            time = time * (((np.arange(npts) + 1) % 2) * 2 - 1)  # chop data
-            # to make data display correctly in jMRUI we need to apply
-            # a complex conjugate to the FIDs
-            for i in range(len(time)):
-                time[i] = time[i].real - 1j * time[i].imag
-            freq = np.fft.fft(time[:])
+            img_out = nifti_mrs(time, sw, b0, nucleus, filename_data, comment=lines)
+            imgs.append(img_out)
+            fnames.append(filename_data)
 
-            for a_time, a_freq in zip(time, freq):
-                params = (a_time.real, a_time.imag, a_freq.real, a_freq.imag)
-                jheader.append("%6.5E\t%6.5E\t%6.5E\t%6.5E" % params)
+        bob = 10
 
-
-
-            _write_lines(filename_data, jheader)
 
 
 
