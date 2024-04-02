@@ -206,6 +206,9 @@ class Main(wx.Frame):
     def on_menu_third_gava_text(self, event):
         self.on_manage_mixed_output(constants.ThirdPartyExportTypes.GAVA)
 
+    def on_menu_third_nifti_mrs(self, event):
+        self.on_manage_mixed_output(constants.ThirdPartyExportTypes.NIFTI_MRS)
+
     def on_manage_mixed_output(self, format):
         if self.experiment_notebook:
             tab = self.experiment_notebook.active_tab

@@ -15,8 +15,8 @@ class ViewIds(common_menu.IdContainer):
     ZERO_LINE_SHOW = common_menu.IdContainer.PLACEHOLDER
 
     XAXIS_SHOW = common_menu.IdContainer.PLACEHOLDER
-    XAXIS_PPM = common_menu.IdContainer.PLACEHOLDER
-    XAXIS_HERTZ = common_menu.IdContainer.PLACEHOLDER
+    # XAXIS_PPM = common_menu.IdContainer.PLACEHOLDER
+    # XAXIS_HERTZ = common_menu.IdContainer.PLACEHOLDER
 
     INTEGRAL_PLOT_SHOW = common_menu.IdContainer.PLACEHOLDER
     INTEGRAL_XAXIS_SHOW = common_menu.IdContainer.PLACEHOLDER
@@ -104,7 +104,8 @@ def _get_menu_data(main):
             ("MIDAS Prior XML...",      main.on_menu_third_midas_prior),
             ("LCModel...",              main.on_menu_third_lcmodel),
             ("jMRUI Text...",           main.on_menu_third_jmrui_text),
-            ("GAVA Text...",            main.on_menu_third_gava_text))),
+            ("GAVA Text...",            main.on_menu_third_gava_text),
+            ("NIfTI-MRS...",            main.on_menu_third_nifti_mrs))),
         common_menu.SEPARATOR,
         ("Exit", main.on_self_close, wx.ITEM_NORMAL, wx.ID_EXIT),
      )
@@ -119,9 +120,10 @@ def _get_menu_data(main):
         ("Show Zero Line", main.on_menu_view_option, wx.ITEM_CHECK, ViewIds.ZERO_LINE_SHOW),
         ("X-Axis", (
             ("Show", main.on_menu_view_option, wx.ITEM_CHECK, ViewIds.XAXIS_SHOW),
-            common_menu.SEPARATOR,
-            ("PPM", main.on_menu_view_option, wx.ITEM_RADIO, ViewIds.XAXIS_PPM),
-            ("Hertz", main.on_menu_view_option, wx.ITEM_RADIO, ViewIds.XAXIS_HERTZ))),
+            # common_menu.SEPARATOR,
+            # ("PPM", main.on_menu_view_option, wx.ITEM_RADIO, ViewIds.XAXIS_PPM),
+            # ("Hertz", main.on_menu_view_option, wx.ITEM_RADIO, ViewIds.XAXIS_HERTZ)
+        )),
         common_menu.SEPARATOR,
         ("Data Type", (
             ("Real",      main.on_menu_view_option, wx.ITEM_RADIO, ViewIds.DATA_TYPE_REAL),

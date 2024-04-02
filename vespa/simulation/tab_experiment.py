@@ -122,10 +122,11 @@ class TabExperiment(vespa_notebooks.VespaAuiNotebook):
                 # main plot.
                 plot_canvas = False
 
-            if event_id in (util_menu.ViewIds.XAXIS_PPM,
-                            util_menu.ViewIds.XAXIS_HERTZ,
-                           ):
-                reset_history = True
+            # if event_id in (util_menu.ViewIds.XAXIS_PPM,
+            #                 util_menu.ViewIds.XAXIS_HERTZ,
+            #                ):
+            #     reset_history = True
+            #     self.visualize.plot1d.reversex = (event_id==util_menu.ViewIds.XAXIS_PPM)
 
             if event_id in (util_menu.ViewIds.DATA_TYPE_REAL,
                             util_menu.ViewIds.DATA_TYPE_IMAGINARY,

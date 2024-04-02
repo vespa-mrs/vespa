@@ -245,6 +245,10 @@ class TabVisualize(visualize.PanelVisualizeUI):
         tt = xx / self.freq1d.sw
         self.apodization = util_generic_spectral.apodize(tt, self.linewidth, 'Gaussian')
 
+        # if self._prefs.xaxis_hertz:
+        #     xx = self.freq1d.pts2hz(xx)
+        # else:
+        #     xx = self.freq1d.pts2ppm(xx)
         xx = self.freq1d.pts2ppm(xx)
 
         self.plot1d.figure.set_facecolor('white')
@@ -449,9 +453,6 @@ class TabVisualize(visualize.PanelVisualizeUI):
         window.SetSize(size)
 
 
-
-
-
     # =======================================================
     #
     #           Event Handlers
@@ -478,10 +479,10 @@ class TabVisualize(visualize.PanelVisualizeUI):
         self.update_widget_ranges()
         xmax = self.FloatXaxisMax.GetValue()
         xmin = self.FloatXaxisMin.GetValue()
-        if self._prefs.xaxis_hertz:
-            freq1d = self.freq1d
-            xmax = freq1d.pts2hz(freq1d.ppm2pts(xmax))
-            xmin = freq1d.pts2hz(freq1d.ppm2pts(xmin))
+        # if self._prefs.xaxis_hertz:
+        #     freq1d = self.freq1d
+        #     xmax = freq1d.pts2hz(freq1d.ppm2pts(xmax))
+        #     xmin = freq1d.pts2hz(freq1d.ppm2pts(xmin))
         if xmax == xmin:
             xmin *= 0.999
         self.plot1d_axes.set_xlim((xmax,xmin))
@@ -491,10 +492,10 @@ class TabVisualize(visualize.PanelVisualizeUI):
         self.update_widget_ranges()
         xmax = self.FloatXaxisMax.GetValue()
         xmin = self.FloatXaxisMin.GetValue()
-        if self._prefs.xaxis_hertz:
-            freq1d = self.freq1d
-            xmax = freq1d.pts2hz(freq1d.ppm2pts(xmax))
-            xmin = freq1d.pts2hz(freq1d.ppm2pts(xmin))
+        # if self._prefs.xaxis_hertz:
+        #     freq1d = self.freq1d
+        #     xmax = freq1d.pts2hz(freq1d.ppm2pts(xmax))
+        #     xmin = freq1d.pts2hz(freq1d.ppm2pts(xmin))
         if xmax == xmin:
             xmin *= 0.999
         self.plot1d_axes.set_xlim((xmax,xmin))
@@ -504,10 +505,10 @@ class TabVisualize(visualize.PanelVisualizeUI):
         self.update_widget_ranges()
         xmax = self.FloatCursorMax.GetValue()
         xmin = self.FloatCursorMin.GetValue()
-        if self._prefs.xaxis_hertz:
-            freq1d = self.freq1d
-            xmax = freq1d.pts2hz(freq1d.ppm2pts(xmax))
-            xmin = freq1d.pts2hz(freq1d.ppm2pts(xmin))
+        # if self._prefs.xaxis_hertz:
+        #     freq1d = self.freq1d
+        #     xmax = freq1d.pts2hz(freq1d.ppm2pts(xmax))
+        #     xmin = freq1d.pts2hz(freq1d.ppm2pts(xmin))
         if xmax == xmin:
             xmin *= 0.999
         if self.plot1d.refs != None:
@@ -520,10 +521,10 @@ class TabVisualize(visualize.PanelVisualizeUI):
         self.update_widget_ranges()
         xmax = self.FloatCursorMax.GetValue()
         xmin = self.FloatCursorMin.GetValue()
-        if self._prefs.xaxis_hertz:
-            freq1d = self.freq1d
-            xmax = freq1d.pts2hz(freq1d.ppm2pts(xmax))
-            xmin = freq1d.pts2hz(freq1d.ppm2pts(xmin))
+        # if self._prefs.xaxis_hertz:
+        #     freq1d = self.freq1d
+        #     xmax = freq1d.pts2hz(freq1d.ppm2pts(xmax))
+        #     xmin = freq1d.pts2hz(freq1d.ppm2pts(xmin))
         if xmax == xmin:
             xmin *= 0.999
         if self.plot1d.refs != None:
@@ -718,8 +719,12 @@ class TabVisualize(visualize.PanelVisualizeUI):
         sw     = self.freq1d.sw
         freq   = self.freq1d.frequency
         resppm = self.freq1d.resppm
-        self.maxppm = ( ((dim0/2) - (0)     ) * ((sw/dim0) / freq) ) + resppm
-        self.minppm = ( ((dim0/2) - (dim0-1)) * ((sw/dim0) / freq) ) + resppm
+
+        self.maxppm = self.freq1d.pts2ppm(0)
+        self.minppm = self.freq1d.pts2ppm(dim0-1)
+
+        # self.maxppm = ( ((dim0/2) - (0)     ) * ((sw/dim0) / freq) ) + resppm
+        # self.minppm = ( ((dim0/2) - (dim0-1)) * ((sw/dim0) / freq) ) + resppm
 
         # if x-axis has changed, ensure bounds are appropriate
         axes = self.plot1d.axes[0]
@@ -729,6 +734,13 @@ class TabVisualize(visualize.PanelVisualizeUI):
         # bjs - this was returning 'inf' values on init prior to any data being plotted
         #  not sure why it did not crash before. May need to put dummy data in on
         #  creation of the plot_panel
+
+        # if self._prefs.xaxis_hertz:
+        #     xmax, xmin = xmin, xmax
+        #     xmin = (xmin-resppm) * freq
+        #     xmax = (xmax-resppm) * freq
+        #     self.freq1d.reversex = False
+
         axes.ignore_existing_data_limits = True
         if not all(np.isfinite([x0,y0,x1,y1])):
             axes.update_datalim([[xmin,0.0],[xmax,1.0]])
@@ -736,7 +748,6 @@ class TabVisualize(visualize.PanelVisualizeUI):
             axes.update_datalim([[xmin, y0],[xmax,y1+y0]])
 
         bx0, by0, bx1, by1 = axes.dataLim.bounds
-
 
         # We use a callback function to provide a progress indicator. However,
         # it only works under Linux/GTK.
@@ -839,19 +850,20 @@ class TabVisualize(visualize.PanelVisualizeUI):
         xx   = np.arange(self.freq1d.dims[0], dtype='float64')
         xmax = self.FloatXaxisMax.GetValue()
         xmin = self.FloatXaxisMin.GetValue()
-        if self._prefs.xaxis_ppm:
-            xx = self.freq1d.pts2ppm(xx)
-        else:
-            xx = self.freq1d.pts2hz(xx)
-            xmax = self.freq1d.pts2hz(self.freq1d.ppm2pts(xmax))
-            xmin = self.freq1d.pts2hz(self.freq1d.ppm2pts(xmin))
+        # if self._prefs.xaxis_ppm:
+        #     xx = self.freq1d.pts2ppm(xx)
+        # else:
+        #     xx = self.freq1d.pts2hz(xx)
+        #     xmax = self.freq1d.pts2hz(self.freq1d.ppm2pts(xmax))
+        #     xmin = self.freq1d.pts2hz(self.freq1d.ppm2pts(xmin))
+        xx = self.freq1d.pts2ppm(xx)
         xlim = (xmax, xmin)
 
         xmax = self.FloatCursorMax.GetValue()
         xmin = self.FloatCursorMin.GetValue()
-        if self._prefs.xaxis_hertz:
-            xmax = self.freq1d.pts2hz(self.freq1d.ppm2pts(xmax))
-            xmin = self.freq1d.pts2hz(self.freq1d.ppm2pts(xmin))
+        # if self._prefs.xaxis_hertz:
+        #     xmax = self.freq1d.pts2hz(self.freq1d.ppm2pts(xmax))
+        #     xmin = self.freq1d.pts2hz(self.freq1d.ppm2pts(xmin))
         if self.plot1d.refs != None:
             self.plot1d.refs.set_span(xmin,xmax)
 
@@ -860,28 +872,31 @@ class TabVisualize(visualize.PanelVisualizeUI):
         dmin = data.min()
         dmax = data.max()
         dr   = abs(dmax - dmin)
-        dmin = dmin - dr*0.03   # space line collection vertically
-        dmax = dmax + dr*0.03
+        dmin = dmin - dr*0.02   # space line collection vertically
+        dmax = dmax + dr*0.02
         dr = dmax - dmin
         y0 = dmin
         y1 = dmin + data.shape[0] * dr
+        self.plot1d.dr = dr
 
         # set up line collection requirements
         segs = []
         for i in range(data.shape[0]):
-            segs.append(np.hstack((xx[:,np.newaxis], data[i,:,np.newaxis])))
+            segs.append(np.hstack((xx[:,np.newaxis], data[i,:,np.newaxis] + i*dr)))
             ticklocs.append(i*dr)
         offsets = np.zeros((data.shape[0],2), dtype=float)
         offsets[:,1] = ticklocs
+        offsets = np.array(offsets)
 
-        lines = mpl.collections.LineCollection(segs, offsets=offsets,
+        lines = mpl.collections.LineCollection(segs,
+                                               #offsets=offsets,
                                                linewidth=self._prefs.line_width)
         lines.set_color(color)
 
         self.plot1d_axes.cla()
         self.plot1d_axes.set_xlim(xlim)     # has to happen after cla()
         self.plot1d.refresh_cursors()
-        self.plot1d_axes.add_collection(lines)
+        self.plot1d_axes.add_collection(lines, autolim=False)
         self.plot1d_axes.set_yticks(ticklocs)
 
         if self._prefs.zero_line_show:
@@ -1079,8 +1094,8 @@ class TabVisualize(visualize.PanelVisualizeUI):
         if len(xx)<2:
             return
 
-        if self._prefs.xaxis_hertz:
-            xx = xx * self.freq1d.frequency   # convert generally to Hz
+        # if self._prefs.xaxis_hertz:
+        #     xx = xx * self.freq1d.frequency   # convert generally to Hz
 
         x0 = self.freq1d.ppm2pts(self.FloatCursorMax.GetValue())
         x1 = self.freq1d.ppm2pts(self.FloatCursorMin.GetValue())

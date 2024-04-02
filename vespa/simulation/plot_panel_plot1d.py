@@ -10,7 +10,7 @@ import vespa.common.wx_gravy.plot_panel as plot_panel
 import vespa.common.wx_gravy.util as wx_util
 from wx.lib.agw.floatspin import FloatSpin, EVT_FLOATSPIN, FS_LEFT, FS_RIGHT, FS_CENTRE, FS_READONLY,  FixedPoint
 
-        
+
 
 class PlotPanelPlot1d(plot_panel.PlotPanel):
     
@@ -26,6 +26,7 @@ class PlotPanelPlot1d(plot_panel.PlotPanel):
         self.tab    = tab
         self._prefs = prefs
         self.count  = 0
+        self.dr     = 0.0
         
         self.set_color( (255,255,255) )
 
@@ -33,12 +34,14 @@ class PlotPanelPlot1d(plot_panel.PlotPanel):
     # EVENT FUNCTIONS -----------------------------------------------
     
     def on_motion(self, xdata, ydata, val, bounds, iaxis):
-        if self._prefs.xaxis_hertz:
-            hz  = xdata
-            ppm = self.tab.freq1d.pts2ppm(self.tab.freq1d.hz2pts(xdata))
-        else:
-            ppm = xdata
-            hz  = self.tab.freq1d.pts2hz(self.tab.freq1d.ppm2pts(xdata))
+        # if self._prefs.xaxis_hertz:
+        #     hz  = xdata
+        #     ppm = self.tab.freq1d.pts2ppm(self.tab.freq1d.hz2pts(xdata))
+        # else:
+        #     ppm = xdata
+        #     hz  = self.tab.freq1d.pts2hz(self.tab.freq1d.ppm2pts(xdata))
+        ppm = xdata
+        hz = self.tab.freq1d.pts2hz(self.tab.freq1d.ppm2pts(xdata))
         
         # if in a stack plot, determine which plot we are in so we can
         # display the appropriate value from the val list
@@ -57,37 +60,46 @@ class PlotPanelPlot1d(plot_panel.PlotPanel):
                 metabolite_label = self.tab.plot_labels[-1]
             if self.tab.CheckSumPlots.IsChecked():
                 metabolite_label = "Summed Metabolites"
-                
+
+        # remove offset value if available
+        dr = 0 if not hasattr(self, 'dr') else self.dr
+        tmp_val = val[iplot] - (dr * iplot)
+
         self.tab.statusbar.SetStatusText(( "PPM = "  +str(ppm)  ), 0)
         self.tab.statusbar.SetStatusText(( "Hz = "   +str(hz)   ), 1)
-        self.tab.statusbar.SetStatusText(( "Value = "+str(val[iplot])), 2)   
+        self.tab.statusbar.SetStatusText(( "Value = "+str(tmp_val)), 2)
         self.tab.statusbar.SetStatusText(( metabolite_label  ), 3)
         
             
     def on_zoom_select(self, xmin, xmax, val, ymin, ymax, reset=False):
-        if self._prefs.xaxis_hertz:
-            xmax = self.tab.freq1d.pts2ppm(self.tab.freq1d.hz2pts(xmax))
-            xmin = self.tab.freq1d.pts2ppm(self.tab.freq1d.hz2pts(xmin))
-            xmax = np.clip(xmax, self.tab.minppm, self.tab.maxppm)
-            xmin = np.clip(xmin, self.tab.minppm, self.tab.maxppm)
+        # if self._prefs.xaxis_hertz:
+        #     xmax = self.tab.freq1d.pts2ppm(self.tab.freq1d.hz2pts(xmax))
+        #     xmin = self.tab.freq1d.pts2ppm(self.tab.freq1d.hz2pts(xmin))
+        #     xmax = np.clip(xmax, self.tab.minppm, self.tab.maxppm)
+        #     xmin = np.clip(xmin, self.tab.minppm, self.tab.maxppm)
         self.tab.FloatXaxisMin.SetValue(xmin)
         self.tab.FloatXaxisMax.SetValue(xmax)
 
 
     def on_zoom_motion(self, xmin, xmax, val, ymin, ymax):
-        if self._prefs.xaxis_hertz:
-            hz_str = xmin
-            hz_end = xmax
-            if hz_str > hz_end: hz_str, hz_end = hz_end, hz_str
-            ppm_str = hz_str / self.tab.freq1d.frequency
-            ppm_end = hz_end / self.tab.freq1d.frequency
-        else:
-            ppm_str = np.clip(xmin, self.tab.minppm, self.tab.maxppm)
-            ppm_end = np.clip(xmax, self.tab.minppm, self.tab.maxppm)
-            if ppm_str > ppm_end: ppm_str, ppm_end = ppm_end, ppm_str
-            hz_str = ppm_str * self.tab.freq1d.frequency
-            hz_end = ppm_end * self.tab.freq1d.frequency
 
+        # if self._prefs.xaxis_hertz:
+        #     hz_str = xmin
+        #     hz_end = xmax
+        #     if hz_str > hz_end: hz_str, hz_end = hz_end, hz_str
+        #     ppm_str = hz_str / self.tab.freq1d.frequency
+        #     ppm_end = hz_end / self.tab.freq1d.frequency
+        # else:
+        #     ppm_str = np.clip(xmin, self.tab.minppm, self.tab.maxppm)
+        #     ppm_end = np.clip(xmax, self.tab.minppm, self.tab.maxppm)
+        #     if ppm_str > ppm_end: ppm_str, ppm_end = ppm_end, ppm_str
+        #     hz_str = ppm_str * self.tab.freq1d.frequency
+        #     hz_end = ppm_end * self.tab.freq1d.frequency
+        ppm_str = np.clip(xmin, self.tab.minppm, self.tab.maxppm)
+        ppm_end = np.clip(xmax, self.tab.minppm, self.tab.maxppm)
+        if ppm_str > ppm_end: ppm_str, ppm_end = ppm_end, ppm_str
+        hz_str = ppm_str * self.tab.freq1d.frequency
+        hz_end = ppm_end * self.tab.freq1d.frequency
         self.tab.FloatXaxisMax.SetValue(FixedPoint(str(xmax),10))
         self.tab.FloatXaxisMin.SetValue(FixedPoint(str(xmin),10))
         
@@ -100,11 +112,11 @@ class PlotPanelPlot1d(plot_panel.PlotPanel):
 
     def on_refs_select(self, xmin, xmax, val):
         
-        if self._prefs.xaxis_hertz:
-            xmax = self.tab.freq1d.pts2ppm(self.tab.freq1d.hz2pts(xmax))
-            xmin = self.tab.freq1d.pts2ppm(self.tab.freq1d.hz2pts(xmin))
-            xmax = np.clip(xmax, self.tab.minppm, self.tab.maxppm)
-            xmin = np.clip(xmin, self.tab.minppm, self.tab.maxppm)
+        # if self._prefs.xaxis_hertz:
+        #     xmax = self.tab.freq1d.pts2ppm(self.tab.freq1d.hz2pts(xmax))
+        #     xmin = self.tab.freq1d.pts2ppm(self.tab.freq1d.hz2pts(xmin))
+        #     xmax = np.clip(xmax, self.tab.minppm, self.tab.maxppm)
+        #     xmin = np.clip(xmin, self.tab.minppm, self.tab.maxppm)
         self.tab.FloatCursorMax.SetValue(FixedPoint(str(xmax),10))
         self.tab.FloatCursorMin.SetValue(FixedPoint(str(xmin),10))
         self.tab.plot_integral()
@@ -113,18 +125,23 @@ class PlotPanelPlot1d(plot_panel.PlotPanel):
 
     def on_refs_motion(self, xmin, xmax, val):
 
-        if self._prefs.xaxis_hertz:
-            hz_str = xmin
-            hz_end = xmax
-            if hz_str > hz_end: hz_str, hz_end = hz_end, hz_str
-            ppm_str = hz_str / self.tab.freq1d.frequency
-            ppm_end = hz_end / self.tab.freq1d.frequency
-        else:
-            ppm_str = xmin
-            ppm_end = xmax
-            if ppm_str > ppm_end: ppm_str, ppm_end = ppm_end, ppm_str
-            hz_str = ppm_str * self.tab.freq1d.frequency
-            hz_end = ppm_end * self.tab.freq1d.frequency
+        # if self._prefs.xaxis_hertz:
+        #     hz_str = xmin
+        #     hz_end = xmax
+        #     if hz_str > hz_end: hz_str, hz_end = hz_end, hz_str
+        #     ppm_str = hz_str / self.tab.freq1d.frequency
+        #     ppm_end = hz_end / self.tab.freq1d.frequency
+        # else:
+        #     ppm_str = xmin
+        #     ppm_end = xmax
+        #     if ppm_str > ppm_end: ppm_str, ppm_end = ppm_end, ppm_str
+        #     hz_str = ppm_str * self.tab.freq1d.frequency
+        #     hz_end = ppm_end * self.tab.freq1d.frequency
+        ppm_str = xmin
+        ppm_end = xmax
+        if ppm_str > ppm_end: ppm_str, ppm_end = ppm_end, ppm_str
+        hz_str = ppm_str * self.tab.freq1d.frequency
+        hz_end = ppm_end * self.tab.freq1d.frequency
 
         self.tab.FloatCursorMax.SetValue(FixedPoint(str(xmax),10))
         self.tab.FloatCursorMin.SetValue(FixedPoint(str(xmin),10))

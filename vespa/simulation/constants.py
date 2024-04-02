@@ -23,3 +23,4 @@ class ThirdPartyExportTypes(object):
     JMRUI            = 4
     GAVA             = 5
     ANALYSIS_DIRECT  = 6
+    NIFTI_MRS        = 7

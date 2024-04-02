@@ -1,8 +1,8 @@
 """
-Expansion of matplotlib embed in wx example by John Bender and Edward 
+Expansion of matplotlib embed in wx example by John Bender and Edward
 Abraham, see http://www.scipy.org/Matplotlib_figure_in_a_wx_panel
 
-This version allows the user to zoom in on the figure using either 
+This version allows the user to zoom in on the figure using either
 a span selector or a box selector. You can also set a persistent span
 selector that acts as cursor references on top of whatever is plotted
 
@@ -23,7 +23,7 @@ import wx
 
 
 # If we set the backend unconditionally, we sometimes get an undesirable
-# message. 
+# message.
 if matplotlib.get_backend() != "WXAgg":
     matplotlib.use('WXAgg')
 
@@ -34,58 +34,58 @@ from matplotlib.lines      import Line2D
 # Our modules
 
 
-    
+
 
 
 class PlotPanel(wx.Panel):
     """
     The PlotPanel has a Figure and a Canvas and 'n' Axes. The user defines
     the number of axes on Init and this number cannot be changed thereafter.
-    However, the user can select which of the n axes are actually displayed 
+    However, the user can select which of the n axes are actually displayed
     in the Figure.
-    
-    Axes are specified on Init because the zoom and reference cursors 
-    need an axes to attach to to init properly.  
-    
-    on_size events simply set a flag, and the actual resizing of the figure is 
+
+    Axes are specified on Init because the zoom and reference cursors
+    need an axes to attach to to init properly.
+
+    on_size events simply set a flag, and the actual resizing of the figure is
     triggered by an Idle event.
-    
+
     PlotPanel Functionality
     --------------------------------------------------
-    left mouse - If zoom mode is 'span', click and drag zooms the figure.  
-                 A span is selected along the x-axis. On release, the 
+    left mouse - If zoom mode is 'span', click and drag zooms the figure.
+                 A span is selected along the x-axis. On release, the
                  axes xlim is adjusted accordingly. If zoom mode is 'box', then
-                 a zoom box is drawn during click and drag and figure is 
+                 a zoom box is drawn during click and drag and figure is
                  zoomed on both x- and y-axes upon release.
-               
+
     left mouse - click in place, un-zooms the figure to maximum x-data or
                  x-data and y-data bounds.
-                 
+
     right mouse - If reference mode is True/On, then click and drag will draw
                   a span selector in the canvas that persists after release.
-                  
-    middle mouse - (or scroll button click), if do_middle_select_event and/or 
-                   do_middle_motion_event are True then select, release and 
+
+    middle mouse - (or scroll button click), if do_middle_select_event and/or
+                   do_middle_motion_event are True then select, release and
                    motion events are returned for these uses of the middle
-                   mouse button. Mouse location and axes index values are 
+                   mouse button. Mouse location and axes index values are
                    returned
-                   
-    scroll roll - if do_scroll_event is True then these events are returned if 
+
+    scroll roll - if do_scroll_event is True then these events are returned if
                   they occur within an axes. Mouse location and axes index
                   values are returned
 
     """
 
-    # Set _EVENT_DEBUG to True to activate printing of messages to stdout 
+    # Set _EVENT_DEBUG to True to activate printing of messages to stdout
     # during events.
     _EVENT_DEBUG = False
 
     def __init__(self, parent, naxes=2,
-                               color=None, 
-                               dpi=None, 
+                               color=None,
+                               dpi=None,
                                reversex=False,
-                               zoom='none', 
-                               reference=False, 
+                               zoom='none',
+                               reference=False,
                                middle=False,
                                unlink=False,
                                zoom_button=1,
@@ -141,7 +141,7 @@ class PlotPanel(wx.Panel):
         self.yscale_bump = yscale_bump
 
         self.update_plot = update_plot
-        
+
         # Under GTK track self's size to avoid a continuous flow of size events.
         self._platform_is_gtk = ("__WXGTK__" in wx.PlatformInfo)
         self._current_size = (-1, -1)
@@ -164,13 +164,13 @@ class PlotPanel(wx.Panel):
         self.axes   = []                    # dynamic list for display
         for i in range(naxes):
             self.axes.append(self.figure.add_subplot(naxes,1,i+1))
-        self.naxes = naxes   
+        self.naxes = naxes
         self.all_axes = list(self.axes)     # static list for long term interaction
 
         self.zoom = []
         self.refs = []
         self.middle = []
-        
+
         self.set_color( color )
         self._set_size()
         self._resizeflag = False
@@ -189,7 +189,7 @@ class PlotPanel(wx.Panel):
         # enable Zoom, Reference, Middle and Scroll functionality as required
 
         if zoom == 'span':
-        
+
             if not unlink:
                 self.zoom = ZoomSpan( self, self.all_axes,
                                       useblit=True,
@@ -206,7 +206,7 @@ class PlotPanel(wx.Panel):
                                           do_zoom_motion_event=do_zoom_motion_event,
                                           rectprops=props_zoom))
         if zoom == 'box':
-            
+
             if not unlink:
                 self.zoom = ZoomBox(  self, self.axes,
                                       drawtype='box',
@@ -227,7 +227,7 @@ class PlotPanel(wx.Panel):
                                           spancoords='data',
                                           rectprops=props_zoom))
         if reference:
-            
+
             if not unlink:
                 self.refs = CursorSpan(self, self.axes,
                                        useblit=True,
@@ -258,9 +258,9 @@ class PlotPanel(wx.Panel):
                                           do_middle_select_event=do_middle_select_event,
                                           do_middle_motion_event=do_middle_motion_event))
 
-        self.do_motion_event = True  
+        self.do_motion_event = True
         self.motion_id = self.canvas.mpl_connect('motion_notify_event', self._on_move)
-        
+
         self.do_scroll_event = do_scroll_event
         if self.do_scroll_event:
             self.scroll_id = self.canvas.mpl_connect('scroll_event', self._on_scroll)
@@ -270,7 +270,7 @@ class PlotPanel(wx.Panel):
 
     #=======================================================
     #
-    #           Internal Helper Functions  
+    #           Internal Helper Functions
     #
     #=======================================================
 
@@ -280,7 +280,7 @@ class PlotPanel(wx.Panel):
 
     def _on_size( self, event ):
         if self._platform_is_gtk:
-            # This is a workaround 
+            # This is a workaround
             current_x, current_y = self._current_size
             new_x, new_y = tuple(event.GetSize())
 
@@ -315,7 +315,7 @@ class PlotPanel(wx.Panel):
 
         """
         if event.inaxes == None or not self.do_motion_event: return
-        
+
         bounds = event.inaxes.dataLim.bounds
         value = self.get_values(event)
         iaxis = None
@@ -324,7 +324,7 @@ class PlotPanel(wx.Panel):
                 iaxis = i
 
         self.on_motion(event.xdata, event.ydata, value, bounds, iaxis)
-        
+
     def _on_scroll(self, event):
         """
         Internal method organizes data sent to an external user defined event
@@ -336,8 +336,8 @@ class PlotPanel(wx.Panel):
         for i,axis in enumerate(self.axes):
             if axis == event.inaxes:
                 iaxis = i
-                
-        self.on_scroll(event.button, event.step, iaxis)        
+
+        self.on_scroll(event.button, event.step, iaxis)
 
 
     def update_plot(self):
@@ -349,38 +349,36 @@ class PlotPanel(wx.Panel):
         Included in plot_panel object so users can overwrite it if necessary.
         Default functionality: Determine which axes the mouse is in, return a
         list of data values at the x location of the cursor.
-        
+
         This is complicated by the fact that some plot_panels put their plots
         into the lines attribute, while others use the collections attribute.
-        This is solved by designating this distinction using a flag at the 
-        main level. Caveat, plot_panels can have only one or the other types 
+        This is solved by designating this distinction using a flag at the
+        main level. Caveat, plot_panels can have only one or the other types
         of plots, line or collection based.
-        
+
         """
         value = []
         x0, y0, x1, y1 = event.inaxes.dataLim.bounds
 
         if not all([math.isfinite(x) for x in [x0, y0, x1, y1]]):    # typical when plot is empty
             return [0.0,]
-    
+
         # sporadic event calls yield 'event.inaxes == None' so we test for that here
         if event.inaxes:
             if self.uses_collections:
-                
+
                 # Expects LineCollection - Figures out the offset of the cursor and
                 # returns the path value for the x-position of that line plot.
                 # Note. Not guaranteed to work for any other types of collections
                 if event.inaxes.collections:
                     npts = len(event.inaxes.collections[0]._paths[0].vertices[:,1])
                     indx = int(round((npts-1) * (event.xdata-x0)/x1))
-                    if self.reversex:   indx = npts - indx - 1
-                    if indx > (npts-1): indx = npts - 1
-                    if indx < 0:        indx = 0
+                    if self.reversex:
+                        indx = npts - indx - 1
+                    indx = min(max(indx,0),(npts-1))
+                    # these values still have their offsets added into them
                     for i,path in enumerate(event.inaxes.collections[0]._paths):
-                        offset = event.inaxes.collections[0]._uniform_offsets[i,1]
-                        dat = path.vertices[:,1]
-                        if indx < len(dat):
-                            value.append(dat[indx]-offset)
+                        value.append(path.vertices[indx,1])
             else:
                 if event.inaxes.lines:
                     data = event.inaxes.lines[0].get_ydata()
@@ -396,15 +394,15 @@ class PlotPanel(wx.Panel):
                             dat = line.get_ydata()
                             if indx < len(dat):
                                 value.append(dat[indx])
-        if value == []: 
+        if value == []:
             value = [0.0,]
-            
+
         return value
 
 
     #=======================================================
     #
-    #           User Accessible Functions  
+    #           User Accessible Functions
     #
     #=======================================================
 
@@ -432,18 +430,18 @@ class PlotPanel(wx.Panel):
         User supplies only the number of axes to include and the first 1:n
         axes in the long term storage list are retained in the figure. This method
         also updates the axes lists in any zoom, refs or middle objects.
-        
+
         """
         if n > self.naxes or n < 0 or n == len(self.figure.axes):
             return
-        
-        self.axes = self.all_axes[0:n]  
+
+        self.axes = self.all_axes[0:n]
 
         # remove old axes, but don't destroy
         figure_axes = list(self.figure.axes)
         for axes in figure_axes:
             self.figure.delaxes(axes)
-            
+
         # add back however many were requested
         for axes in self.axes:
             ax = self.figure.add_axes(axes)
@@ -451,10 +449,10 @@ class PlotPanel(wx.Panel):
         if not self.unlink:
             if self.zoom:
                 self.zoom.axes = self.axes
-                 
+
             if self.refs:
                 self.refs.axes = self.axes
-     
+
             if self.middle:
                 self.middle.axes = self.axes
 
@@ -462,16 +460,16 @@ class PlotPanel(wx.Panel):
 
     def display_naxes(self, flags):
         """
-        Allows user to specifiy exactly which of the N axes defined in the 
-        init() method are included in the figure. 
-        
+        Allows user to specifiy exactly which of the N axes defined in the
+        init() method are included in the figure.
+
         The user has to supply a boolean list of flags of the same length as
-        the list of all_axes. The axes that correspond to flags set to True 
+        the list of all_axes. The axes that correspond to flags set to True
         are included in the figure.
-        
+
         This method also updates the axes lists in the zoom, refs and middle
         functor methods.
-        
+
         """
         ncurrent = len(self.all_axes)
         nflags = len(flags)
@@ -480,7 +478,7 @@ class PlotPanel(wx.Panel):
         faxes = list(self.figure.axes)
         for axes in faxes:
             self.figure.delaxes(axes)
-            
+
         for i, axes in enumerate(self.axes):
             if flags[i] != False:
                 ax = self.figure.add_axes(axes)
@@ -488,10 +486,10 @@ class PlotPanel(wx.Panel):
         if not self.unlink:
             if self.zoom:
                 self.zoom.axes = self.axes
-                 
+
             if self.refs:
                 self.refs.axes = self.axes
-     
+
             if self.middle:
                 self.middle.axes = self.axes
 
@@ -509,33 +507,33 @@ class PlotPanel(wx.Panel):
             self.zoom.new_axes(self.axes)
         if self.reference is not None:
             self.refs.new_axes(self.axes)
-            
+
         if self.canvas is not self.axes[0].figure.canvas:
             self.canvas.mpl_disconnect(self.motion_id)
             self.canvas = self.axes[0].figure.canvas
-            self.motion_id = self.canvas.mpl_connect('motion_notify_event', self._on_move)       
+            self.motion_id = self.canvas.mpl_connect('motion_notify_event', self._on_move)
         if self.figure is not self.axes[0].figure:
             self.figure = self.axes[0].figure
 
-        
+
     #=======================================================
     #
-    #           Default Event Handlers  
+    #           Default Event Handlers
     #
     #=======================================================
-        
+
     def on_motion(self, xdata, ydata, value, bounds, iaxis):
         """ placeholder, overload for user defined event handling """
         self._dprint('on_move, xdata='+str(xdata)+'  ydata='+str(ydata)+'  val='+str(value)+'  bounds = '+str(bounds)+'  iaxis='+str(iaxis))
-        
+
     def on_scroll(self, button, step, iaxis):
         """ placeholder, overload for user defined event handling """
         self._dprint('on_move, button='+str(button)+'  step='+str(step)+'  iaxis='+str(iaxis))
-        
+
     def on_zoom_select(self, xmin, xmax, val, ymin, ymax, reset=False, iplot=None):
         """ placeholder, overload for user defined event handling """
         self._dprint('on_zoom_select, xmin='+str(xmin)+'  xmax='+str(xmax)+'  val='+str(val)+'  ymin='+str(ymin)+'  ymax='+str(ymax))
-        
+
     def on_zoom_motion(self, xmin, xmax, val, ymin, ymax, iplot=None):
         """ placeholder, overload for user defined event handling """
         self._dprint('on_zoom_move, xmin='+str(xmin)+'  xmax='+str(xmax)+'  val='+str(val)+'  ymin='+str(ymin)+'  ymax='+str(ymax))
@@ -543,7 +541,7 @@ class PlotPanel(wx.Panel):
     def on_refs_select(self, xmin, xmax, val, iplot=None):
         """ placeholder, overload for user defined event handling """
         self._dprint('on_refs_select, xmin='+str(xmin)+'  xmax='+str(xmax)+'  val='+str(val))
-        
+
     def on_refs_motion(self, xmin, xmax, val, iplot=None):
         """ placeholder, overload for user defined event handling """
         self._dprint('on_refs_move, xmin='+str(xmin)+'  xmax='+str(xmax)+'  val='+str(val))
@@ -551,7 +549,7 @@ class PlotPanel(wx.Panel):
     def on_middle_select(self, xstr, ystr, xend, yend, indx):
         """ placeholder, overload for user defined event handling """
         self._dprint('ext on_middle_select, X(str,end)='+str(xstr)+','+str(xend)+'  Y(str,end)='+str(ystr)+','+str(yend)+'  Index = '+str(indx))
-        
+
     def on_middle_motion(self, xcur, ycur, xprev, yprev, indx):
         """ placeholder, overload for user defined event handling """
         self._dprint('on_middle_move, X(cur,prev)='+str(xcur)+','+str(xprev)+'  Y(cur,prev)='+str(ycur)+','+str(yprev)+'  Index = '+str(indx))
@@ -559,7 +557,7 @@ class PlotPanel(wx.Panel):
     def on_middle_press(self, xloc, yloc, indx, bounds=None, xdata=None, ydata=None):
         """ placeholder, overload for user defined event handling """
         self._dprint('on_middle_press, Xloc='+str(xloc)+'  Yloc='+str(yloc)+'  Index = '+str(indx))
-        
+
 
 class ZoomSpan:
     """
@@ -581,10 +579,10 @@ class ZoomSpan:
 
     def __init__(self, parent, axes,
                                button=1,
-                               minspan=None, 
-                               useblit=False, 
-                               rectprops=None, 
-                               do_zoom_select_event=False, 
+                               minspan=None,
+                               useblit=False,
+                               rectprops=None,
+                               do_zoom_select_event=False,
                                do_zoom_motion_event=False):
         """
         Create a span selector in axes.  When a selection is made, clear
@@ -641,7 +639,7 @@ class ZoomSpan:
             self.cids.append(self.canvas.mpl_connect('button_press_event', self.press))
             self.cids.append(self.canvas.mpl_connect('button_release_event', self.release))
             self.cids.append(self.canvas.mpl_connect('draw_event', self.update_background))
-        
+
         for axes in self.axes:
             trans = blended_transform_factory(axes.transData, axes.transAxes)
             self.rect.append(Rectangle( (0,0), 0, 1,
@@ -665,7 +663,7 @@ class ZoomSpan:
         '''on button press event'''
         if self.ignore(event): return
         self.buttonDown = True
-        
+
         # only send one motion event while selecting
         if self.do_zoom_motion_event:
             self.parent.do_motion_event = False
@@ -678,7 +676,7 @@ class ZoomSpan:
 
         for rect in self.rect:
             rect.set_visible(self.visible)
-            
+
         self.pressv = event.xdata
         return False
 
@@ -689,7 +687,7 @@ class ZoomSpan:
         self.parent.SetFocus()  # sets focus into Plot_Panel widget canvas
 
         self.buttonDown = False
-        
+
         # only send one motion event while selecting
         if self.do_zoom_motion_event:
             self.parent.do_motion_event = True
@@ -697,9 +695,9 @@ class ZoomSpan:
         for rect in self.rect:
             rect.set_visible(False)
 
-        # left-click in place resets the x-axis 
+        # left-click in place resets the x-axis
         if event.xdata == self.pressv:
-            x0, y0, x1, y1 = event.inaxes.dataLim.bounds  
+            x0, y0, x1, y1 = event.inaxes.dataLim.bounds
             if all([math.isfinite(x) for x in [x0, y0, x1, y1]]):  # typical when plot is empty
                 xdel = self.parent.xscale_bump * (x1 - x0)
                 ydel = self.parent.yscale_bump * (y1 - y0)
@@ -713,7 +711,7 @@ class ZoomSpan:
 
                 if self.do_zoom_select_event:
                     self.parent.on_zoom_select(x0-xdel, x0+x1+xdel, [0.0], y0-ydel, y0+y1+ydel, reset=True)
-            
+
             return
 
         vmin = self.pressv
@@ -743,10 +741,10 @@ class ZoomSpan:
         if self.do_zoom_select_event and data_test:
             # gather the values to report in a selection event
             value = self.parent.get_values(event)
-            self.parent.on_zoom_select(vmin, vmax, value, None, None) 
-            
+            self.parent.on_zoom_select(vmin, vmax, value, None, None)
+
         self.pressv = None
-        
+
         return False
 
     def update(self):
@@ -783,12 +781,12 @@ class ZoomSpan:
             else:
                 data_test = event.inaxes.lines!=[]
 
-        if self.do_zoom_motion_event and data_test: 
+        if self.do_zoom_motion_event and data_test:
             vmin = self.pressv
             vmax = event.xdata or self.prev[0]
             if vmin>vmax: vmin, vmax = vmax, vmin
             value = self.parent.get_values(event)
-            self.parent.on_zoom_motion(vmin, vmax, value, None, None) 
+            self.parent.on_zoom_motion(vmin, vmax, value, None, None)
 
         self.update()
         return False
@@ -816,10 +814,10 @@ class CursorSpan:
 
     def __init__(self, parent, axes,
                                button=3,
-                               minspan=None, 
-                               useblit=False, 
-                               rectprops=None, 
-                               do_refs_select_event=False, 
+                               minspan=None,
+                               useblit=False,
+                               rectprops=None,
+                               do_refs_select_event=False,
                                do_refs_motion_event=False):
         """
         Create a span selector in axes.  When a selection is made, clear
@@ -868,7 +866,7 @@ class CursorSpan:
 
 
     def set_span(self, xmin, xmax):
-        
+
         x0, y0, x1, y1 = self.axes[0].dataLim.bounds
         if all([math.isfinite(x) for x in [x0, y0, x1, y1]]):  # typical when plot is empty
             self.visible = True
@@ -880,7 +878,7 @@ class CursorSpan:
                 rect.set_width(xmax-xmin)
 
             self.canvas.draw()
-        
+
 
     def new_axes(self,axes):
         self.axes = axes
@@ -894,7 +892,7 @@ class CursorSpan:
             self.cids.append(self.canvas.mpl_connect('button_press_event', self.press))
             self.cids.append(self.canvas.mpl_connect('button_release_event', self.release))
             self.cids.append(self.canvas.mpl_connect('draw_event', self.update_background))
-        
+
         for axes in self.axes:
             trans = blended_transform_factory(axes.transData, axes.transAxes)
             self.rect.append(Rectangle( (0,0), 0, 1,
@@ -902,7 +900,7 @@ class CursorSpan:
                                    visible=False,
                                    **self.rectprops ))
 
-        if not self.useblit: 
+        if not self.useblit:
             for axes, rect in zip(self.axes, self.rect):
                 axes.add_patch(rect)
 
@@ -921,7 +919,7 @@ class CursorSpan:
         self.visible = True
         if self.ignore(event): return
         self.buttonDown = True
-        
+
         # only send one motion event while selecting
         if self.do_refs_motion_event:
             self.parent.do_motion_event = False
@@ -931,7 +929,7 @@ class CursorSpan:
             if rect in axes.patches:
                 axes.patches.remove(rect)
                 self.canvas.draw()
-        
+
         for rect in self.rect:
             rect.set_visible(self.visible)
         self.pressv = event.xdata
@@ -944,19 +942,19 @@ class CursorSpan:
         self.parent.SetFocus()  # sets focus into Plot_Panel widget canvas
 
         self.buttonDown = False
-        
+
         # only send one motion event while selecting
         if self.do_refs_motion_event:
             self.parent.do_motion_event = True
 
-        # left-click in place resets the x-axis 
+        # left-click in place resets the x-axis
         if event.xdata == self.pressv:
             self.visible = not self.visible
             for axes, rect in zip(self.axes, self.rect):
                 rect.set_visible(self.visible)
                 axes.add_patch(rect)
-            self.canvas.draw()  
-            self.pressv = None          
+            self.canvas.draw()
+            self.pressv = None
             return
 
         vmin = self.pressv
@@ -985,9 +983,9 @@ class CursorSpan:
             # don't gather values if no onselect event
             value = self.parent.get_values(event)
             self.parent.on_refs_select(vmin, vmax, value)
-        
+
         self.pressv = None
-        
+
         return False
 
     def update(self):
@@ -1027,8 +1025,8 @@ class CursorSpan:
             vmin = self.pressv
             vmax = event.xdata or self.prev[0]
             if vmin>vmax: vmin, vmax = vmax, vmin
-            value = self.parent.get_values(event)            
-            self.parent.on_refs_motion(vmin, vmax, value) 
+            value = self.parent.get_values(event)
+            self.parent.on_refs_motion(vmin, vmax, value)
 
         self.update()
         return False
@@ -1071,12 +1069,12 @@ class ZoomBox:
     def __init__(self, parent, axes,
                              button=1,
                              drawtype='box',
-                             minspanx=None, 
-                             minspany=None, 
+                             minspanx=None,
+                             minspany=None,
                              useblit=False,
-                             lineprops=None, 
+                             lineprops=None,
                              rectprops=None,
-                             do_zoom_select_event=False, 
+                             do_zoom_select_event=False,
                              do_zoom_motion_event=False,
                              spancoords='data'):
 
@@ -1123,14 +1121,14 @@ class ZoomBox:
         self.canvas = None
         self.visible = True
         self.cids = []
-        
+
         self.active = True                    # for activation / deactivation
         self.to_draw = []
         self.background = None
 
         self.do_zoom_select_event = do_zoom_select_event
         self.do_zoom_motion_event = do_zoom_motion_event
-        
+
         self.useblit = useblit
         self.minspanx = minspanx
         self.minspany = minspany
@@ -1161,11 +1159,11 @@ class ZoomBox:
             self.cids.append(self.canvas.mpl_connect('button_release_event', self.release))
             self.cids.append(self.canvas.mpl_connect('draw_event', self.update_background))
             self.cids.append(self.canvas.mpl_connect('motion_notify_event', self.onmove))
-            
+
         if rectprops is None:
-            rectprops = dict(facecolor='white', 
+            rectprops = dict(facecolor='white',
                              edgecolor= 'black',
-                             alpha=0.5, 
+                             alpha=0.5,
                              fill=False)
         self.rectprops = rectprops
 
@@ -1174,7 +1172,7 @@ class ZoomBox:
 
         for axes,to_draw in zip(self.axes, self.to_draw):
             axes.add_patch(to_draw)
-    
+
 
     def update_background(self, event):
         '''force an update of the background'''
@@ -1208,7 +1206,7 @@ class ZoomBox:
         '''on button press event'''
         # Is the correct button pressed within the correct axes?
         if self.ignore(event): return
-        
+
         # only send one motion event while selecting
         if self.do_zoom_motion_event:
             self.parent.do_motion_event = False
@@ -1226,15 +1224,15 @@ class ZoomBox:
         if self.eventpress is None or self.ignore(event): return
 
         self.parent.SetFocus()  # sets focus into Plot_Panel widget canvas
-        
+
         # only send one motion event while selecting
         if self.do_zoom_motion_event:
             self.parent.do_motion_event = True
-        
+
         # make the box/line invisible again
         for to_draw in self.to_draw:
             to_draw.set_visible(False)
-        
+
         # left-click in place resets the x-axis or y-axis
         if self.eventpress.xdata == event.xdata and self.eventpress.ydata == event.ydata:
             x0, y0, x1, y1 = event.inaxes.dataLim.bounds
@@ -1251,7 +1249,7 @@ class ZoomBox:
 
                 if self.do_zoom_select_event:
                     self.parent.on_zoom_select(x0-xdel, x0+x1+xdel, [0.0], y0-ydel, y0+y1+ydel, reset=True)
-            
+
             return
 
         self.eventrelease = event   # release coordinates, button, ...
@@ -1279,7 +1277,7 @@ class ZoomBox:
         if (xproblems or  yproblems):
             """Box too small"""    # check if drawed distance (if it exists) is
             return                 # not to small in neither x nor y-direction
-        
+
         for axes in self.axes:
             if self.parent.reversex:
                 axes.set_xlim((xmax,xmin))
@@ -1303,7 +1301,7 @@ class ZoomBox:
 
         self.eventpress   = None              # reset variables to inital values
         self.eventrelease = None
-        
+
         return False
 
 
@@ -1328,7 +1326,7 @@ class ZoomBox:
         minx, maxx = self.eventpress.xdata, x       # click-x and actual mouse-x
         miny, maxy = self.eventpress.ydata, y       # click-y and actual mouse-y
         if minx>maxx: minx, maxx = maxx, minx       # get them in the right order
-        if miny>maxy: miny, maxy = maxy, miny       
+        if miny>maxy: miny, maxy = maxy, miny
         for to_draw in self.to_draw:
             to_draw.set_x(minx)                    # set lower left of box
             to_draw.set_y(miny)
@@ -1343,12 +1341,12 @@ class ZoomBox:
                 data_test = event.inaxes.collections!=[]
             else:
                 data_test = event.inaxes.lines!=[]
-        
+
         if self.do_zoom_motion_event and data_test:
             # gather the values to report in a selection event
             value = self.parent.get_values(event)
             self.parent.on_zoom_motion(minx, maxx, value, miny, maxy) # zeros are for consistency with box zoom
-        
+
         self.update()
         return False
 
@@ -1436,7 +1434,7 @@ class MiddleEvents:
             self.cids.append(self.canvas.mpl_connect('motion_notify_event', self.onmove))
             self.cids.append(self.canvas.mpl_connect('button_press_event', self.press))
             self.cids.append(self.canvas.mpl_connect('button_release_event', self.release))
-    
+
     def ignore(self, event):
         '''return True if event should be ignored'''
         return  event.inaxes not in self.axes or event.button !=self.button
@@ -1445,11 +1443,11 @@ class MiddleEvents:
         '''on button press event'''
         if self.ignore(event): return
         self.buttonDown = True
-        
+
         for i in range(len(self.axes)):
             if event.inaxes == self.axes[i]:
                 self.axes_index = i
-        
+
         # only send one motion event while selecting
         if self.do_middle_motion_event:
             self.parent.do_motion_event = False
@@ -1461,7 +1459,7 @@ class MiddleEvents:
 
         if self.do_middle_press_event:
             self.parent.on_middle_press(event.x, event.y, self.axes_index, bounds=bounds, xdata=event.xdata, ydata=event.ydata)
-        
+
         return False
 
     def release(self, event):
@@ -1471,7 +1469,7 @@ class MiddleEvents:
         self.parent.SetFocus()  # sets focus into Plot_Panel widget canvas
 
         self.buttonDown = False
-        
+
         # only send one motion event while selecting
         if self.do_middle_motion_event:
             self.parent.do_motion_event = True
@@ -1492,14 +1490,14 @@ class MiddleEvents:
         if self.pressxy is None or self.ignore(event): return
         xcurrent, ycurrent = event.x, event.y
         xprevious, yprevious = self.prevxy
-        
+
         self.prevxy = event.x, event.y
 
         if self.do_middle_motion_event:
-            self.parent.on_middle_motion(xcurrent, ycurrent, xprevious, yprevious, self.axes_index) 
+            self.parent.on_middle_motion(xcurrent, ycurrent, xprevious, yprevious, self.axes_index)
 
         return False
-    
+
 
 
 #-----------------------------------------
