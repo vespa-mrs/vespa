@@ -4,11 +4,12 @@ import os
 import struct
 from datetime import datetime
 
-
 # 3rd party modules
 import wx
 import wx.grid as gridlib
 import numpy as np
+from nifti_mrs.create_nmrs import gen_nifti_mrs_hdr_ext
+from nifti_mrs.hdr_ext import Hdr_Ext
 
 # Our modules
 import vespa.datasim.prefs as prefs
@@ -34,6 +35,7 @@ import vespa.common.wx_gravy.util as wx_util
 import vespa.common.wx_gravy.common_dialogs as common_dialogs
 import vespa.common.mrs_data_raw as mrs_data_raw
 import vespa.common.configobj as configobj
+from vespa.common.nifti_mrs_vespa import NIFTIOrient
 
 from vespa.common.constants import DEGREES_TO_RADIANS
 from vespa.datasim.util_datasim import calc_lw
@@ -1353,6 +1355,196 @@ class TabDatasim(datasim_ui.DatasimUI):
         hdr.append(">>> End of header <<<")
         
         return hdr
+
+    def export_spectrum_to_nifti_mrs(self, monte_carlo_flag=False, comment=''):
+
+        monte_carlo_flag = False        # hard set for now, bjs
+
+        if comment == '':
+            comment = 'Exported from Vespa-Datasim using Export Spectrum to NIfTI-MRS'
+
+        default_path = util_datasim_config.get_last_nifti_export_path()
+
+        filename = common_dialogs.save_as("Save As NIfTI-MRS Data Format",
+                                          "Pick Filename Base for NIfTI-MRS file(s) (*.nii, *.nii.gz)|*.nii;*.nii.gz",
+                                          default_path, 'export_datasim_nifti_mrs.nii')
+        if filename:
+            ds = self.datasim
+            sw = ds.sw
+            dwell = 1.0/sw
+            if not monte_carlo_flag:
+                dims0, dims1 = ds.dims[0], 1
+            else:
+                dims0, dims1 = ds.dims[0], ds.montecarlo_voxels
+
+            val = 1j * ds.phase0 * DEGREES_TO_RADIANS
+            phase = np.exp(val)
+
+            if not monte_carlo_flag:
+                data  = self.metabolites_time_sum.copy() * phase
+                base  = self.baseline_time_sum.copy() * phase
+                mmol  = self.macromolecule_time_sum.copy() * phase
+                noise = self.noise_time.copy() * phase
+                final = (self.metabolites_time_sum + self.macromolecule_time_sum + self.baseline_time_sum + self.noise_time).copy() * phase
+                snra  = self.snr_actual
+                results = [data, mmol, base, noise, final]
+                for item in results:
+                    item.shape = 1,1,1,item.shape[-1]
+            else:
+                data = np.zeros((1, 1, dims1, dims0), complex)
+                mmol = np.zeros((1, 1, dims1, dims0), complex)
+                base = np.zeros((1, 1, dims1, dims0), complex)
+                final = np.zeros((1, 1, dims1, dims0), complex)
+                noise = np.zeros((1, 1, dims1, dims0), complex)
+                snra = np.zeros((dims1,), float)  # actual measured SNR for each voxel
+
+                save_flag = self.display_noise_in_plot
+                self.display_noise_in_plot = True
+
+                for i in range(dims1):
+                    self.process()
+                    data[0, 0, i, :] = self.metabolites_time_sum.copy() * phase
+                    mmol[0, 0, i, :] = self.macromolecule_time_sum.copy() * phase
+                    base[0, 0, i, :] = self.baseline_time_sum.copy() * phase
+                    noise[0, 0, i, :] = self.noise_time.copy() * phase
+                    final[0, 0, i, :] = (self.metabolites_time_sum + self.macromolecule_time_sum + self.baseline_time_sum + self.noise_time).copy() * phase
+                    snra[i] = self.snr_actual
+
+                results = [data, mmol, base, noise, final]
+                self.display_noise_in_plot = save_flag
+
+            # --------------------------------------------------------
+            # get all spectral line data as strings for header
+
+            unames = []
+            flags, areas, decays = self.metab_list.get_metabolite_settings()
+            indx = np.where(flags)[0]
+            if len(indx) > 0:
+                unames = np.array(self.datasim.names)[indx]
+                decays = np.array(decays)[indx]
+                areas = np.array(areas)[indx]
+            unames = ", ".join(unames)
+            areas = ", ".join([str(val) for val in areas])
+            decays = ", ".join([str(val) for val in decays])
+
+            r = self.grid_get_values(grid=self.GridMmol)
+            flags, m_ppms, m_areas, m_phases, m_widths, m_widths_hz, m_widths_damp = r
+            indx = np.where(flags)[0]
+            if len(indx) > 0:
+                m_ppms = np.array(m_ppms)[indx]
+                m_areas = np.array(m_areas)[indx]
+                m_phases = np.array(m_phases)[indx]
+                m_widths = np.array(m_widths)[indx]
+                m_widths_hz = np.array(m_widths_hz)[indx]
+                m_widths_damp = np.array(m_widths_damp)[indx]
+            m_ppms = ", ".join([str(val) for val in m_ppms])
+            m_areas = ", ".join([str(val) for val in m_areas])
+            m_phases = ", ".join([str(val) for val in m_phases])
+            m_widths = ", ".join([str(val) for val in m_widths])
+            m_widths_hz = ", ".join([str(val) for val in m_widths_hz])
+            m_widths_damp = ", ".join([str(val) for val in m_widths_damp])
+
+            r = self.grid_get_values(grid=self.GridBase)
+            flags, b_ppms, b_areas, b_phases, b_widths, b_widths_hz, b_widths_damp = r
+            indx = np.where(flags)[0]
+            if len(indx) > 0:
+                b_ppms = np.array(b_ppms)[indx]
+                b_areas = np.array(b_areas)[indx]
+                b_phases = np.array(b_phases)[indx]
+                b_widths = np.array(b_widths)[indx]
+                b_widths_hz = np.array(b_widths)[indx]
+                b_widths_damp = np.array(b_widths)[indx]
+            b_ppms = ", ".join([str(val) for val in b_ppms])
+            b_areas = ", ".join([str(val) for val in b_areas])
+            b_phases = ", ".join([str(val) for val in b_phases])
+            b_widths = ", ".join([str(val) for val in b_widths])
+            b_widths_hz = ", ".join([str(val) for val in b_widths_hz])
+            b_widths_damp = ", ".join([str(val) for val in b_widths_damp])
+
+            stamp = util_time.now(util_time.ISO_TIMESTAMP_FORMAT).split('T')
+
+            lines = ['Vespa-DataSim - An Application for Simulated MRS Data']
+            lines.append('-----------------------------------------------------')
+            lines.append('The following information is a summary of the settings')
+            lines.append('used to generate the enclosed MRS data.')
+            lines.append(' ')
+            lines.append('Creation_date                 - ' + stamp[0])
+            lines.append('Creation_time                 - ' + stamp[1])
+            lines.append(' ')
+            lines.append('Original Export Filename      - ' + filename)
+            lines.append('User Comment                  - ' + ds.comment)
+            lines.append(' ')
+            lines.append('Prior Experiment Name         - ' + ds.experiment.name)
+            lines.append('Prior Experiment ID           - ' + ds.experiment.id)
+            lines.append('Metabolite Names              - ' + unames)
+            lines.append('Metabolite Area Values        - ' + areas)
+            lines.append('Metabolite Ta Decays          - ' + decays)
+            lines.append('Metabolite Tb Decay           - ' + str(ds.tb))
+            lines.append('Metabolite Range Start        - ' + str(ds.mets_ppm_start))
+            lines.append('Metabolite Range End          - ' + str(ds.mets_ppm_end))
+            lines.append('Macromolecule Lineshape       - ' + ds.mmol_lineshape)
+            lines.append('Macromolecule Group Scale     - ' + str(ds.mmol_group_scale))
+            lines.append('Macromolecule PPM Values      - ' + m_ppms)
+            lines.append('Macromolecule Area Values     - ' + m_areas)
+            lines.append('Macromolecule Phase Values    - ' + m_phases)
+            lines.append('Macromolecule Peak Widths PPM - ' + m_widths)
+            lines.append('Macromolecule Peak Widths Hz  - ' + m_widths_hz)
+            lines.append('Macromolecule Peak Tb Decays  - ' + m_widths_damp)
+            lines.append('Baseline Lineshape            - ' + ds.base_lineshape)
+            lines.append('Baseline Group Scale          - ' + str(ds.base_group_scale))
+            lines.append('Baseline PPM Values           - ' + b_ppms)
+            lines.append('Baseline Area Values          - ' + b_areas)
+            lines.append('Baseline Phase Values         - ' + b_phases)
+            lines.append('Baseline Peak Widths PPM      - ' + b_widths)
+            lines.append('Baseline Peak Widths Hz       - ' + b_widths_hz)
+            lines.append('Baseline Peak Tb Decays       - ' + b_widths_damp)
+            lines.append('Noise RMS Multiplier          - ' + str(ds.noise_rms_multiplier / 100.0))
+            lines.append('Noise Ref Peak Area           - ' + str(ds.noise_ref_peak_area))
+            lines.append('Noise Ref Peak Ta             - ' + str(ds.noise_ref_peak_ta))
+            lines.append('Noise Ref Peak Tb             - ' + str(ds.noise_ref_peak_tb))
+            lines.append('Measured SNR (actual)         - ' + str(self.snr_actual))
+            lines.append('Spectrum Phase0               - ' + str(ds.phase0))
+            lines = "\n".join(lines)
+            # if (wx.Platform == "__WXMSW__"):
+            #     lines = lines.replace("\n", "\r\n")
+
+            datasets = []
+            msg = ''
+            filename, _ = os.path.splitext(filename)
+            out_filenames = []
+            for extension in ('metabolites', 'macromolecules', 'baselines', 'noise', 'summed'):
+                out_filenames.append("%s_%s.nii" % (filename, extension))
+
+            for i, item in enumerate(results):
+
+                fout = out_filenames[i]
+
+                time = item.copy()
+                # already in 1,1,1,npts shape
+
+                conversion_time = datetime.now().isoformat(sep='T', timespec='milliseconds')
+
+                # Interpret required arguments (frequency and bandwidth)
+                meta = Hdr_Ext(ds.frequency, ds.experiment.isotope)
+                meta.set_standard_def('ConversionMethod', 'nifti_mrs_vespa_datasim_export')
+                meta.set_standard_def('ConversionTime', conversion_time)
+                meta.set_standard_def('OriginalFile', ['vespa_datasim', ])
+
+                meta.set_user_def('ResonancePpm',ds.resppm, 'PPM value of center point of spectrum')
+                meta.set_user_def('EchoPeak', 0.0, 'Location in pts of top of signal echo, 0.0 for FID')
+                if lines:
+                    meta.set_user_def('VespaComment', lines, 'Provenance text from Vespa-Datasim export to NIfTI-MRS')
+
+                # Default affine only for now
+                affine = np.diag(np.array([10000, 10000, 10000, 1]))
+                nifti_orientation = NIFTIOrient(affine)
+
+                img = gen_nifti_mrs_hdr_ext(time, dwell, meta, nifti_orientation.Q44, no_conj=True)
+                img.save(fout)
+
+                path, _ = os.path.split(filename)
+                util_datasim_config.set_last_nifti_export_path(path)
+
 
     
     def process_and_plot(self, set_scale=False):

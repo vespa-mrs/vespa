@@ -227,6 +227,10 @@ class Main(wx.Frame):
         if self.notebook_datasims.active_tab:
             self.notebook_datasims.active_tab.export_spectrum_to_siemens_rda()
 
+    def on_export_spectrum_nifti_mrs(self, event):
+        if self.notebook_datasims.active_tab:
+            self.notebook_datasims.active_tab.export_spectrum_to_nifti_mrs()
+
     ############    View  menu
     
     # View options affect only the dataset and so it's up to the

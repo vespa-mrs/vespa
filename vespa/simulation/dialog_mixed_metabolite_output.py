@@ -3,10 +3,14 @@
 import os
 import math
 import xml.etree.cElementTree as ElementTree
+from datetime import datetime
 
 # 3rd party modules
 import wx
 import numpy as np
+from nifti_mrs.create_nmrs import gen_nifti_mrs_hdr_ext
+from nifti_mrs.hdr_ext import Hdr_Ext
+
 
 # Our modules
 import vespa.simulation.constants as constants
@@ -30,7 +34,9 @@ import vespa.common.mrs_prior_metabolite as mrs_prior_metabolite
 from wx.lib.agw.floatspin import FloatSpin, EVT_FLOATSPIN, FS_LEFT, FS_RIGHT, FS_CENTRE, FS_READONLY
 from vespa.common.wx_gravy.widgets.floatspin_multiplier.floatspin_multiplier_base import FloatSpinMultiplier
 from vespa.common.constants import Deflate
-from vespa.common.nifti_mrs_vespa import nifti_mrs
+from vespa.common.nifti_mrs_vespa import NIFTIOrient
+
+
 
 PI = math.pi
 
@@ -1666,6 +1672,7 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
         b0 = float(self.experiment.b0)
         nucleus = self.experiment.isotope
         broad = self.ChoiceJmruiLineshape.GetStringSelection()
+        dwell = 1.0 / sw
 
         if nucleus == "1H":
             resppm = common_constants.DEFAULT_PROTON_CENTER_PPM     # 4.7
@@ -1676,28 +1683,38 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
 
         # parse metabolites in dynanic list into time FID data
 
-        imgs = []
-        fnames = []
-
         for vals in output_list:
 
             abbr = vals["abbr"]
-            filename_data = os.path.join(path+'_'+abbr+'.nii')
+            fout = os.path.join(path+'_'+abbr+'.nii')
 
+            # data - numpy array with Npts in it, data.shape = npts,
             time = _make_basis(vals, metabs_dict, npts, sw, apod, broad, b0, resppm, False)
-            # time = np.conj(time)
-
-            # nucleus - str, '1H'
-            # b0      - float, MHz
-            # sw      - float, Hz
+            newshape = (1, 1, 1) + time.shape
+            time = time.reshape(newshape)
 
             # had to set encoding='utf-8' in definitions.py line 21 .read_text(encoding='utf-8')
             # confused by gen_nifti_mrs_hdr_ext(data, dwelltime, meta, nifti_orientation.Q44, no_conj=True)
             #   in create_nmrs.py, appears that conj() is applied when True
 
-            img_out = nifti_mrs(time, sw, b0, nucleus, filename_data, comment=lines)
-            imgs.append(img_out)
-            fnames.append(filename_data)
+            conversion_time = datetime.now().isoformat(sep='T', timespec='milliseconds')
+
+            # Interpret required arguments (frequency and bandwidth)
+            meta = Hdr_Ext(b0, nucleus)
+            meta.set_standard_def('ConversionMethod', 'nifti_mrs_vespa_simulation_export')
+            meta.set_standard_def('ConversionTime', conversion_time)
+            meta.set_standard_def('OriginalFile', ['vespa_simulation', ])
+
+            if lines:
+                meta.set_user_def('VespaComment', lines,
+                                  'Provenance text from Vespa-Simulation third party output to NIfTI-MRS')
+
+            # Default affine only for now
+            affine = np.diag(np.array([10000, 10000, 10000, 1]))
+            nifti_orientation = NIFTIOrient(affine)
+
+            img = gen_nifti_mrs_hdr_ext(time, dwell, meta, nifti_orientation.Q44, no_conj=True)
+            img.save(fout)
 
         bob = 10
 

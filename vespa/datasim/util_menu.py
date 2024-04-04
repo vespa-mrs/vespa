@@ -100,6 +100,7 @@ def _get_menu_data(main):
                 common_menu.SEPARATOR,
                 ("E&xport Spectrum", (
                     ("to VIFF Raw Data...",   main.on_export_spectrum_viff),
+                    ("to NIfTI-MRS Data...",  main.on_export_spectrum_nifti_mrs),
                     ("to Siemens *.rda...",   main.on_export_spectrum_siemens_rda))),
                 ("E&xport Monte Carlo", (
                     ("to VIFF Raw Data...",   main.on_export_monte_carlo_viff), )),
