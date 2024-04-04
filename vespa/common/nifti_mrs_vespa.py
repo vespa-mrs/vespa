@@ -8,44 +8,10 @@ from os.path import basename, splitext
 
 import numpy as np
 from scipy.spatial.transform import Rotation
-from nifti_mrs.create_nmrs import gen_nifti_mrs_hdr_ext
-from nifti_mrs.hdr_ext import Hdr_Ext
 
 
-class InsufficentHeaderInformationError(Exception):
-    pass
-
-
-def nifti_mrs(data, bandwidth, imagingfreq, nucleus, fout, comment=''):
-    '''Processing for simple ascii formatted columns of data.'''
-
-    # data - numpy array with Npts in it, data.shape = npts,
-    newshape = (1, 1, 1) + data.shape
-    data = data.reshape(newshape)
-
-    # Interpret required arguments (frequency and bandwidth)
-    dwelltime = 1.0 / bandwidth
-
-    meta = Hdr_Ext(imagingfreq, nucleus)
-
-    meta.set_standard_def('ConversionMethod', 'nifti_mrs_vespa')
-    conversion_time = datetime.now().isoformat(sep='T', timespec='milliseconds')
-    meta.set_standard_def('ConversionTime', conversion_time)
-    meta.set_standard_def('OriginalFile', ['nifti_mrs_vespa_third_party_export', ])
-
-    if comment:
-        meta.set_user_def('VespaComment', comment, 'Provenance text from Vespa-Simulation third part output NIfTI-MRS')
-
-    # Default affine only for now
-    affine = np.diag(np.array([10000, 10000, 10000, 1]))
-
-    nifti_orientation = NIFTIOrient(affine)
-
-    img_out = gen_nifti_mrs_hdr_ext(data, dwelltime, meta, nifti_orientation.Q44, no_conj=True)
-
-    # Place in data output format
-    return img_out
-
+# class InsufficentHeaderInformationError(Exception):
+#     pass
 
 
 class NIFTIOrient:

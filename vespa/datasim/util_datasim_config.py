@@ -46,6 +46,17 @@ def set_last_import_path(path):
     config = Config()
     config.set_last_import_path(path)
     config.write()
+
+def get_last_nifti_export_path():
+    """A shortcut for the Config object method of the same name."""
+    config = Config()
+    return config.get_last_nifti_export_path()
+
+def set_last_nifti_export_path(path):
+    """A shortcut for the Config object method of the same name."""
+    config = Config()
+    config.set_last_nifti_export_path(path)
+    config.write()
     
 
 class Config(util_config.BaseConfig):
@@ -59,6 +70,30 @@ class Config(util_config.BaseConfig):
 
         util_config.BaseConfig.__init__(self, filename)
 
+    def get_last_nifti_export_path(self):
+        """
+        Returns the last path from which the user exported a file via this
+        application. The path is always fully-qualified and is never blank.
+        """
+        path = ""
+
+        if "general" in self:
+            path = self["general"].get("last_nifti_export_path", "")
+
+        if not os.path.exists(path):
+            path = util_misc.get_documents_dir()
+
+        return path
+
+    def set_last_nifti_export_path(self, path):
+        """
+        Sets the last path to which the user exported a file via this
+        application.
+        """
+        path = os.path.abspath(path)
+        if "general" not in self:
+            self["general"] = {}
+        self["general"]["last_nifti_export_path"] = path
 
     def get_last_export_path(self):
         """
@@ -75,7 +110,6 @@ class Config(util_config.BaseConfig):
 
         return path
 
-
     def set_last_export_path(self, path):
         """
         Sets the last path to which the user exported a file via this
@@ -85,7 +119,6 @@ class Config(util_config.BaseConfig):
         if "general" not in self:
             self["general"] = { }
         self["general"]["last_export_path"] = path
-
 
     def get_last_import_path(self):
         """
@@ -102,7 +135,6 @@ class Config(util_config.BaseConfig):
 
         return path
 
-
     def set_last_import_path(self, path):
         """
         Sets the last path from which the user imported a file via this
@@ -112,8 +144,7 @@ class Config(util_config.BaseConfig):
         if "general" not in self:
             self["general"] = { }
         self["general"]["last_import_path"] = path
-        
-        
+
     def get_path(self, type_):
         """
         Given a file type (as a string), returns the most recent path from 
@@ -135,7 +166,6 @@ class Config(util_config.BaseConfig):
             path = util_misc.get_documents_dir()
 
         return path
-
 
     def set_path(self, type_, path):
         """
