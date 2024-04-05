@@ -6,7 +6,7 @@
 # the Visualize tab on each Experiment Tab
 SPECTRAL_POINTS_MAX = 65536             # integer
 SPECTRAL_POINTS_MIN =    64             # integer
-SWEEP_WIDTH_MAX     = 100000.0          # [Hz]
+SWEEP_WIDTH_MAX     = 1000000.0         # [Hz]
 SWEEP_WIDTH_MIN     =    100.0          # [Hz]
 LINEWIDTH_MAX       =   1000.0          # [Hz]
 LINEWIDTH_MIN       =      0.000001     # [Hz]
