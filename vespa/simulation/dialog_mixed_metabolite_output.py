@@ -147,8 +147,9 @@ def _make_basis(vals, metabs_dict, npts, sw, apod, broad, field,
     xx     = (np.arange(npts, dtype='float32') % npts)/sw
 
     # create apodization function
-    lshape = util_generic_spectral.apodize(xx, apod, broad)
-    if not do_apod:
+    if broad.lower() != 'none':
+        lshape = util_generic_spectral.apodize(xx, apod, broad)
+    else:
         lshape = 1.0
 
     # convert freq(ppm)/phase(deg) to freq(hz)/phase(rad) 
@@ -873,10 +874,10 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
             self.panel_output_location.Show()
             self.panel_format_specific_parameters.Show()
             self.panel_parameters_jmruitext.Show()
-            self.LabelJmruiApodize.Hide()
-            self.FloatJmruiApodize.Hide()
-            self.LabelJmruiLineshape.Hide()
-            self.ChoiceJmruiLineshape.Hide()
+            # self.LabelJmruiApodize.Hide()
+            # self.FloatJmruiApodize.Hide()
+            # self.LabelJmruiLineshape.Hide()
+            # self.ChoiceJmruiLineshape.Hide()
 
 
 
@@ -1694,6 +1695,7 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
 
             abbr = vals["abbr"]
             fout = os.path.join(path+'_'+abbr+'.nii')
+            ver  = util_misc.get_vespa_version()
 
             # Notes - bjs
             # - we do NOT set first point to 1/2 here since it is a Prior FID
@@ -1714,9 +1716,9 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
 
             # Interpret required arguments (frequency and bandwidth)
             meta = Hdr_Ext(b0, nucleus)
-            meta.set_standard_def('ConversionMethod', 'nifti_mrs_vespa_simulation_export')
+            meta.set_standard_def('ConversionMethod', 'Vespa-Simulation_'+ver+' 3rd Party Output')
             meta.set_standard_def('ConversionTime', conversion_time)
-            meta.set_standard_def('OriginalFile', ['vespa_simulation', ])
+            meta.set_standard_def('OriginalFile', ['Vespa-Simulation_'+ver, ])
 
             meta.set_user_def('ResonancePpm', resppm, 'PPM value of center point of spectrum')
             meta.set_user_def('EchoPeak', 0.0, 'Location in pts of top of signal echo, 0.0 for FID')
