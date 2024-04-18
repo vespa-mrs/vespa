@@ -27,6 +27,7 @@ from vespa.datasim.dialog_datasim_resolution import DialogDatasimResolution
 
 import vespa.common.util.ppm as util_ppm
 import vespa.common.util.xml_ as util_xml
+import vespa.common.util.misc as util_misc
 import vespa.common.util.time_ as util_time
 import vespa.common.util.math_ as util_math
 import vespa.common.util.export as util_export
@@ -1376,6 +1377,7 @@ class TabDatasim(datasim_ui.DatasimUI):
                 dims0, dims1 = ds.dims[0], 1
             else:
                 dims0, dims1 = ds.dims[0], ds.montecarlo_voxels
+            ver = util_misc.get_vespa_version()
 
             val = 1j * ds.phase0 * DEGREES_TO_RADIANS
             phase = np.exp(val)
@@ -1526,7 +1528,7 @@ class TabDatasim(datasim_ui.DatasimUI):
 
                 # Interpret required arguments (frequency and bandwidth)
                 meta = Hdr_Ext(ds.frequency, ds.experiment.isotope)
-                meta.set_standard_def('ConversionMethod', 'nifti_mrs_vespa_datasim_export')
+                meta.set_standard_def('ConversionMethod', 'Vespa-Datasim_'+ver+' Export Spectrum')
                 meta.set_standard_def('ConversionTime', conversion_time)
                 meta.set_standard_def('OriginalFile', ['vespa_datasim', ])
 
@@ -1544,7 +1546,6 @@ class TabDatasim(datasim_ui.DatasimUI):
 
                 path, _ = os.path.split(filename)
                 util_datasim_config.set_last_nifti_export_path(path)
-
 
     
     def process_and_plot(self, set_scale=False):

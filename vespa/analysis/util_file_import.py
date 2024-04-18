@@ -327,8 +327,8 @@ def get_datasets(reader, open_dataset=None):
         msg = _MSG_MULTIFILE_TYPE_MISMATCH
     except util_exceptions.UnsupportedDimensionalityError:
         msg = _MSG_UNSUPPORTED_DIMENSIONALITY               # also catches SIDataError
-    except util_exceptions.IncorrectDimensionalityError:
-        msg = _MSG_INCORRECT_DIMENSIONALITY                 # also catches SIDataError
+    except util_exceptions.IncorrectDimensionalityError as e:
+        msg = _MSG_INCORRECT_DIMENSIONALITY+'\n'+str(e)                 # also catches SIDataError
     except util_exceptions.OpenFileAttributeMismatchError:
         msg = _MSG_OPEN_ATTRIBUTE_MISMATCH
     except util_exceptions.OpenFileTypeMismatchError:

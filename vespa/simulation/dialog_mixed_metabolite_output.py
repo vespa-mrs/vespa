@@ -1688,6 +1688,7 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
             resppm = common_constants.DEFAULT_XNUCLEI_CENTER_PPM    # 0.0
 
         path = self.LabelFilename.GetLabel()
+        ver = util_misc.get_vespa_version()
 
         # parse metabolites in dynanic list into time FID data
 
@@ -1695,7 +1696,6 @@ class DialogMixedMetaboliteOutput(mixed_metabolite_output.MyDialog):
 
             abbr = vals["abbr"]
             fout = os.path.join(path+'_'+abbr+'.nii')
-            ver  = util_misc.get_vespa_version()
 
             # Notes - bjs
             # - we do NOT set first point to 1/2 here since it is a Prior FID

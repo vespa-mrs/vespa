@@ -47,19 +47,21 @@ class RawReaderNiftiMrs(raw_reader.RawReader):
 
         d["data_source"] = filename
 
-        if not (d["data"].shape[0:2] == (1,1)):
-            msg = "NIfTI-MRS data is unknown size, shape = %i" % d["data"].shape
+        if not (d["data"].shape[0:3] == (1,1,1)):
+            # svs data should have x,y,z dims = 1
+            msg = "NIfTI-MRS data is unknown size, shape = %s" % str(d["data"].shape)
             raise util_exceptions.IncorrectDimensionalityError(msg)
 
-        if d["data"].shape[2] != 1:         # not Fidsum, but multiple rows,
-            data = d["data"]                # so 'load into screen'
-            raws = []
-            for i in range(d["data"].shape[2]):
-                d["data"] = data[0,0,i,:]
-                d["data"].shape = 1,1,1,d["data"].shape[0]
-                raws.append(mrs_data_raw.DataRaw(d))
-        else:
-            raws = [mrs_data_raw.DataRaw(d),]
+        if len(d["data"].shape) > 4:
+            for item in d["data"].shape[4:]:
+                if item != 1:
+                    # not dealing with Navg or Ncoil yet
+                    msg = "NIfTI-MRS data shape not a single FID = %s" % str(d["data"].shape)
+                    raise util_exceptions.IncorrectDimensionalityError(msg)
+
+        d["data"].shape = 1,1,1,d["data"].shape[3]
+
+        raws = [mrs_data_raw.DataRaw(d),]
 
         return raws
 
