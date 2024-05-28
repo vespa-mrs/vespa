@@ -96,7 +96,7 @@ def _get_parameters(img, filename):
     #  Vespa comment is '\n' delineated string, extract for clarity in GUI
     if 'VespaComment' in keys:
         value = extn['VespaComment']['Value']
-        extn['VespaComment']['Value'] = 'extracted for display'
+        extn['VespaComment']['Value'] = 'extracted for display'     # TODO bjs - why is this here overwriting?
         comment = '\nVespaComment - Value\n--------------------------------------\n'
         comment += value
     else:
