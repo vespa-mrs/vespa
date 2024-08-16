@@ -9,6 +9,7 @@ Data is returned in a DataRawCmrrSlaser object
 
 # 3rd party modules
 import numpy as np
+import mapvbvd
 
 # Our modules
 from vespa.common.mrs_data_raw import DataRawCmrrSlaser
@@ -30,9 +31,15 @@ class RawReaderSiemensTwixSlaserCmrrVe(RawReaderSiemensTwix):
         - open_dataset attribute is not used in this reader.
         
         """
-        twix, version_flag = self.get_twix(filename)
+#        twix, version_flag = self.get_twix(filename)
+        twix = mapvbvd.mapVBVD(filename)
+        twix[1].image.flagRemoveOS = False
+        twix[1].image.flagRampSampRegrid = False
+        twix[1].image.flagDoAverage = False
+        twix[1].image.squeeze = True
 
-        d = self._get_parameters(twix.current)
+        #d = self._get_parameters(twix.current)
+        d = self._get_parameters(twix)
         d["data_source"] = filename
 
         data = d['data']

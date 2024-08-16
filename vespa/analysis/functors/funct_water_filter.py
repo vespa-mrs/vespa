@@ -341,7 +341,7 @@ def time_series_coef(x, p):
 
 if scipy.__version__ >= "0.9.0":
     # It's safe to use the scipy versions of these
-    sinc = scipy.sinc
+    sinc = scipy.special.sinc
     import scipy.signal
     firwin = scipy.signal.firwin
 else:
