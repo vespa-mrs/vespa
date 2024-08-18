@@ -730,7 +730,11 @@ class PlotPanelPoints(wx.Panel):
             else:
                 old_xmin, old_xmax = axes.get_xlim()
 
-            axes.lines.clear()
+            # axes.lines.clear()
+            # see https://discourse.matplotlib.org/t/recommended-way-of-deleting-lines/22526/2
+            for art in list(axes.lines):
+                art.remove()
+
             width = self.line_width[i]
 
             dlist = self.data[i]

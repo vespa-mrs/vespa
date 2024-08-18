@@ -12,7 +12,9 @@ import struct
 import collections
 
 # 3rd party modules
+import mapvbvd
 import numpy as np
+
 
 # Our modules
 import vespa.analysis.fileio.raw_reader as raw_reader
@@ -70,6 +72,22 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
             uint1, uint2 = struct.unpack("II", fin.read(8))
             version_flag = 'vd' if uint1 == 0 and uint2 <= 64 else 'vb'
 
+        twix = mapvbvd.mapVBVD(filename)
+
+        if version_flag == 'vd':
+            # for now, throw away extra twix objects
+            twix = twix[1]
+
+        return twix, version_flag
+
+
+    def get_twix_orig(self, filename):
+
+        with open(filename, 'rb') as fin:
+            # we can tell the type of file from the first two uints in the header
+            uint1, uint2 = struct.unpack("II", fin.read(8))
+            version_flag = 'vd' if uint1 == 0 and uint2 <= 64 else 'vb'
+
         if version_flag == 'vb':
             twix = TwixRaid()
             twix.populate_from_file(filename)
@@ -91,55 +109,36 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
 
     ####################    Internal functions start here     ###############
 
-    def _get_parameters(self, twix, index='rep'):
-        """ Return parameters and data from a Siemens Twix """
+    def _get_parameters(self, twix, software_version):
+        """
+        Return parameters and data from a Siemens Twix
 
-        evps = twix.evps
-
-        hdr, clean_header = self._parse_protocol_data(evps[3][1])
-        hdr = twix[1]['hdr']['MeasYaps']
-        hdr_dicom = twix[1]['hdr']['Dicom']
-        hdr_keys = kdr.keys()
-        hdr_dicom
         # CMRR sLASER info - need to move later
         #
         # MEAS.sSpecPara.lAutoRefScanMode [aushFreePara2 for VB] >1, water refs are saved
         # MEAS.sSpecPara.lAutoRefScanNo   [aushFreePara3 for VB] = number of scans acquired for ecc and water scaling references at start and end of protocol.
 
-        if 'sProtConsistencyInfo.tBaselineString' not in list(hdr.keys()):
-            if "syngo MR XA" in str(hdr_dicom):
-                software_version = 'nx_va'
-            else:
-                software_version = 'xx'
-        else:
-            software = hdr['sProtConsistencyInfo.tBaselineString'].lower()
-            if   'n4_vb' in software: software_version = 'vb'
-            elif 'n4_vd' in software: software_version = 'vd'
-            elif 'n4_ve' in software: software_version = 've'
+        """
+        hdr = twix['hdr']['Phoenix']
+        hdr_meas = twix['hdr']['Meas']
+        clean_header = self._parse_protocol_data(hdr)
 
-        wiplong, wipdouble = self._get_xprot_wipvars(evps[2][1])
+        wiplong, wipdouble = self._get_phoenix_wipvars(hdr)
 
+        lAverages = int(hdr[('lAverages',)])     # number of metabolite scans
+        ref_nscans = int(hdr[('sSpecPara', 'lAutoRefScanNo')])
+        prep_nscans = int(hdr[('sSpecPara','lPreparingScans')])
         if software_version == 'vb':
-            ref_nscans  = int(hdr['sSpecPara.lAutoRefScanNo']) if 'sSpecPara.lAutoRefScanNo' in hdr.keys() else 0
             ref_flag    = int(ref_nscans != 0)
-            prep_nscans = 0
-            if ('sSpecPara', 'lPreparingScans') in hdr.keys():
-                prep_nscans = int(hdr['sSpecPara.lPreparingScans'])
-        else:       # VD and VE
-            ref_flag    = int(hdr['sSpecPara.lAutoRefScanMode'])
-            ref_nscans  = int(hdr['sSpecPara.lAutoRefScanNo'])
-            prep_nscans = 0
-            if 'sSpecPara.lPreparingScans' in hdr.keys():
-                prep_nscans = int(hdr['sSpecPara.lPreparingScans'])
-
-        lAverages = int(hdr['lAverages'])     # number of metabolite scans
+        else:
+            ref_flag = int(hdr[('sSpecPara', 'lAutoRefScanMode')])
 
         #----------------------------------------------------------------------
         # The following boolean calculations are done to help us try to figure
         # out what specific sequence this is. This base parser does not act on
         # these flags, but they are available for use by drived parsers.
 
-        seqstr = hdr['tSequenceFileName']
+        seqstr = hdr[('tSequenceFileName',)]
 
         # Ralf Mekle's SPECIAL, or CIBM SPECIAL sequence
         isSpecial = 'rm_special' in seqstr or 'vq_special' in seqstr
@@ -167,65 +166,69 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
 
         # get data ------------------------------------------
 
-        if index == 'rep':
-            data, prep = twix.get_data_numpy_rep_coil_avg_npts_order(return_prep=True)
-        elif index == 'echo':
-            data, prep = twix.get_data_numpy_echo_coil_avg_npts_order(return_prep=True)
-        elif index == 'scan':
-            data, prep = twix.get_data_numpy_channel_scan_order_with_prep()
-            while len(data.shape) < 4:
-                data = np.expand_dims(data, axis=0)
-            if prep is not None:
-                while len(prep.shape) < 4:
-                    prep = np.expand_dims(prep, axis=0)
-        else:
-            data, prep = twix.get_data_numpy_rep_coil_avg_npts_order(return_prep=True)
+        twix.image.flagRemoveOS = False
+        twix.image.flagRampSampRegrid = False
+        twix.image.flagDoAverage = False
+        twix.image.squeeze = True
 
-        if software_version == 'vb':
-            fid_str = twix.scans[0].free_parameters[0]            # extra points at begin of FID?
-        else:
-            fid_str = twix.scans[0].scan_header.free_parameters[0]
+        ncha, navg, ncol = int(twix.image.NCha), int(twix.image.NAve), int(twix.image.NCol)
+        nrep, neco, nset = int(twix.image.NRep), int(twix.image.NEco), int(twix.image.NSet)
 
-        acqdim0 = int(2 ** np.floor(np.log2(data.shape[3] - fid_str)))      # largest pow(2) given shape[3]
-        data = data[:, :, :, fid_str:fid_str+acqdim0].copy()
-        if prep is not None:
-            prep = prep[:, :, :, fid_str:fid_str + acqdim0].copy()
+        data = twix.image['']
+
+        if nrep > 1:
+            # ncol, ncha, nrep, nseg -> nrep, ncha, nseg, ncol
+            data = np.copy(data.transpose(2, 3, 1, 0), order='C')
+        else:
+            # ncol, ncha, nseg -> ncha, nseg, ncol
+            data = np.copy(data.transpose(1, 2, 0), order='C')
+            data.shape = 1, ncha, nset, ncol
 
         # get header info -----------------------------------
 
         if software_version == 'vb':
-            # get voxel size
-            ro_fov = self._get_xprot(evps[0][1],"VoI_RoFOV", 20.0)
-            pe_fov = self._get_xprot(evps[0][1],"VoI_PeFOV", 20.0)
-            slice_thickness = self._get_xprot(evps[0][1],"VoI_SliceThickness", 20.0)
+            # get voxel size - NB. these may exist as '' rather than 0.0
+            ro_fov = hdr_meas.get('VoI_RoFOV', 0.0)
+            pe_fov = hdr_meas.get('VoI_PeFOV', 0.0)
+            slice_thickness = hdr_meas.get('VoI_SliceThickness', 0.0)
+            if ro_fov == '': ro_fov = 0.0
+            if pe_fov == '': pe_fov = 0.0
+            if slice_thickness == '': slice_thickness = 0.0
 
             # get position information
-            pos_sag = self._get_xprot(evps[0][1],"VoI_Position_Sag", 0.0)
-            pos_cor = self._get_xprot(evps[0][1],"VoI_Position_Cor", 0.0)
-            pos_tra = self._get_xprot(evps[0][1],"VoI_Position_Tra", 0.0)
+            pos_sag = hdr_meas.get('VoI_Position_Sag', 0.0)
+            pos_cor = hdr_meas.get('VoI_Position_Cor', 0.0)
+            pos_tra = hdr_meas.get('VoI_Position_Tra', 0.0)
+            if pos_sag == '': pos_sag = 0.0
+            if pos_cor == '': pos_cor = 0.0
+            if pos_tra == '': pos_tra = 0.0
 
             # get orientation information
-            in_plane_rot = self._get_xprot(evps[0][1],"VoI_InPlaneRotAngle", 0.0)
-            normal_sag   = self._get_xprot(evps[0][1],"VoI_Normal_Sag", 1.0)
-            normal_cor   = self._get_xprot(evps[0][1],"VoI_Normal_Cor", 0.0)
-            normal_tra   = self._get_xprot(evps[0][1],"VoI_Normal_Tra", 0.0)
+            in_plane_rot = hdr_meas.get('dInPlaneRot', 0.0)
+            normal_sag   = hdr_meas.get('VoI_Normal_Sag', 0.0)
+            normal_cor   = hdr_meas.get('VoI_Normal_Cor', 0.0)
+            normal_tra   = hdr_meas.get('VoI_Normal_Tra', 0.0)
+            if in_plane_rot == '': in_plane_rot = 0.0
+            if normal_sag == '': normal_sag = 0.0
+            if normal_cor == '': normal_cor = 0.0
+            if normal_tra == '': normal_tra = 0.0
 
         else:
             # get voxel size
-            ro_fov          = self._get_hdr_float_def(hdr, 'sSpecPara.sVoI.dReadoutFOV', 20.0)
-            pe_fov          = self._get_hdr_float_def(hdr, 'sSpecPara.sVoI.dPhaseFOV',   20.0)
-            slice_thickness = self._get_hdr_float_def(hdr, 'sSpecPara.sVoI.dThickness',  20.0)
+            ro_fov          = hdr.get(('sSpecPara','sVoI','dReadoutFOV',), 20.0)
+            pe_fov          = hdr.get(('sSpecPara','sVoI','dPhaseFOV',), 20.0)
+            slice_thickness = hdr.get(('sSpecPara','sVoI','dThickness',), 20.0)
 
             # get position information
-            pos_sag = self._get_hdr_float_def(hdr, 'sSpecPara.sVoI.sPosition.dSag', 0.0)
-            pos_cor = self._get_hdr_float_def(hdr, 'sSpecPara.sVoI.sPosition.dCor', 0.0)
-            pos_tra = self._get_hdr_float_def(hdr, 'sSpecPara.sVoI.sPosition.dTra', 0.0)
+            pos_sag = hdr.get(('sSpecPara','sVoI','sPosition','dSag',), 0.0)
+            pos_cor = hdr.get(('sSpecPara','sVoI','sPosition','dCor',), 0.0)
+            pos_tra = hdr.get(('sSpecPara','sVoI','sPosition','dTra',), 0.0)
 
             # get orientation information
-            in_plane_rot = self._get_hdr_float_def(hdr, 'sSpecPara.sVoI.InPlaneRot',   0.0)
-            normal_sag   = self._get_hdr_float_def(hdr, 'sSpecPara.sVoI.sNormal.dSag', 0.0)
-            normal_cor   = self._get_hdr_float_def(hdr, 'sSpecPara.sVoI.sNormal.dCor', 0.0)
-            normal_tra   = self._get_hdr_float_def(hdr, 'sSpecPara.sVoI.sNormal.dTra', 0.0)
+            in_plane_rot = hdr.get(('sSpecPara','sVoI','InPlaneRot',), 0.0)
+            normal_sag   = hdr.get(('sSpecPara','sVoI','sNormal','dSag',), 0.0)
+            normal_cor   = hdr.get(('sSpecPara','sVoI','sNormal','dCor',), 0.0)
+            normal_tra   = hdr.get(('sSpecPara','sVoI','sNormal','dTra',), 0.0)
 
         voxel_size = [ro_fov, pe_fov, slice_thickness]
         voxel_pos  = [pos_sag, pos_cor, pos_tra]
@@ -245,187 +248,13 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
 
         tform = transformation_matrix(row_vector, col_vector, voxel_pos, voxel_size)
 
-        params = {'wiplong'     : wiplong,
-                  'wipdouble'   : wipdouble,
-                  'ref_flag'    : ref_flag,
-                  'ref_nscans'  : ref_nscans,
-                  'prep_nscans' : prep_nscans,
-                  'lAverages'   : lAverages,
-                  'isSpecial'   : isSpecial,
-                  'isjnSpecial' : isjnSpecial,
-                  'isjnMP'      : isjnMP,
-                  'isjnseq'     : isjnseq,
-                  'isWIP529'    : isWIP529,
-                  'isWIP859'    : isWIP859,
-                  'isMinn'      : isMinn,
-                  'isSiemens'   : isSiemens,
-                  'remove_os'   : hdr.get("sSpecPara.ucRemoveOversampling", "0x0").strip() == "0x1",
-                  'seqname'     : hdr.get("tSequenceFileName", "svs_xxx"),
-                  'sw'          : 1.0 / (float(hdr.get("sRXSPEC.alDwellTime[0]", 1.0)) * 1e-9),
-                  'frequency'   : float(hdr["sTXSPEC.asNucleusInfo[0].lFrequency"])/1000000.0,
-                  'resppm'      : 4.7,
-                  'echopeak'    : 0.0,
-                  'nucleus'     : hdr["sTXSPEC.asNucleusInfo[0].tNucleus"].replace('"',' ').strip(),
-                  'seqte'       : float(hdr["alTE[0]"])*1e-6,
-                  'seqtr'       : float(hdr["alTR[0]"])*1e-6,
-                  'voxel_dimensions' : voxel_size,
-                  'header'      : clean_header,
-                  'transform'   : tform,
-                  'data'        : data,
-                  'prep'        : prep  }
-
-        return params
-
-    def _get_parameters_orig(self, twix, index='rep'):
-        """ Return parameters and data from a Siemens Twix """
-
-        evps = twix.evps
-
-        header, clean_header = self._parse_protocol_data(evps[3][1])
-        hdr_dicom = evps[1][1]
-        # CMRR sLASER info - need to move later
-        #
-        # MEAS.sSpecPara.lAutoRefScanMode [aushFreePara2 for VB] >1, water refs are saved
-        # MEAS.sSpecPara.lAutoRefScanNo   [aushFreePara3 for VB] = number of scans acquired for ecc and water scaling references at start and end of protocol.
-
-        if 'sProtConsistencyInfo.tBaselineString' not in list(header.keys()):
-            if "syngo MR XA" in hdr_dicom:
-                software_version = 'nx_va'
-            else:
-                software_version = 'xx'
-        else:
-            software = header['sProtConsistencyInfo.tBaselineString'].lower()
-            if   'n4_vb' in software: software_version = 'vb'
-            elif 'n4_vd' in software: software_version = 'vd'
-            elif 'n4_ve' in software: software_version = 've'
-
-        wiplong, wipdouble = self._get_xprot_wipvars(evps[2][1])
-
-        if software_version == 'vb':
-            ref_nscans  = int(header['sSpecPara.lAutoRefScanNo']) if 'sSpecPara.lAutoRefScanNo' in header.keys() else 0
-            ref_flag    = int(ref_nscans != 0)
-            prep_nscans = 0
-            if 'sSpecPara.lPreparingScans' in header.keys():
-                prep_nscans = int(header['sSpecPara.lPreparingScans'])
-        else:       # VD and VE
-            ref_flag    = int(header['sSpecPara.lAutoRefScanMode'])
-            ref_nscans  = int(header['sSpecPara.lAutoRefScanNo'])
-            prep_nscans = 0
-            if 'sSpecPara.lPreparingScans' in header.keys():
-                prep_nscans = int(header['sSpecPara.lPreparingScans'])
-
-        lAverages = int(header['lAverages'])     # number of metabolite scans
-
-        #----------------------------------------------------------------------
-        # The following boolean calculations are done to help us try to figure
-        # out what specific sequence this is. This base parser does not act on
-        # these flags, but they are available for use by drived parsers.
-
-        seqstr = header['tSequenceFileName']
-
-        # Ralf Mekle's SPECIAL, or CIBM SPECIAL sequence
-        isSpecial = 'rm_special' in seqstr or 'vq_special' in seqstr
-
-        # Jamie Near's SPECIAL, Masoumeh Dehghani's Adiabatic SPECIAL, SPECIAL or InvRecov SPECIAL
-        isjnSpecial = 'jn_svs_special'   in seqstr or \
-                      'md_Adiab_Special' in seqstr or \
-                      'md_Special'       in seqstr or \
-                      'md_Inv_special'   in seqstr
-
-        isjnMP = 'jn_MEGA_GABA' in seqstr   # Jamie Near's MEGA-PRESS sequence
-
-        # Is this another one of Jamie Near's or a sequence derived from Jamie Near's sequences (by Masoumeh Dehghani)
-        isjnseq = 'jn_' in seqstr or 'md_' in seqstr
-
-        isWIP529 = 'edit_529' in seqstr     # Is this WIP 529 (MEGA-PRESS)?
-        isWIP859 = 'edit_859' in seqstr     # Is this WIP 859 (MEGA-PRESS)?
-
-        # One of Eddie Auerbach or Dinesh Deelchand (CMRR, U Minnesota) sequences?
-        isMinn   = 'eja_svs_' in seqstr or 'dkd_svs_' in seqstr
-
-        # Siemens PRESS or STEAM and make sure it's not 'eja_svs_steam'
-        isSiemens=('svs_se' in seqstr or 'svs_st' in seqstr) and not ('eja_svs' in seqstr)
-
-
-        # get data ------------------------------------------
-
-        if index == 'rep':
-            data, prep = twix.get_data_numpy_rep_coil_avg_npts_order(return_prep=True)
-        elif index == 'echo':
-            data, prep = twix.get_data_numpy_echo_coil_avg_npts_order(return_prep=True)
-        elif index == 'scan':
-            data, prep = twix.get_data_numpy_channel_scan_order_with_prep()
-            while len(data.shape) < 4:
-                data = np.expand_dims(data, axis=0)
-            if prep is not None:
-                while len(prep.shape) < 4:
-                    prep = np.expand_dims(prep, axis=0)
-        else:
-            data, prep = twix.get_data_numpy_rep_coil_avg_npts_order(return_prep=True)
-
-        if software_version == 'vb':
-            fid_str = twix.scans[0].free_parameters[0]            # extra points at begin of FID?
-        else:
-            fid_str = twix.scans[0].scan_header.free_parameters[0]
-
-        acqdim0 = int(2 ** np.floor(np.log2(data.shape[3] - fid_str)))      # largest pow(2) given shape[3]
-        data = data[:, :, :, fid_str:fid_str+acqdim0].copy()
-        if prep is not None:
-            prep = prep[:, :, :, fid_str:fid_str + acqdim0].copy()
-
-        # get header info -----------------------------------
-
-        if software_version == 'vb':
-            # get voxel size
-            ro_fov = self._get_xprot(evps[0][1],"VoI_RoFOV", 20.0)
-            pe_fov = self._get_xprot(evps[0][1],"VoI_PeFOV", 20.0)
-            slice_thickness = self._get_xprot(evps[0][1],"VoI_SliceThickness", 20.0)
-
-            # get position information
-            pos_sag = self._get_xprot(evps[0][1],"VoI_Position_Sag", 0.0)
-            pos_cor = self._get_xprot(evps[0][1],"VoI_Position_Cor", 0.0)
-            pos_tra = self._get_xprot(evps[0][1],"VoI_Position_Tra", 0.0)
-
-            # get orientation information
-            in_plane_rot = self._get_xprot(evps[0][1],"VoI_InPlaneRotAngle", 0.0)
-            normal_sag   = self._get_xprot(evps[0][1],"VoI_Normal_Sag", 1.0)
-            normal_cor   = self._get_xprot(evps[0][1],"VoI_Normal_Cor", 0.0)
-            normal_tra   = self._get_xprot(evps[0][1],"VoI_Normal_Tra", 0.0)
-
-        else:
-            # get voxel size
-            ro_fov          = self._get_hdr_float_def(header, 'sSpecPara.sVoI.dReadoutFOV', 20.0)
-            pe_fov          = self._get_hdr_float_def(header, 'sSpecPara.sVoI.dPhaseFOV',   20.0)
-            slice_thickness = self._get_hdr_float_def(header, 'sSpecPara.sVoI.dThickness',  20.0)
-
-            # get position information
-            pos_sag = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sPosition.dSag', 0.0)
-            pos_cor = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sPosition.dCor', 0.0)
-            pos_tra = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sPosition.dTra', 0.0)
-
-            # get orientation information
-            in_plane_rot = self._get_hdr_float_def(header, 'sSpecPara.sVoI.InPlaneRot',   0.0)
-            normal_sag   = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sNormal.dSag', 0.0)
-            normal_cor   = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sNormal.dCor', 0.0)
-            normal_tra   = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sNormal.dTra', 0.0)
-
-        voxel_size = [ro_fov, pe_fov, slice_thickness]
-        voxel_pos  = [pos_sag, pos_cor, pos_tra]
-
-        # the orientation is stored in a somewhat strange way - a normal vector and
-        # a rotation angle. To get the row vector, we first use Gram-Schmidt to
-        # make [-1, 0, 0] (the default row vector) orthogonal to the normal, and
-        # then rotate that vector by the rotation angle  - (from Suspect package)
-
-        x_vector      = np.array([-1, 0, 0])
-        normal_vector = np.array([normal_sag, normal_cor, normal_tra])
-        orthogonal_x  = x_vector - np.dot(x_vector, normal_vector) * normal_vector
-        orthonormal_x = orthogonal_x / np.linalg.norm(orthogonal_x)
-        rot_matrix    = rotation_matrix(in_plane_rot, normal_vector)
-        row_vector    = np.dot(rot_matrix, orthonormal_x)
-        col_vector    = np.cross(row_vector, normal_vector)
-
-        tform = transformation_matrix(row_vector, col_vector, voxel_pos, voxel_size)
+        remove_os = hdr.get(('sSpecPara','ucRemoveOversampling',), "0x0").strip() == "0x1"
+        frequency = float(hdr[('sTXSPEC','asNucleusInfo','0','lFrequency',)]) / 1000000.0
+        sw = 1.0 / (float(hdr.get(('sRXSPEC','alDwellTime','0',), 1.0)) * 1e-9)
+        nucleus = hdr[('sTXSPEC','asNucleusInfo','0','tNucleus',)].replace('"',' ').strip()
+        seqname = hdr.get(('tSequenceFileName',), "svs_xxx")
+        seqte = float(hdr[('alTE','0',)])*1e-6
+        seqtr = float(hdr[('alTR','0',)])*1e-6
 
         params = {'wiplong'     : wiplong,
                   'wipdouble'   : wipdouble,
@@ -441,25 +270,227 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
                   'isWIP859'    : isWIP859,
                   'isMinn'      : isMinn,
                   'isSiemens'   : isSiemens,
-                  'remove_os'   : header.get("sSpecPara.ucRemoveOversampling", "0x0").strip() == "0x1",
-                  'seqname'     : header.get("tSequenceFileName", "svs_xxx"),
-                  'sw'          : 1.0 / (float(header.get("sRXSPEC.alDwellTime[0]", 1.0)) * 1e-9),
-                  'frequency'   : float(header["sTXSPEC.asNucleusInfo[0].lFrequency"])/1000000.0,
+                  'remove_os'   : remove_os,
+                  'seqname'     : seqname,
+                  'sw'          : sw,
+                  'frequency'   : frequency,
                   'resppm'      : 4.7,
                   'echopeak'    : 0.0,
-                  'nucleus'     : header["sTXSPEC.asNucleusInfo[0].tNucleus"].replace('"',' ').strip(),
-                  'seqte'       : float(header["alTE[0]"])*1e-6,
-                  'seqtr'       : float(header["alTR[0]"])*1e-6,
+                  'nucleus'     : nucleus,
+                  'seqte'       : seqte,
+                  'seqtr'       : seqtr,
                   'voxel_dimensions' : voxel_size,
                   'header'      : clean_header,
                   'transform'   : tform,
                   'data'        : data,
-                  'prep'        : prep  }
+                  'prep'        : None  }
 
         return params
+
+    # def _get_parameters_orig(self, twix, index='rep'):
+    #     """ Return parameters and data from a Siemens Twix """
+    #
+    #     evps = twix.evps
+    #
+    #     header, clean_header = self._parse_protocol_data(evps[3][1])
+    #     hdr_dicom = evps[1][1]
+    #     # CMRR sLASER info - need to move later
+    #     #
+    #     # MEAS.sSpecPara.lAutoRefScanMode [aushFreePara2 for VB] >1, water refs are saved
+    #     # MEAS.sSpecPara.lAutoRefScanNo   [aushFreePara3 for VB] = number of scans acquired for ecc and water scaling references at start and end of protocol.
+    #
+    #     if 'sProtConsistencyInfo.tBaselineString' not in list(header.keys()):
+    #         if "syngo MR XA" in hdr_dicom:
+    #             software_version = 'nx_va'
+    #         else:
+    #             software_version = 'xx'
+    #     else:
+    #         software = header['sProtConsistencyInfo.tBaselineString'].lower()
+    #         if   'n4_vb' in software: software_version = 'vb'
+    #         elif 'n4_vd' in software: software_version = 'vd'
+    #         elif 'n4_ve' in software: software_version = 've'
+    #
+    #     wiplong, wipdouble = self._get_xprot_wipvars(evps[2][1])
+    #
+    #     if software_version == 'vb':
+    #         ref_nscans  = int(header['sSpecPara.lAutoRefScanNo']) if 'sSpecPara.lAutoRefScanNo' in header.keys() else 0
+    #         ref_flag    = int(ref_nscans != 0)
+    #         prep_nscans = 0
+    #         if 'sSpecPara.lPreparingScans' in header.keys():
+    #             prep_nscans = int(header['sSpecPara.lPreparingScans'])
+    #     else:       # VD and VE
+    #         ref_flag    = int(header['sSpecPara.lAutoRefScanMode'])
+    #         ref_nscans  = int(header['sSpecPara.lAutoRefScanNo'])
+    #         prep_nscans = 0
+    #         if 'sSpecPara.lPreparingScans' in header.keys():
+    #             prep_nscans = int(header['sSpecPara.lPreparingScans'])
+    #
+    #     lAverages = int(header['lAverages'])     # number of metabolite scans
+    #
+    #     #----------------------------------------------------------------------
+    #     # The following boolean calculations are done to help us try to figure
+    #     # out what specific sequence this is. This base parser does not act on
+    #     # these flags, but they are available for use by drived parsers.
+    #
+    #     seqstr = header['tSequenceFileName']
+    #
+    #     # Ralf Mekle's SPECIAL, or CIBM SPECIAL sequence
+    #     isSpecial = 'rm_special' in seqstr or 'vq_special' in seqstr
+    #
+    #     # Jamie Near's SPECIAL, Masoumeh Dehghani's Adiabatic SPECIAL, SPECIAL or InvRecov SPECIAL
+    #     isjnSpecial = 'jn_svs_special'   in seqstr or \
+    #                   'md_Adiab_Special' in seqstr or \
+    #                   'md_Special'       in seqstr or \
+    #                   'md_Inv_special'   in seqstr
+    #
+    #     isjnMP = 'jn_MEGA_GABA' in seqstr   # Jamie Near's MEGA-PRESS sequence
+    #
+    #     # Is this another one of Jamie Near's or a sequence derived from Jamie Near's sequences (by Masoumeh Dehghani)
+    #     isjnseq = 'jn_' in seqstr or 'md_' in seqstr
+    #
+    #     isWIP529 = 'edit_529' in seqstr     # Is this WIP 529 (MEGA-PRESS)?
+    #     isWIP859 = 'edit_859' in seqstr     # Is this WIP 859 (MEGA-PRESS)?
+    #
+    #     # One of Eddie Auerbach or Dinesh Deelchand (CMRR, U Minnesota) sequences?
+    #     isMinn   = 'eja_svs_' in seqstr or 'dkd_svs_' in seqstr
+    #
+    #     # Siemens PRESS or STEAM and make sure it's not 'eja_svs_steam'
+    #     isSiemens=('svs_se' in seqstr or 'svs_st' in seqstr) and not ('eja_svs' in seqstr)
+    #
+    #
+    #     # get data ------------------------------------------
+    #
+    #     if index == 'rep':
+    #         data, prep = twix.get_data_numpy_rep_coil_avg_npts_order(return_prep=True)
+    #     elif index == 'echo':
+    #         data, prep = twix.get_data_numpy_echo_coil_avg_npts_order(return_prep=True)
+    #     elif index == 'scan':
+    #         data, prep = twix.get_data_numpy_channel_scan_order_with_prep()
+    #         while len(data.shape) < 4:
+    #             data = np.expand_dims(data, axis=0)
+    #         if prep is not None:
+    #             while len(prep.shape) < 4:
+    #                 prep = np.expand_dims(prep, axis=0)
+    #     else:
+    #         data, prep = twix.get_data_numpy_rep_coil_avg_npts_order(return_prep=True)
+    #
+    #     if software_version == 'vb':
+    #         fid_str = twix.scans[0].free_parameters[0]            # extra points at begin of FID?
+    #     else:
+    #         fid_str = twix.scans[0].scan_header.free_parameters[0]
+    #
+    #     acqdim0 = int(2 ** np.floor(np.log2(data.shape[3] - fid_str)))      # largest pow(2) given shape[3]
+    #     data = data[:, :, :, fid_str:fid_str+acqdim0].copy()
+    #     if prep is not None:
+    #         prep = prep[:, :, :, fid_str:fid_str + acqdim0].copy()
+    #
+    #     # get header info -----------------------------------
+    #
+    #     if software_version == 'vb':
+    #         # get voxel size
+    #         ro_fov = self._get_xprot(evps[0][1],"VoI_RoFOV", 20.0)
+    #         pe_fov = self._get_xprot(evps[0][1],"VoI_PeFOV", 20.0)
+    #         slice_thickness = self._get_xprot(evps[0][1],"VoI_SliceThickness", 20.0)
+    #
+    #         # get position information
+    #         pos_sag = self._get_xprot(evps[0][1],"VoI_Position_Sag", 0.0)
+    #         pos_cor = self._get_xprot(evps[0][1],"VoI_Position_Cor", 0.0)
+    #         pos_tra = self._get_xprot(evps[0][1],"VoI_Position_Tra", 0.0)
+    #
+    #         # get orientation information
+    #         in_plane_rot = self._get_xprot(evps[0][1],"VoI_InPlaneRotAngle", 0.0)
+    #         normal_sag   = self._get_xprot(evps[0][1],"VoI_Normal_Sag", 1.0)
+    #         normal_cor   = self._get_xprot(evps[0][1],"VoI_Normal_Cor", 0.0)
+    #         normal_tra   = self._get_xprot(evps[0][1],"VoI_Normal_Tra", 0.0)
+    #
+    #     else:
+    #         # get voxel size
+    #         ro_fov          = self._get_hdr_float_def(header, 'sSpecPara.sVoI.dReadoutFOV', 20.0)
+    #         pe_fov          = self._get_hdr_float_def(header, 'sSpecPara.sVoI.dPhaseFOV',   20.0)
+    #         slice_thickness = self._get_hdr_float_def(header, 'sSpecPara.sVoI.dThickness',  20.0)
+    #
+    #         # get position information
+    #         pos_sag = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sPosition.dSag', 0.0)
+    #         pos_cor = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sPosition.dCor', 0.0)
+    #         pos_tra = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sPosition.dTra', 0.0)
+    #
+    #         # get orientation information
+    #         in_plane_rot = self._get_hdr_float_def(header, 'sSpecPara.sVoI.InPlaneRot',   0.0)
+    #         normal_sag   = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sNormal.dSag', 0.0)
+    #         normal_cor   = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sNormal.dCor', 0.0)
+    #         normal_tra   = self._get_hdr_float_def(header, 'sSpecPara.sVoI.sNormal.dTra', 0.0)
+    #
+    #     voxel_size = [ro_fov, pe_fov, slice_thickness]
+    #     voxel_pos  = [pos_sag, pos_cor, pos_tra]
+    #
+    #     # the orientation is stored in a somewhat strange way - a normal vector and
+    #     # a rotation angle. To get the row vector, we first use Gram-Schmidt to
+    #     # make [-1, 0, 0] (the default row vector) orthogonal to the normal, and
+    #     # then rotate that vector by the rotation angle  - (from Suspect package)
+    #
+    #     x_vector      = np.array([-1, 0, 0])
+    #     normal_vector = np.array([normal_sag, normal_cor, normal_tra])
+    #     orthogonal_x  = x_vector - np.dot(x_vector, normal_vector) * normal_vector
+    #     orthonormal_x = orthogonal_x / np.linalg.norm(orthogonal_x)
+    #     rot_matrix    = rotation_matrix(in_plane_rot, normal_vector)
+    #     row_vector    = np.dot(rot_matrix, orthonormal_x)
+    #     col_vector    = np.cross(row_vector, normal_vector)
+    #
+    #     tform = transformation_matrix(row_vector, col_vector, voxel_pos, voxel_size)
+    #
+    #     params = {'wiplong'     : wiplong,
+    #               'wipdouble'   : wipdouble,
+    #               'ref_flag'    : ref_flag,
+    #               'ref_nscans'  : ref_nscans,
+    #               'prep_nscans' : prep_nscans,
+    #               'lAverages'   : lAverages,
+    #               'isSpecial'   : isSpecial,
+    #               'isjnSpecial' : isjnSpecial,
+    #               'isjnMP'      : isjnMP,
+    #               'isjnseq'     : isjnseq,
+    #               'isWIP529'    : isWIP529,
+    #               'isWIP859'    : isWIP859,
+    #               'isMinn'      : isMinn,
+    #               'isSiemens'   : isSiemens,
+    #               'remove_os'   : header.get("sSpecPara.ucRemoveOversampling", "0x0").strip() == "0x1",
+    #               'seqname'     : header.get("tSequenceFileName", "svs_xxx"),
+    #               'sw'          : 1.0 / (float(header.get("sRXSPEC.alDwellTime[0]", 1.0)) * 1e-9),
+    #               'frequency'   : float(header["sTXSPEC.asNucleusInfo[0].lFrequency"])/1000000.0,
+    #               'resppm'      : 4.7,
+    #               'echopeak'    : 0.0,
+    #               'nucleus'     : header["sTXSPEC.asNucleusInfo[0].tNucleus"].replace('"',' ').strip(),
+    #               'seqte'       : float(header["alTE[0]"])*1e-6,
+    #               'seqtr'       : float(header["alTR[0]"])*1e-6,
+    #               'voxel_dimensions' : voxel_size,
+    #               'header'      : clean_header,
+    #               'transform'   : tform,
+    #               'data'        : data,
+    #               'prep'        : prep  }
+    #
+    #     return params
 
 
     def _parse_protocol_data(self, prot):
+        """
+        Return dict of MrPhoenixProtocol header.
+
+        """
+        items = list(prot.items())
+        lines = []
+
+        for key, val in items:
+            if isinstance(key, tuple):
+                keystr = '.'.join([str(r) for r in key])
+            else:
+                keystr = key
+            lines.append(keystr + ' = ' + str(val))
+
+        clean = '\n'.join(lines)
+
+        return clean
+
+
+    def _parse_protocol_data_orig(self, prot):
         """
         Return dict of MrProtocol/MrPhoenixProtocol item from Siemens CSA Header.
 
@@ -524,7 +555,27 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
         return default
 
 
-    def _get_xprot_wipvars(self, hdr):
+    def _get_phoenix_wipvars(self, hdr):
+
+        items = list(hdr.items())
+        alf = []
+        adf = []
+
+        for key, val in items:
+            if isinstance(key, tuple):
+                keystr = '.'.join([str(r) for r in key])
+            else:
+                keystr = key
+
+            if 'sWipMemBlock.alFree' in keystr:
+                alf.append([keystr, val])
+            elif 'sWipMemBlock.adFree' in keystr:
+                adf.append([keystr, val])
+
+        return alf, adf
+
+
+    def _get_xprot_wipvars_orig(self, hdr):
 
         wip = hdr[hdr.lower().find('<ParamMap."sWiPMemBlock">'.lower()):]
 
@@ -537,6 +588,7 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
         adf = [float(item) for item in adf.replace('<Precision> 6', '').replace('\n', '').split()]
 
         return alf, adf
+
 
 
     def _get_hdr_float_def(self, header, label, default):
