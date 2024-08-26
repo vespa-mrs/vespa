@@ -49,7 +49,7 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
         """
         twix, version_flag = self.get_twix(filename)
 
-        d = self._get_parameters(twix.current)
+        d = self._get_parameters(twix, version_flag)
 
         data = d['data']
         if d["remove_os"]:

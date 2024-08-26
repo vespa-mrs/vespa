@@ -49,7 +49,7 @@ class RawReaderSiemensTwixBjs(raw_reader.RawReader):
         """
         twix, version_flag = self.get_twix(filename)
 
-        d = self._get_parameters(twix.current)
+        d = self._get_parameters(twix.current, version_flag)
 
         data = d['data']
         if d["remove_os"]:
@@ -93,7 +93,7 @@ class RawReaderSiemensTwixBjs(raw_reader.RawReader):
 
     ####################    Internal functions start here     ###############
 
-    def _get_parameters(self, twix, index='rep'):
+    def _get_parameters(self, twix, software_version, index='rep'):
         """ Return parameters and data from a Siemens Twix """
 
         evps = twix.evps

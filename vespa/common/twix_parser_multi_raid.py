@@ -183,6 +183,63 @@ MDH_FLAGS = { 0 : "MDH_ACQEND",                # last scan
              55 : "MDH_SKIP_REGRIDDING"        # Marks scans not to be regridded, even if regridding is switched on
             }
 
+MDH_ACQEND = 0          # last scan
+MDH_RTFEEDBACK = 1      # Realtime feedback scan
+MDH_HPFEEDBACK = 2      # High perfomance feedback scan
+MDH_ONLINE = 3          # processing should be done online
+MDH_OFFLINE = 4         # processing should be done offline
+MDH_SYNCDATA = 5        # readout contains synchroneous data
+
+MDH_LASTSCANINCONCAT = 8    # Flag for last scan in concatination
+
+MDH_RAWDATACORRECTION = 10  # Correct the rawadata with the rawdata correction factor
+MDH_LASTSCANINMEAS = 11     # Flag for last scan in measurement
+MDH_SCANSCALEFACTOR = 12    # Flag for scan specific additional scale factor
+MDH_2NDHADAMARPULSE = 13    # 2nd RF exitation of HADAMAR
+MDH_REFPHASESTABSCAN = 14   # reference phase stabilization scan
+MDH_PHASESTABSCAN = 15      # phase stabilization scan
+MDH_D3FFT = 16              # execute 3D FFT
+MDH_SIGNREV = 17            # sign reversal
+MDH_PHASEFFT = 18           # execute phase fft
+MDH_SWAPPED = 19            # swapped phase/readout direction
+MDH_POSTSHAREDLINE = 20     # shared line
+MDH_PHASCOR = 21            # phase correction data
+MDH_PATREFSCAN = 22         # additonal scan for PAT reference line/partition
+MDH_PATREFANDIMASCAN = 23
+# additonal scan for PAT reference line/partition that is also used as image scan
+MDH_REFLECT = 24            # reflect line
+MDH_NOISEADJSCAN = 25       # noise adjust scan
+MDH_SHARENOW = 26           # all lines are acquired from the actual and previous e.g. phases
+MDH_LASTMEASUREDLINE = 27
+# indicates that the current line is the last measured line of all succeeding e.g. phases
+MDH_FIRSTSCANINSLICE = 28   # indicates first scan in slice (needed for time stamps)
+MDH_LASTSCANINSLICE = 29    # indicates  last scan in slice (needed for time stamps)
+MDH_TREFFECTIVEBEGIN = 30   # indicates the begin time stamp for TReff (triggered measurement)
+MDH_TREFFECTIVEEND = 31     # indicates the   end time stamp for TReff (triggered measurement)
+MDH_MDS_REF_POSITION = 32
+# indicates the reference position for move during scan images (must be set once per slice/partition in MDS mode)
+MDH_SLC_AVERAGED = 33               # indicates avveraged slice for slice partial averaging scheme
+MDH_TAGFLAG1 = 34                   # adjust scan
+MDH_CT_NORMALIZE = 35               # Marks scans used to calculate correction maps for TimCT-Prescan normalize
+MDH_SCAN_FIRST = 36                 # Marks the first scan of a particular map
+MDH_SCAN_LAST = 37                  # Marks the last scan of a particular map
+MDH_FIRST_SCAN_IN_BLADE = 40        # Marks the first line of a blade
+MDH_LAST_SCAN_IN_BLADE = 41         # Marks the last line of a blade
+MDH_LAST_BLADE_IN_TR = 42           # Set for all lines of the last BLADE in each TR interval
+
+MDH_PACE = 44  # Distinguishes PACE scans from non PACE scans.
+MDH_RETRO_LASTPHASE = 45            # Marks the last phase in a heartbeat
+MDH_RETRO_ENDOFMEAS = 46            # Marks an ADC at the end of the measurement
+MDH_RETRO_REPEATTHISHEARTBEAT = 47  # Repeat the current heartbeat when this bit is found
+MDH_RETRO_REPEATPREVHEARTBEAT = 48  # Repeat the previous heartbeat when this bit is found
+MDH_RETRO_ABORTSCANNOW = 49         # Just abort everything
+MDH_RETRO_LASTHEARTBEAT = 50        # This adc is from the last heartbeat (a dummy)
+MDH_RETRO_DUMMYSCAN = 51            # This adc is just a dummy scan throw it away
+MDH_RETRO_ARRDETDISABLED = 52       # Disable all arrhythmia detection when this bit is found
+MDH_B1_CONTROLLOOP = 53             # Marks the readout as to be used for B1 Control Loop
+MDH_SKIP_ONLINE_PHASCOR = 54
+# Marks scans not to be online phase corrected, even if online phase correction is switched on
+MDH_SKIP_REGRIDDING = 55            # Marks scans not to be regridded, even if regridding is switched on
 
 
 
@@ -210,7 +267,8 @@ class TwixScanHeader(object):
         self.ptab_posz          = 0             # lPTABPosZ
         self.reserved1          = 0             # ulReserved1 - reserved for future hardware signals
         
-        self.eval_info_mask = [0] * _NEVAL_INFO_FLAG_BYTES  # aulEvalInfoMask
+        #self.eval_info_mask = [0] * _NEVAL_INFO_FLAG_BYTES  # aulEvalInfoMask
+        self.eval_info_mask = np.int64(0)
 
         self.samples_in_scan = 0        # Number of complex data points.
 
@@ -338,11 +396,15 @@ class TwixScanHeader(object):
         lines.append("PTAB position z: %d" % self.ptab_posz)
         
         lines.append("-- Eval info mask --")
-        for i, mask in enumerate(self.eval_info_mask):
-            bits = _bit_string(mask, 8)
-            lines.append("   mask[%d]:      0x%02x == %s" % (i, mask, bits))
+        lines.append("   mask 64 bit:   == %s" % self.eval_info_mask)
+        bits = _bit_string(self.eval_info_mask, 64)
+        lines.append("   mask bit string:   0x%02x == %s" % (bits,))
 
-        lines.append("   mask 64 bit:    == %s" % _create_64bit_mask(self.eval_info_mask))
+        # for i, mask in enumerate(self.eval_info_mask):
+        #     bits = _bit_string(mask, 8)
+        #     lines.append("   mask[%d]:      0x%02x == %s" % (i, mask, bits))
+        #
+        # lines.append("   mask 64 bit:    == %s" % _create_64bit_mask(self.eval_info_mask))
 
         lines.append("Samples:         %d" % self.samples_in_scan)
         lines.append("Channels used:   %d" % self.used_channels)
@@ -417,7 +479,8 @@ class TwixScanHeader(object):
         self.ptab_posz              = _read_int(infile)
         self.reserved1              = _read_uint(infile)
 
-        self.eval_info_mask = [_read_byte(infile) for i in range(_NEVAL_INFO_FLAG_BYTES)]
+        self.tmp_eval = [_read_byte(infile) for i in range(_NEVAL_INFO_FLAG_BYTES)]
+        self.eval_info_mask = int.from_bytes(self.tmp_eval, byteorder='little', signed=False)
 
         self.samples_in_scan        = _read_ushort(infile) 
         self.used_channels          = _read_ushort(infile)
@@ -477,10 +540,10 @@ class TwixScanHeader(object):
         
         set_flag_labels = []
         
-        bmask = _create_64bit_mask(self.eval_info_mask)
-        
+        # bmask = _create_64bit_mask(self.eval_info_mask)
+
         for item in list(MDH_FLAGS.keys()):
-            if (1<<item) & bmask:
+            if (1<<item) & self.eval_info_mask:
                 set_flag_labels.append(MDH_FLAGS[item])
             
         return set_flag_labels
@@ -492,8 +555,9 @@ class TwixScanHeader(object):
             # very light error check, should raise exception
             return False
         
-        bmask = _create_64bit_mask(self.eval_info_mask)
-        if (1<<bit) & bmask:
+        # bmask = _create_64bit_mask(self.eval_info_mask)
+
+        if (1<<bit) & self.eval_info_mask:
             return True
         else:
             return False
@@ -513,6 +577,16 @@ class TwixScanHeader(object):
             return False
 
         return self.test_eval_info_by_bit(bit)
+
+
+    def is_flag_set(self, flag):
+        return bool(self.eval_info_mask & (1 << (flag - 1)))
+
+    def set_flag(self, flag):
+        self.eval_info_mask |= (1 << (flag - 1))
+
+    def clear_flag(self, flag):
+        self.eval_info_mask &= ~(1 << (flag - 1))
         
 
 
@@ -799,6 +873,9 @@ class TwixMeasurement(object):
             scan = TwixScan()
             scan.populate_from_file(infile)
             scan.scan_index = index
+
+            bob = scan.scan_header.parse_evalinfomask()
+            print(bob, str(_bit_string(scan.scan_header.eval_info_mask, min_length=64)))
 
             if scan.scan_header.is_last_acquisition:
                 more_scans = False
@@ -1521,7 +1598,7 @@ def _create_64bit_mask(vals):
     if len(vals) != 8:
         # simple error check for number of vals to convert
         return 0
-    
+
     bmask = 0
     for i, val in enumerate(vals):
         bmask += (val << i*8)

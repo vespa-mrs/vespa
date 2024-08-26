@@ -166,7 +166,7 @@ STANDARD_CLASSES_LOFL = [
     'ini_file_name=import_siemens_twix_slaser_cmrr_vb',
 '[siemens_twix_slaser_cmrr_ve]',
     'path=vespa.analysis.fileio.siemens_twix_slaser_cmrr',
-    'class_name=RawReaderSiemensTwixSlaserCmrrVe',
+    'class_name=RawReaderSiemensTwixSlaserCmrrVeBjs',
     'menu_item_text=Siemens Twix sLASER CMRR VE',
     'ini_file_name=import_siemens_twix_slaser_cmrr_ve',
 '[siemens_twix_svs_edit]',
