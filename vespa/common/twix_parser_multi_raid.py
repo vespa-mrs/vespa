@@ -102,8 +102,12 @@ import struct
 # Third party modules
 import numpy as np
 
+# Our modules
+from vespa.common._attrdict import AttrDict
+from vespa.common.read_twix_hdr import twix_hdr, parse_buffer
 
-VERSION = "0.3.0"
+
+VERSION = "0.4.0"
 
 
 _NDMA_FLAG_BYTES = 2            # There are 2 bytes of DMA flags
@@ -183,15 +187,13 @@ MDH_FLAGS = { 0 : "MDH_ACQEND",                # last scan
              55 : "MDH_SKIP_REGRIDDING"        # Marks scans not to be regridded, even if regridding is switched on
             }
 
-MDH_ACQEND = 0          # last scan
-MDH_RTFEEDBACK = 1      # Realtime feedback scan
-MDH_HPFEEDBACK = 2      # High perfomance feedback scan
-MDH_ONLINE = 3          # processing should be done online
-MDH_OFFLINE = 4         # processing should be done offline
-MDH_SYNCDATA = 5        # readout contains synchroneous data
-
+MDH_ACQEND = 0              # last scan
+MDH_RTFEEDBACK = 1          # Realtime feedback scan
+MDH_HPFEEDBACK = 2          # High perfomance feedback scan
+MDH_ONLINE = 3              # processing should be done online
+MDH_OFFLINE = 4             # processing should be done offline
+MDH_SYNCDATA = 5            # readout contains synchroneous data
 MDH_LASTSCANINCONCAT = 8    # Flag for last scan in concatination
-
 MDH_RAWDATACORRECTION = 10  # Correct the rawadata with the rawdata correction factor
 MDH_LASTSCANINMEAS = 11     # Flag for last scan in measurement
 MDH_SCANSCALEFACTOR = 12    # Flag for scan specific additional scale factor
@@ -226,7 +228,6 @@ MDH_SCAN_LAST = 37                  # Marks the last scan of a particular map
 MDH_FIRST_SCAN_IN_BLADE = 40        # Marks the first line of a blade
 MDH_LAST_SCAN_IN_BLADE = 41         # Marks the last line of a blade
 MDH_LAST_BLADE_IN_TR = 42           # Set for all lines of the last BLADE in each TR interval
-
 MDH_PACE = 44  # Distinguishes PACE scans from non PACE scans.
 MDH_RETRO_LASTPHASE = 45            # Marks the last phase in a heartbeat
 MDH_RETRO_ENDOFMEAS = 46            # Marks an ADC at the end of the measurement
@@ -325,7 +326,7 @@ class TwixScanHeader(object):
         contains no FID), False otherwise.
         
         """
-        return bool(self.test_eval_info_by_label("MDH_ACQEND"))
+        return self.is_flag_set(MDH_ACQEND)
 
     @property
     def is_first_acquisition(self):
@@ -334,7 +335,7 @@ class TwixScanHeader(object):
         contains FID), False otherwise.
 
         """
-        return bool(self.test_eval_info_by_label("MDH_FIRSTSCANINSLICE"))
+        return self.is_flag_set(MDH_FIRSTSCANINSLICE)
 
     @property
     def clock_time(self):
@@ -540,8 +541,6 @@ class TwixScanHeader(object):
         
         set_flag_labels = []
         
-        # bmask = _create_64bit_mask(self.eval_info_mask)
-
         for item in list(MDH_FLAGS.keys()):
             if (1<<item) & self.eval_info_mask:
                 set_flag_labels.append(MDH_FLAGS[item])
@@ -580,13 +579,13 @@ class TwixScanHeader(object):
 
 
     def is_flag_set(self, flag):
-        return bool(self.eval_info_mask & (1 << (flag - 1)))
+        return bool(self.eval_info_mask & (1 << flag))
 
     def set_flag(self, flag):
-        self.eval_info_mask |= (1 << (flag - 1))
+        self.eval_info_mask |= (1 << flag)
 
     def clear_flag(self, flag):
-        self.eval_info_mask &= ~(1 << (flag - 1))
+        self.eval_info_mask &= ~(1 << flag)
         
 
 
@@ -781,8 +780,8 @@ class TwixMeasurement(object):
     def __init__(self):
     
         self.header_size     = 0
-        self.evps            = None
-        self.scans           = None
+        self.evps            = {}
+        self.scans           = []
         self.free_parameters = []
         self.ice_parameters  = []
 
@@ -792,6 +791,18 @@ class TwixMeasurement(object):
         self.indices_unique = []        # fill with self.check_unique_indices()
         self.dims           = []        # fill with self.get_dims()
 
+        self.indx_online    = []        # scans with MDH_ONLINE flag set
+        self.indx_phascor   = []        # scans with MDH_PHASCOR flag set
+
+    @property
+    def scans_online(self):
+        """ return view into scans array for MDH_ONLINE flag set """
+        return self.scans(self.indx_online)
+
+    @property
+    def scans_phascor(self):
+        """ return view into scans array for MDH_PHASCOR flag set """
+        return self.scans(self.indx_phascor)
 
     def get_free_parameters(self):
         free_params = []
@@ -813,22 +824,19 @@ class TwixMeasurement(object):
         method reads the header and all the scans in the file. 
 
         Populates the evps and scans attributes, where scans is a list of 
-        TwixScan objects (one for each scan in the file) and EVPs is a list 
-        of 2-tuples. The EVP two-tuples are (name, data) and contain the 
-        name and data associated with the ASCII EVP chunks in the measurement 
-        header. They're returned in the order in which they appeared. 
+        TwixScan objects (one for each scan in the file) and EVPs is a dict
+        The EVP dict is name: data) and contain the name and byte data
+        associated with the ASCII EVP chunks in the measurement header.
 
         To summarize the attribute layouts are:
         
             self.scans = [scan1, scan2, ... scanN]
-            self.evps  = [ (name1, data1), (name2, data2) (etc.) ]
+            self.evps  = {name1: data1, name2: data2, etc. }
         
         """
 
         # assumption is that the file points to the first byte of the header
         measurement_start = infile.tell()
-
-#        print 'hdr_start = '+str(infile.tell())
 
         # Global header size is stashed in the first 4 bytes. This size includes
         # the size itself. In other words, the size can also be interpreted as 
@@ -837,12 +845,10 @@ class TwixMeasurement(object):
         # measurement data sorted as in former versions."
         self.header_size = _read_uint(infile)
 
-#        print 'hdr_start + hdr_size = '+str(start_loc + self.header_size)
-
         # Next is # of EVPs (whatever they are)
         nevps = _read_uint(infile)
 
-        evps = []
+        evps = twix_hdr()
         while nevps:
             # Each EVP contains the name (as a NULL-terminated C string) followed by
             # the number of bytes (characters) of content followed by the content
@@ -851,17 +857,27 @@ class TwixMeasurement(object):
             # the manual are Windows-based, we should assume a character set 
             # of windows-1252?
             name = _read_cstr(infile)
-            size = _read_uint(infile)
-            data = _read_byte(infile, size)
-            data = ''.join(map(chr, data))
-            evps.append( (name, data) )
+            nbuf = _read_uint(infile)
+            # data = _read_byte(infile, nbuf)
+            # data = ''.join(map(chr, data))
+            # evps.append( (name, data) )
+
+            # read entire buffer, as series of bytes
+            data = infile.read(nbuf)
+            data = data.decode('latin-1', errors='ignore')
+
+            # trim whitespace and drop blank lines
+            data = '\n'.join([l2 for l2 in [line.strip() for line in data.split('\n')] if l2])
+
+            evps.update({name: parse_buffer(data)})
+
+            # evps[name] = hdr
+
             nevps -= 1
 
-        # There's a few bytes of padding between the EVPs and the start of the 
+        # There's a few bytes of padding between the EVPs and the start of the
         # scans. Here we jump over that.
         infile.seek(measurement_start + self.header_size, os.SEEK_SET)
-
-#        print 'after all evps = '+str(infile.tell())
 
         # Read the scans one by one until we hit the last (which should be flagged)
         # or run off the end of the file.
@@ -869,6 +885,8 @@ class TwixMeasurement(object):
         more_scans = True       # if last scan, it has not data so don't save
         save_scans = False      # don't save until 'MDH_FIRSTSCANINSLICE' flag is seen
         index = 0
+        indx_phascor = []
+        indx_online = []
         while more_scans:
             scan = TwixScan()
             scan.populate_from_file(infile)
@@ -886,6 +904,11 @@ class TwixMeasurement(object):
             if save_scans and more_scans:
                 scans.append(scan)
 
+                if scan.scan_header.is_flag_set(MDH_ONLINE):
+                    indx_online.append(index)
+                if scan.scan_header.is_flag_set(MDH_PHASCOR):
+                    indx_phascor.append(index)
+
                 # PS - I'm not sure if this is necessary. In the samples I have,
                 # the scan.scan_header.is_last_acquisition flag is set appropriately so I 
                 # never run off the end of the file.
@@ -902,6 +925,9 @@ class TwixMeasurement(object):
         self.indices_list   = self.create_ice_indices()   # bjs TODO still out of sync with data array
         self.indices_unique = self.check_unique_indices()
         self.dims           = self.get_dims()
+
+        self.indx_online = indx_online
+        self.indx_phascor = indx_phascor
 
     ######## Sort functionality methods #######################################
     #
@@ -1112,7 +1138,7 @@ class TwixMeasurement(object):
 
         nfid = int(nscan / ncha)
 
-        header = _parse_protocol_data(self.evps[3][1])
+        header = _parse_protocol_data(self.evps['MeasYaps'][1])
         nprep_hdr = int(header['sSpecPara.lPreparingScans']) if 'sSpecPara.lPreparingScans' in header.keys() else 0
         nprep = nfid - nrep * nset
         if nprep_hdr != nprep: print('Warning: get_data_numpy_scan_channel_order_with_prep() - nprep_hdr != nprep')
@@ -1175,7 +1201,7 @@ class TwixMeasurement(object):
 
         prep_arr = None
         if return_prep:
-            header = _parse_protocol_data(self.evps[3][1])
+            header = _parse_protocol_data(self.evps['MeasYaps'][1])
             nprep_hdr = int(header['sSpecPara.lPreparingScans'])
             nprep = len(self.scans) - nrep * nset
             if nprep_hdr != nprep: print('Warning: get_data_numpy_rep_channel_set_order() - nprep_hdr != nprep')
@@ -1244,7 +1270,7 @@ class TwixMeasurement(object):
 
         prep_arr = None
         if return_prep:
-            header = _parse_protocol_data(self.evps[3][1])
+            header = _parse_protocol_data(self.evps['MeasYaps'][1])
             nprep_hdr = int(header['sSpecPara.lPreparingScans'])
             nprep = len(self.scans) - nrep * nset
             if nprep_hdr != nprep: print('Warning: get_data_numpy_rep_channel_set_order() - nprep_hdr != nprep')
