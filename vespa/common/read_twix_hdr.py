@@ -27,7 +27,7 @@ import re
 import numpy as np
 from scipy.integrate import cumtrapz
 
-from mapvbvd._attrdict import AttrDict
+from vespa.common._attrdict import AttrDict
 
 
 class twix_hdr(AttrDict):

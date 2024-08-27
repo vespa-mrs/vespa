@@ -12,7 +12,7 @@ import struct
 import collections
 
 # 3rd party modules
-import mapvbvd
+#import mapvbvd
 import numpy as np
 
 
@@ -72,21 +72,7 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
             uint1, uint2 = struct.unpack("II", fin.read(8))
             version_flag = 'vd' if uint1 == 0 and uint2 <= 64 else 'vb'
 
-        twix = mapvbvd.mapVBVD(filename)
-
-        if version_flag == 'vd':
-            # for now, throw away extra twix objects
-            twix = twix[1]
-
-        return twix, version_flag
-
-
-    def get_twix_orig(self, filename):
-
-        with open(filename, 'rb') as fin:
-            # we can tell the type of file from the first two uints in the header
-            uint1, uint2 = struct.unpack("II", fin.read(8))
-            version_flag = 'vd' if uint1 == 0 and uint2 <= 64 else 'vb'
+#        twix = mapvbvd.mapVBVD(filename)
 
         if version_flag == 'vb':
             twix = TwixRaid()
@@ -119,8 +105,8 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
         # MEAS.sSpecPara.lAutoRefScanNo   [aushFreePara3 for VB] = number of scans acquired for ecc and water scaling references at start and end of protocol.
 
         """
-        hdr = twix['hdr']['Phoenix']
-        hdr_meas = twix['hdr']['Meas']
+        hdr = twix.evps['Phoenix']
+        hdr_meas = twix.evps['Meas']
         clean_header = self._parse_protocol_data(hdr)
 
         wiplong, wipdouble = self._get_phoenix_wipvars(hdr)
@@ -166,23 +152,15 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
 
         # get data ------------------------------------------
 
-        twix.image.flagRemoveOS = False
-        twix.image.flagRampSampRegrid = False
-        twix.image.flagDoAverage = False
-        twix.image.squeeze = True
+        data, prep = twix.current.get_data_numpy_cha_scan_col_prep()
 
-        ncha, navg, ncol = int(twix.image.NCha), int(twix.image.NAve), int(twix.image.NCol)
-        nrep, neco, nset = int(twix.image.NRep), int(twix.image.NEco), int(twix.image.NSet)
+        while len(data.shape) < 4:
+            data.shape = [1] + list(data.shape)
+        if prep is not None:
+            while len(prep.shape) < 4:
+                prep.shape = [1] + list(prep.shape)
 
-        data = twix.image['']
-
-        if nrep > 1:
-            # ncol, ncha, nrep, nseg -> nrep, ncha, nseg, ncol
-            data = np.copy(data.transpose(2, 3, 1, 0), order='C')
-        else:
-            # ncol, ncha, nseg -> ncha, nseg, ncol
-            data = np.copy(data.transpose(1, 2, 0), order='C')
-            data.shape = 1, ncha, nset, ncol
+        _, _, _, _, _, nseg, nset, nrep, nphs, neco, npar, nsli, nave, nlin, ncha, ncol = twix.dims
 
         # get header info -----------------------------------
 
@@ -283,7 +261,7 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
                   'header'      : clean_header,
                   'transform'   : tform,
                   'data'        : data,
-                  'prep'        : None  }
+                  'prep'        : prep  }
 
         return params
 
