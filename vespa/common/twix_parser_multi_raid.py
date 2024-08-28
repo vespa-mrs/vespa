@@ -91,6 +91,12 @@ https://github.com/vespa-mrs/vespa
 2020-09-12  Released version 0.3.0, Sort functionality moved from twix_sort.py
              into twix_parser.py and twix_parser_multi_raid.py modules. This
              adds Numpy as a dependency.
+2024-08-27  Began version 0.4.0. Vespa tested out using pymapvbvd to standardize
+             twix read, but had issue accessing 'prep' scans. So refactored this
+             BJS version to figure out why so many 'scans' were being saved when
+             there were only 8 avgs in an sLASER twix. Also, stole the header
+             buffer parsing code from pymapvbvd with proper accreditation. Did a
+             refactor of Constant names, ie. phase->phs in line with MDH index.
 """
 
 # Python modules
@@ -522,13 +528,6 @@ class TwixScanHeader(object):
         """
         return [MDH_FLAGS[item] for item in list(MDH_FLAGS.keys()) if (1<<item) & self.eval_info_mask]
 
-        # set_flag_labels = []
-        # for item in list(MDH_FLAGS.keys()):
-        #     if (1<<item) & self.eval_info_mask:
-        #         set_flag_labels.append(MDH_FLAGS[item])
-        #
-        # return set_flag_labels
-    
     
     def test_eval_info_by_bit(self, bit):
         """ test bit location in 64bit eval info mask to see if set """
@@ -983,7 +982,7 @@ class TwixMeasurement(object):
             msg = "ICE indices are not unique, can not return in a Loop Counter dimensioned numpy array."
             raise ValueError(msg)
 
-        nparr = np.zeros(self.dims, np.complex64)
+        data = np.zeros(self.dims, np.complex64)
 
         for i, scan in enumerate(self.scans):
             loops = self.get_ice_index(i)
@@ -994,11 +993,11 @@ class TwixMeasurement(object):
                 indx = tuple(loops)
 
                 print("List, index = " + str(self.indices_list[i]) + "  " + str(indx))
-                nparr[indx] = np.array(chan[1])
+                data[indx] = np.array(chan[1])
 
-        return nparr
+        return data
 
-    def get_data_numpy_scan_col(self):
+    def get_data_numpy_scan_col(self, prep=False):
         """
         Return numpy array of all FID data in scan order - no indexing
 
@@ -1009,17 +1008,26 @@ class TwixMeasurement(object):
         """
 
         ncha = self.scans[0].scan_header.used_channels
-        npts = self.scans[0].scan_header.samples_in_scan
+        ncol = self.scans[0].scan_header.samples_in_scan
 
-        r = np.zeros([len(self.scans) * ncha, npts], np.complex64)
-
+        data = np.zeros([len(self.scans) * ncha, ncol], np.complex64)
         for i, scan in enumerate(self.scans):
             for j, chan in enumerate(scan.channels):
-                r[i * ncha + j, :] = np.array(chan[1])
+                data[i * ncha + j, :] = np.array(chan[1])
 
-        return r
+        if prep:
+            prep_arr = None
+            if self.scans_phascor:
+                prep_arr = np.zeros([ncha, nprep, ncol], np.complex64)
+                for i, scan in enumerate(self.scans_phascor):
+                    for j, cha in enumerate(scan.channels):
+                        prep_arr[i*ncha + j, :] = np.array(cha[1])
 
-    def get_data_numpy_cha_scan_col(self):
+            return data, prep_arr
+        else:
+            return data
+
+    def get_data_numpy_cha_scan_col(self, prep=False):
         """
         Sort all scans into numpy array in [cha, fid, spectral points] order.
 
@@ -1033,19 +1041,30 @@ class TwixMeasurement(object):
             to use an enumeration to fill the icha index
 
         """
-        npts = self.scans[0].scan_header.samples_in_scan
-        nscan = len(self.scans)
+        ncol = self.scans[0].scan_header.samples_in_scan
         ncha = self.scans[0].scan_header.used_channels
+        nscan = len(self.scans)
+        nprep = len(self.scans_phascor)
 
-        nparr = np.zeros([ncha, nscan, npts], np.complex64)
-
+        data = np.zeros([ncha, nscan, ncol], np.complex64)
         for i, scan in enumerate(self.scans):
             for j, chan in enumerate(scan.channels):
-                nparr[j, i, :] = np.array(chan[1])
+                data[j, i, :] = np.array(chan[1])
 
-        return nparr
+        if prep:
+            prep_arr = None
+            if self.scans_phascor:
+                prep_arr = np.zeros([ncha, nprep, ncol], np.complex64)
+                for i, scan in enumerate(self.scans_phascor):
+                    for j, cha in enumerate(scan.channels):
+                        prep_arr[j, i, :] = np.array(cha[1])
 
-    def get_data_numpy_scan_cha_col(self):
+            return data, prep_arr
+        else:
+            return data
+
+
+    def get_data_numpy_scan_cha_col(self, prep=False):
         """
         Sort all scans into numpy array in [fid, cha, spectral points] order.
 
@@ -1061,50 +1080,27 @@ class TwixMeasurement(object):
             to use an enumeration to fill the icha index
 
         """
-        npts  = self.scans[0].scan_header.samples_in_scan
-        nscan = len(self.scans)
+        ncol  = self.scans[0].scan_header.samples_in_scan
         ncha  = self.scans[0].scan_header.used_channels
-        nparr = np.zeros([nscan, ncha, npts], np.complex64)
-
-        for i, scan in enumerate(self.scans):
-            for j, cha in enumerate(scan.channels):
-                nparr[i, j, :] = np.array(cha[1])
-
-        return nparr
-
-
-    def get_data_numpy_cha_scan_col_prep(self):
-        """
-        Sort all scans into numpy array in [fid, cha, spectral points] order.
-
-        This does not require unique dimensions. It does require that total
-        number of scans divided by number of channels is an integer. It is
-        assumed that all channels for a given FID follow one after the other
-        in the scan list.
-
-        """
-        ncol = self.scans[0].scan_header.samples_in_scan
         nscan = len(self.scans)
         nprep = len(self.scans_phascor)
-        ncha = self.scans[0].scan_header.used_channels
 
-        # I have seen in CMRR sLASER data that the scan.set value does not increment
-        # while the prep scans are taken.
+        data = np.zeros([nscan, ncha, ncol], np.complex64)
+        for i, scan in enumerate(self.scans):
+            for j, cha in enumerate(scan.channels):
+                data[i, j, :] = np.array(cha[1])
 
-        prep_arr = None
-        if self.scans_phascor:
-            prep_arr = np.zeros([ncha, nprep, ncol], np.complex64)
-            for iscan, scan in enumerate(self.scans_phascor):
-                for icha, cha in enumerate(scan.channels):
-                    prep_arr[icha, iscan, :] = np.array(cha[1])
+        if prep:
+            prep_arr = None
+            if nprep:
+                prep_arr = np.zeros([ncha, nprep, ncol], np.complex64)
+                for i, scan in enumerate(self.scans_phascor):
+                    for j, cha in enumerate(scan.channels):
+                        prep_arr[i, j, :] = np.array(cha[1])
 
-
-        nparr = np.zeros([ncha, nscan, ncol], np.complex64)
-        for iscan, scan in enumerate(self.scans):
-            for icha, cha in enumerate(scan.channels):
-                nparr[icha, iscan, :] = np.array(cha[1])
-
-        return nparr, prep_arr
+            return data, prep_arr
+        else:
+            return data
 
 
     # def get_data_numpy_rep_cha_ave_ncol(self, return_prep=False):

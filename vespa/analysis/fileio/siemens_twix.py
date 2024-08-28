@@ -115,7 +115,7 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
         ref_nscans = int(hdr[('sSpecPara', 'lAutoRefScanNo')])
         prep_nscans = int(hdr[('sSpecPara','lPreparingScans')])
         if software_version == 'vb':
-            ref_flag    = int(ref_nscans != 0)
+            ref_flag    = int(ref_nscans != 0) * 8      # align with newer version with wref1+wref3 is flag=8
         else:
             ref_flag = int(hdr[('sSpecPara', 'lAutoRefScanMode')])
 
@@ -152,7 +152,7 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
 
         # get data ------------------------------------------
 
-        data, prep = twix.current.get_data_numpy_cha_scan_col_prep()
+        data, prep = twix.current.get_data_numpy_cha_scan_col(prep=True)
 
         while len(data.shape) < 4:
             data.shape = [1] + list(data.shape)
