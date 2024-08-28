@@ -996,8 +996,10 @@ class TwixMeasurement(object):
         """
         ncha = self.scans[0].scan_header.used_channels
         ncol = self.scans[0].scan_header.samples_in_scan
+        nscan = len(self.scans)
+        nprep = len(self.scans_phascor)
 
-        data = np.zeros([len(self.scans) * ncha, ncol], np.complex64)
+        data = np.zeros([nscan * ncha, ncol], np.complex64)
         for i, scan in enumerate(self.scans):
             for j, chan in enumerate(scan.channels):
                 data[i * ncha + j, :] = np.array(chan[1])
@@ -1038,7 +1040,7 @@ class TwixMeasurement(object):
 
         if prep:
             prep_arr = None
-            if self.scans_phascor:
+            if nprep:
                 prep_arr = np.zeros([ncha, nprep, ncol], np.complex64)
                 for i, scan in enumerate(self.scans_phascor):
                     for j, cha in enumerate(scan.channels):
@@ -1076,7 +1078,7 @@ class TwixMeasurement(object):
         if prep:
             prep_arr = None
             if nprep:
-                prep_arr = np.zeros([ncha, nprep, ncol], np.complex64)
+                prep_arr = np.zeros([nprep, ncha, ncol], np.complex64)
                 for i, scan in enumerate(self.scans_phascor):
                     for j, cha in enumerate(scan.channels):
                         prep_arr[i, j, :] = np.array(cha[1])
@@ -1086,212 +1088,89 @@ class TwixMeasurement(object):
             return data
 
 
-    # def get_data_numpy_rep_cha_ave_ncol(self, return_prep=False):
-    #     return self.get_data_numpy_rep_cha_set(return_prep=return_prep)
-    #
-    # def get_data_numpy_rep_cha_set(self, return_prep=False):
-    #     """
-    #     Use the ICE loop indices to sort each scan into a numpy array with
-    #     all 16 dimensions.  This option can not be used if we don't have a
-    #     unique set of ICE indices. We use check_unique_indices() to determine
-    #     if this is the case.  If everything is OK, we return a numpy array,
-    #     if it is not, we return None.
-    #
-    #     NB. cha is not always 0 .. Nchan, sometimes it is an odd
-    #         assorment of integers, maybe the elements turned on, so we have
-    #         to use an enumeration to fill the icha index
-    #
-    #     """
-    #     items = ['ide', 'idd', 'idc', 'idb', 'ida', 'seg', 'phs', 'eco', 'par', 'sli', 'ave',
-    #              'lin']
-    #     for item in items:
-    #         indx = SCAN_INDICES.index(item)
-    #         if self.dims[indx] > 1:
-    #             msg = "ICE dimension - '" + item + "' is greater than 1, can not create a unique numpy array."
-    #             raise ValueError(msg)
-    #
-    #     nrep = self.dims[MULTI_INDICES.index('rep')]  # number of repetitions, may be 1
-    #     nset = self.dims[MULTI_INDICES.index('set')]  # number of FIDs for spectroscopy
-    #     ncha = self.scans[0].scan_header.used_channels
-    #     npts = self.scans[0].scan_header.samples_in_scan
-    #
-    #     nparr = np.zeros([nrep, ncha, nset, npts], np.complex64)
-    #
-    #     prep_arr = None
-    #     if return_prep:
-    #         header = _parse_protocol_data(self.evps['MeasYaps'][1])
-    #         nprep_hdr = int(header['sSpecPara.lPreparingScans'])
-    #         nprep = len(self.scans) - nrep * nset
-    #         if nprep_hdr != nprep: print('Warning: get_data_numpy_rep_channel_set_order() - nprep_hdr != nprep')
-    #
-    #         # I have seen in CMRR sLASER (VE) data that the scan.set value does not
-    #         # increment while the prep scans are taken. We get around this empirically.
-    #         # We know how many Averages are being taken, subtract from the total number
-    #         # of scans and know how many prep averages there will be.  I calc the iset
-    #         # index below using this sort of math. Just in case someday it start to
-    #         # increment, I make allowances for that case too.
-    #
-    #         prep_arr = None
-    #         if nprep != 0:
-    #             prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex64)
-    #             for iscan, scan in enumerate(self.scans[0:nprep]):
-    #                 irep = scan.scan_header.rep
-    #                 if scan.scan_header.set == 0:
-    #                     iset = iscan
-    #                 else:
-    #                     iset = scan.scan_header.set
-    #                 # iset = scan.scan_header.set
-    #                 for icha, chan in enumerate(scan.channels):
-    #                     prep_arr[irep, icha, iset, :] = np.array(chan[1])  # may need iset -> iscan here, need test data
-    #     else:
-    #         nprep = 0
-    #
-    #     for scan in self.scans[nprep:]:
-    #         irep = scan.scan_header.rep
-    #         iset = scan.scan_header.set
-    #         for icha, chan in enumerate(scan.channels):
-    #             nparr[irep, icha, iset, :] = np.array(chan[1])
-    #
-    #     return nparr, prep_arr
-    #
-    # def get_data_numpy_echo_coil_avg_npts_order(self, return_prep=False):
-    #     return self.get_data_numpy_echo_channel_set_order(return_prep=return_prep)
-    #
-    # def get_data_numpy_echo_channel_set_order(self, return_prep=False):
-    #     """
-    #     Use the ICE loop indices to sort each scan into a numpy array with
-    #     all 16 dimensions.  This option can not be used if we don't have a
-    #     unique set of ICE indices. We use check_unique_indices() to determine
-    #     if this is the case.  If everything is OK, we return a numpy array,
-    #     if it is not, we return None.
-    #
-    #     NB. cha is not always 0 .. Nchan, sometimes it is an odd
-    #         assorment of integers, maybe the elements turned on, so we have
-    #         to use an enumeration to fill the icha index
-    #
-    #     """
-    #     items = ['ide', 'idd', 'idc', 'idb', 'ida', 'seg', 'phs', 'par', 'sli', 'ave',
-    #              'lin', 'rep']
-    #     for item in items:
-    #         indx = SCAN_INDICES.index(item)
-    #         if self.dims[indx] > 1:
-    #             msg = "ICE dimension - '" + item + "' is greater than 1, can not create a unique numpy array."
-    #             raise ValueError(msg)
-    #
-    #     nrep = self.dims[MULTI_INDICES.index('eco')]  # number of echos, may be 1 (NB. repurposed nrep here)
-    #     nset = self.dims[MULTI_INDICES.index('set')]  # number of FIDs for spectroscopy
-    #
-    #     ncha = self.scans[0].scan_header.used_channels
-    #     npts = self.scans[0].scan_header.samples_in_scan
-    #
-    #     nparr = np.zeros([nrep, ncha, nset, npts], np.complex64)
-    #
-    #     prep_arr = None
-    #     if return_prep:
-    #         header = _parse_protocol_data(self.evps['MeasYaps'][1])
-    #         nprep_hdr = int(header['sSpecPara.lPreparingScans'])
-    #         nprep = len(self.scans) - nrep * nset
-    #         if nprep_hdr != nprep: print('Warning: get_data_numpy_rep_channel_set_order() - nprep_hdr != nprep')
-    #
-    #         # I have seen in CMRR sLASER (VE) data that the scan.set value does not
-    #         # increment while the prep scans are taken. We get around this empirically.
-    #         # We know how many Averages are being taken, subtract from the total number
-    #         # of scans and know how many prep averages there will be.  I calc the iset
-    #         # index below using this sort of math. Just in case someday it start to
-    #         # increment, I make allowances for that case too.
-    #
-    #         prep_arr = None
-    #         if nprep != 0:
-    #             prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex64)
-    #             for iscan, scan in enumerate(self.scans[0:nprep]):
-    #                 irep = scan.scan_header.eco
-    #                 if scan.scan_header.set == 0:
-    #                     iset = iscan
-    #                 else:
-    #                     iset = scan.scan_header.set
-    #                 # iset = scan.scan_header.set
-    #                 for icha, chan in enumerate(scan.channels):
-    #                     prep_arr[irep, icha, iset, :] = np.array(chan[1])  # may need iset -> iscan here, need test data
-    #     else:
-    #         nprep = 0
-    #
-    #     for scan in self.scans[nprep:]:
-    #         irep = scan.scan_header.eco
-    #         iset = scan.scan_header.set
-    #         for icha, chan in enumerate(scan.channels):
-    #             nparr[irep, icha, iset, :] = np.array(chan[1])
-    #
-    #     return nparr, prep_arr
-    #
-    #
-    # def get_scans_numpy_rep_cha_set_col(self, return_prep=False):
-    #     """
-    #     Use the ICE loop indices to sort each scan into a numpy array with
-    #     all 16 dimensions.  This option can not be used if we don't have a
-    #     unique set of ICE indices. We use check_unique_indices() to determine
-    #     if this is the case.  If everything is OK, we return a numpy array,
-    #     if it is not, we return None.
-    #
-    #     NB. cha is not always 0. Nchan, sometimes is an odd assortment
-    #         of integers, maybe the elements turned on, so we have to use an
-    #         enumeration to fill the icha index
-    #
-    #     """
-    #     items = ['ide', 'idd', 'idc', 'idb', 'ida', 'seg', 'phs', 'eco', 'par', 'sli', 'ave',
-    #              'lin']
-    #     for item in items:
-    #         indx = SCAN_INDICES.index(item)
-    #         if self.dims[indx] > 1:
-    #             msg = "ICE dimension - '" + item + "' is greater than 1, can not create a unique numpy array."
-    #             raise ValueError(msg)
-    #
-    #     nrep = self.dims[MULTI_INDICES.index('rep')]  # number of repetitions, may be 1
-    #     nset = self.dims[MULTI_INDICES.index('set')]  # number of FIDs for spectroscopy
-    #     ncha = self.scans[0].scan_header.used_channels
-    #     npts = self.scans[0].scan_header.samples_in_scan
-    #
-    #     nparr = np.zeros([nrep, ncha, nset, npts], np.complex64)
-    #
-    #     prep_arr = None
-    #     if return_prep:
-    #         header = _parse_protocol_data(self.evps['MeasYaps'][1])
-    #         nprep_hdr = int(header['sSpecPara.lPreparingScans'])
-    #         nprep = len(self.scans) - nrep * nset
-    #         if nprep_hdr != nprep: print('Warning: get_data_numpy_rep_channel_set_order() - nprep_hdr != nprep')
-    #
-    #         # I have seen in CMRR sLASER (VE) data that the scan.set value does not
-    #         # increment while the prep scans are taken. We get around this empirically.
-    #         # We know how many Averages are being taken, subtract from the total number
-    #         # of scans and know how many prep averages there will be.  I calc the iset
-    #         # index below using this sort of math. Just in case someday it start to
-    #         # increment, I make allowances for that case too.
-    #
-    #         prep_arr = None
-    #         if nprep != 0:
-    #             prep_arr = np.zeros([nrep, ncha, nprep, npts], np.complex64)
-    #             for iscan, scan in enumerate(self.scans[0:nprep]):
-    #                 irep = scan.scan_header.rep
-    #                 if scan.scan_header.set == 0:
-    #                     iset = iscan
-    #                 else:
-    #                     iset = scan.scan_header.set
-    #                 # iset = scan.scan_header.set
-    #                 for icha, chan in enumerate(scan.channels):
-    #                     prep_arr[irep, icha, iset, :] = np.array(chan[1])  # may need iset -> iscan here, need test data
-    #     else:
-    #         nprep = 0
-    #
-    #     for scan in self.scans[nprep:]:
-    #         irep = scan.scan_header.rep
-    #         iset = scan.scan_header.set
-    #         for icha, chan in enumerate(scan.channels):
-    #             nparr[irep, icha, iset, :] = np.array(chan[1])
-    #
-    #     return nparr, prep_arr
+    def get_data_numpy_rep_cha_ave_col(self, prep=False):
+        return self.get_data_numpy_rep_cha_set_col(prep=prep)
 
+    def get_data_numpy_rep_cha_set_col(self, prep=False):
+        """
+        Sort all scans into numpy array in [rep, cha, set, col] order.
 
+        NB. cha not always sequential 0..nchan so we have an enumeration for icha index
 
+        """
+        items = ['ide', 'idd', 'idc', 'idb', 'ida', 'seg', 'phs', 'eco', 'par', 'sli', 'ave', 'lin']
+        for item in items:
+            indx = SCAN_INDICES.index(item)
+            if self.dims[indx] > 1:
+                msg = "ICE dimension - '" + item + "' is greater than 1, can not create a unique numpy array."
+                raise ValueError(msg)
 
+        ncha = self.scans[0].scan_header.used_channels
+        ncol = self.scans[0].scan_header.samples_in_scan
+        nrep = self.dims[MULTI_INDICES.index('rep')]
+        nset = self.dims[MULTI_INDICES.index('set')]  # number of FIDs for spectroscopy
+        nprep = len(self.scans_phascor)
+
+        data = np.zeros([nrep, ncha, nset, ncol], np.complex64)
+        for i, scan in enumerate(self.scans):
+            for j, cha in enumerate(scan.channels):
+                irep = scan.scan_header.rep
+                data[irep, j, i, :] = np.array(cha[1])
+
+        if prep:
+            prep_arr = None
+            if nprep:
+                prep_arr = np.zeros([nrep, ncha, nprep, ncol], np.complex64)
+                for i, scan in enumerate(self.scans_phascor):
+                    for j, cha in enumerate(scan.channels):
+                        irep = scan.scan_header.rep
+                        prep_arr[irep, j, i, :] = np.array(cha[1])
+
+            return data, prep_arr
+        else:
+            return data
+
+    def get_data_numpy_eco_cha_ave_col(self, prep=False):
+        return self.get_data_numpy_eco_cha_set_col(prep=prep)
+
+    def get_data_numpy_eco_cha_set_col(self, prep=False):
+        """
+        Sort all scans into numpy array in [eco, cha, set, col] order.
+
+        NB. cha not always sequential 0..nchan so we have an enumeration for icha index
+
+        """
+        items = ['ide', 'idd', 'idc', 'idb', 'ida', 'seg', 'phs', 'par', 'sli', 'ave', 'lin', 'rep']
+        for item in items:
+            indx = SCAN_INDICES.index(item)
+            if self.dims[indx] > 1:
+                msg = "ICE dimension - '" + item + "' is greater than 1, can not create a unique numpy array."
+                raise ValueError(msg)
+
+        ncha = self.scans[0].scan_header.used_channels
+        ncol = self.scans[0].scan_header.samples_in_scan
+        neco = self.dims[MULTI_INDICES.index('eco')]  # number of echos, may be 1 (NB. repurposed nrep here)
+        nset = self.dims[MULTI_INDICES.index('set')]  # number of FIDs for spectroscopy
+        nprep = len(self.scans_phascor)
+
+        data = np.zeros([neco, ncha, nset, ncol], np.complex64)
+        for i, scan in enumerate(self.scans):
+            for j, cha in enumerate(scan.channels):
+                ieco = scan.scan_header.eco
+                data[ieco, j, i, :] = np.array(cha[1])
+
+        if prep:
+            prep_arr = None
+            if nprep:
+                prep_arr = np.zeros([neco, ncha, nprep, ncol], np.complex64)
+                for i, scan in enumerate(self.scans_phascor):
+                    for j, cha in enumerate(scan.channels):
+                        ieco = scan.scan_header.eco
+                        prep_arr[ieco, j, i, :] = np.array(cha[1])
+
+            return data, prep_arr
+        else:
+            return data
 
 
 
@@ -1324,7 +1203,6 @@ class TwixMultiRaid(object):
      (128 bytes to 192 bytes) to provide additional information about what is 
      happening during each scan
 
-    
     """
     def __init__(self):
         
@@ -1508,15 +1386,7 @@ except NameError:
         return '0b' + value
 
 
-def _parse_protocol_data(prot):
-    str, end = prot.find("### ASCCONV BEGIN"), prot.find("### ASCCONV END ###")
-    prot = prot[str + len("### ASCCONV BEGIN ###"):end]
-    f = lambda pair: (pair[0].strip(), pair[1].strip())
-    lines = prot.split('\n')
-    return dict([f(line.split('=')) for line in lines[1:] if line])
-
-
-##################   "Private" functions start here   ##################   
+##################   "Private" functions start here   ##################
 
 def _bit_string(value, min_length=1):
     """Given an int value, returns a bitwise string representation that is 
@@ -1605,19 +1475,8 @@ def _collapse_complexes(data):
     return [complex(r, i) for r, i in zip(data_iter, data_iter)]
 
 
-def _create_64bit_mask(vals):
-    """ create a 64bit int value that corresponds to the bytes of the mask """
-    if len(vals) != 8:
-        # simple error check for number of vals to convert
-        return 0
-
-    bmask = 0
-    for i, val in enumerate(vals):
-        bmask += (val << i*8)
-    return bmask
-
-
-
+#------------------------------------------------------------------------------
+# test code
 
 if __name__ == "__main__":
 
