@@ -112,12 +112,18 @@ class RawReaderSiemensTwix(raw_reader.RawReader):
         wiplong, wipdouble = self._get_phoenix_wipvars(hdr)
 
         lAverages = int(hdr[('lAverages',)])     # number of metabolite scans
-        ref_nscans = int(hdr[('sSpecPara', 'lAutoRefScanNo')])
         prep_nscans = int(hdr[('sSpecPara','lPreparingScans')])
+
+        # the 'try' calls below cover the older sLASER that Gulin Long data
+        # came from that took ref scans separately, some params not in hdr ...
+
+        ref_nscans = int(hdr.get(('sSpecPara', 'lAutoRefScanNo',), 0))
+
         if software_version == 'vb':
             ref_flag    = int(ref_nscans != 0) * 8      # align with newer version with wref1+wref3 is flag=8
         else:
             ref_flag = int(hdr[('sSpecPara', 'lAutoRefScanMode')])
+            ref_flag = int(hdr.get(('sSpecPara', 'lAutoRefScanMode',), 0))
 
         #----------------------------------------------------------------------
         # The following boolean calculations are done to help us try to figure

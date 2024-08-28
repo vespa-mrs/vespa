@@ -613,8 +613,8 @@ class TwixRaid(object):
             scan = TwixScan()
             scan.populate_from_file(infile)
 
-            bob = scan.parse_evalinfomask()
-            print(bob, str(_bit_string(scan.eval_info_mask, min_length=64)))
+            # bob = scan.parse_evalinfomask()
+            # print(bob, str(_bit_string(scan.eval_info_mask, min_length=64)))
 
             if scan.is_last_acquisition:
                 more_scans = False

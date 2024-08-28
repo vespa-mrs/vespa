@@ -153,11 +153,47 @@ class RawReaderSiemensTwixSlaserCmrrVbGulinLong(RawReaderSiemensTwixSlaserCmrrVe
         - The open_dataset attribute is not used in this reader.
 
         """
-        # TODO bjs - rewire RawReaderSiemensTwix to allow for old version of this ... ?
+        twix, version_flag = self.get_twix(filename)
 
-        msg = 'RawReaderSiemensTwixSlaserCmrrVbGulinLong was broken when pymapvbvd module introduced, returning!'
-        raise ValueError(msg)
+        d = self._get_parameters(twix.current, version_flag)
+        d["data_source"] = filename
 
+        data = d['data']
+        prep = d['prep']
+
+        _, _, navg, npts = data.shape
+
+        if d["remove_os"]:
+            data = self._remove_oversampling_basic(data)
+            if prep is not None:
+                prep = self._remove_oversampling_basic(prep)
+            d["sw"] = d["sw"] / 2.0
+
+        data = np.conjugate(data)
+        if prep is not None:
+            prep = np.conjugate(prep)
+
+        raws = []
+
+        # dataset1 - scan 0, water unsuppressed for coil combine and (maybe) ECC
+
+        d["data"] = prep[:,:,0:1,:].copy() * RAWDATA_SCALE / float(1.0)
+        d["data_source"] = filename + '.combine'
+        raws.append(DataRawCmrrSlaser(d))
+
+        # dataset2 - scan 1-2, water unsuppressed for water scale
+
+        d["data"] = prep[:,:,1:2,:].copy() * RAWDATA_SCALE / float(1.0)
+        d["data_source"] = filename + '.water1'
+        raws.append(DataRawCmrrSlaser(d))
+
+        # dataset3 - scans 5-68 (64 total), metabolite data with WS
+
+        d["data"] = data.copy() * RAWDATA_SCALE / float(navg)
+        d["data_source"] = filename + '.metab'
+        raws.append(DataRawCmrrSlaser(d))
+
+        return raws
 
 
 
@@ -170,9 +206,49 @@ class RawReaderSiemensTwixSlaserCmrrVbGulinLongWater(RawReaderSiemensTwixSlaserC
         - The open_dataset attribute is not used in this reader.
 
         """
-        # TODO bjs - rewire RawReaderSiemensTwix to allow for old version of this ... ?
+        twix, version_flag = self.get_twix(filename)
 
-        msg = 'RawReaderSiemensTwixSlaserCmrrVbGulinLongWater was broken when pymapvbvd module introduced, returning!'
-        raise ValueError(msg)
+        # 'scan' returns data in [ncha, navg, npts] order - easy to convert to mrs_data_raw dims
+        d = self._get_parameters(twix.current, version_flag)
+        d["data_source"] = filename
+
+        data = d['data']
+        prep = d['prep']
+        nrep, _, navg, npts = data.shape
+
+        if d["remove_os"]:
+            data = self._remove_oversampling_basic(data)
+            if prep is not None:
+                prep = self._remove_oversampling_basic(prep)
+            d["sw"] = d["sw"] / 2.0
+
+        data = np.conjugate(data)
+        if prep is not None:
+            prep = np.conjugate(prep)
+
+        raws = []
+
+        # dataset1 - scan 0, water unsuppressed for coil combine and (maybe) ECC
+
+        d["data"] = prep[:,:,0:1,:].copy() * RAWDATA_SCALE / float(1.0)
+        d["data_source"] = filename + '.combine'
+        raws.append(DataRawCmrrSlaser(d))
+
+        # dataset2 - scan 1-2, water unsuppressed for water scale
+
+        if prep.shape[2] > 1:
+            d["data"] = prep[:,:,1:2,:].copy() * RAWDATA_SCALE / float(1.0)
+        else:
+            d["data"] = prep[:,:,0:1,:].copy() * RAWDATA_SCALE / float(1.0)
+        d["data_source"] = filename + '.water1'
+        raws.append(DataRawCmrrSlaser(d))
+
+        # dataset3 - scans 5-68 (64 total), metabolite data with WS
+
+        d["data"] = data.copy() * RAWDATA_SCALE / float(navg)
+        d["data_source"] = filename + '.metab'
+        raws.append(DataRawCmrrSlaser(d))
+
+        return raws
 
 

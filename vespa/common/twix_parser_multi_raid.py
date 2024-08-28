@@ -516,27 +516,15 @@ class TwixScanHeader(object):
 
 
     def parse_evalinfomask(self):
-        """ 
-        Returns list of labels for all states that are set in the mask.
-        
-        Run through all the flag values listed in the MDH_FLAGS dictionary. Note
-        that the dict keys are the bit location, so I have to create a bit shifted
-        value to compare to the bit mask. The & operator returns 0 if the bit is
-        not set, and non-zero if it is set. I add the flag label to the return
-        list if the bit is set.
-        
-        """
+        """ Returns list of labels for all states that are set in the mask. """
         return [MDH_FLAGS[item] for item in list(MDH_FLAGS.keys()) if (1<<item) & self.eval_info_mask]
 
     
     def test_eval_info_by_bit(self, bit):
         """ test bit location in 64bit eval info mask to see if set """
         if bit < 0 or bit > 63:
-            # very light error check, should raise exception
             return False
         
-        # bmask = _create_64bit_mask(self.eval_info_mask)
-
         if (1<<bit) & self.eval_info_mask:
             return True
         else:
@@ -553,7 +541,6 @@ class TwixScanHeader(object):
                 break
 
         if bit == -1:
-            # very light error check, should raise exception
             return False
 
         return self.test_eval_info_by_bit(bit)
@@ -973,6 +960,10 @@ class TwixMeasurement(object):
         if this is the case.  If everything is OK, we return a numpy array,
         if it is not, we return None.
 
+        We add an Ellipsis object to the end of the index list and convert
+        the list into a tuple so it can be used to index a location in the
+        numpy output array for the scan data.
+
         NB. cha is not always 0 .. Ncha, sometimes it is an odd
             assorment of integers, maybe the elements turned on, so we have
             to use an enumeration to fill the icha index
@@ -988,11 +979,11 @@ class TwixMeasurement(object):
             loops = self.get_ice_index(i)
 
             for icha, chan in enumerate(scan.channels):
-                loops.append(icha)  # chan[0].cha
+                loops.append(icha)
                 loops.append(Ellipsis)
                 indx = tuple(loops)
 
-                print("List, index = " + str(self.indices_list[i]) + "  " + str(indx))
+                #print("List, index = " + str(self.indices_list[i]) + "  " + str(indx))
                 data[indx] = np.array(chan[1])
 
         return data
@@ -1000,13 +991,9 @@ class TwixMeasurement(object):
     def get_data_numpy_scan_col(self, prep=False):
         """
         Return numpy array of all FID data in scan order - no indexing
-
-        NB. cha is not always 0 .. Nchan, sometimes it is an odd
-            assorment of integers, maybe the elements turned on, so we have
-            to use an enumeration to fill the icha index
+        NB. cha not always sequential 0..nchan so we have an enumeration for icha index
 
         """
-
         ncha = self.scans[0].scan_header.used_channels
         ncol = self.scans[0].scan_header.samples_in_scan
 
@@ -1036,9 +1023,7 @@ class TwixMeasurement(object):
         assumed that all channels for a given FID follow one after the other
         in the scan list.
 
-        NB. cha is not always 0 .. Nchan, sometimes it is an odd
-            assorment of integers, maybe the elements turned on, so we have
-            to use an enumeration to fill the icha index
+        NB. cha not always sequential 0..nchan so we have an enumeration for icha index
 
         """
         ncol = self.scans[0].scan_header.samples_in_scan
@@ -1075,9 +1060,7 @@ class TwixMeasurement(object):
         assumed that all channels for a given FID follow one after the other
         in the scan list.
 
-        NB. cha is not always 0 .. Nchan, sometimes it is an odd
-            assorment of integers, maybe the elements turned on, so we have
-            to use an enumeration to fill the icha index
+        NB. cha not always sequential 0..nchan so we have an enumeration for icha index
 
         """
         ncol  = self.scans[0].scan_header.samples_in_scan

@@ -38,7 +38,7 @@ class RawReaderSiemensTwixSlaserCmrrVbGulinLong(RawReaderSiemensTwixBjs):
         """
         twix, version_flag = self.get_twix(filename)
 
-        d = self._get_parameters(twix.current)
+        d = self._get_parameters(twix.current, version_flag)
         d["data_source"] = filename
 
         data = d['data']
@@ -73,7 +73,7 @@ class RawReaderSiemensTwixSlaserCmrrVbGulinLong(RawReaderSiemensTwixBjs):
         # dataset3 - scans 5-68 (64 total), metabolite data with WS
 
         d["data"] = data.copy() * RAWDATA_SCALE / float(navg)
-        d["data_source"] = filename + '.metab64'
+        d["data_source"] = filename + '.metab'
         raws.append(DataRawCmrrSlaser(d))
 
         return raws
@@ -91,7 +91,7 @@ class RawReaderSiemensTwixSlaserCmrrVbGulinLongWater(RawReaderSiemensTwixBjs):
         twix, version_flag = self.get_twix(filename)
 
         # 'scan' returns data in [ncha, navg, npts] order - easy to convert to mrs_data_raw dims
-        d = self._get_parameters(twix.current, index='scan')
+        d = self._get_parameters(twix.current, version_flag)
         d["data_source"] = filename
 
         data = d['data']
@@ -112,8 +112,6 @@ class RawReaderSiemensTwixSlaserCmrrVbGulinLongWater(RawReaderSiemensTwixBjs):
 
         # dataset1 - scan 0, water unsuppressed for coil combine and (maybe) ECC
 
-        # tmp = prep[:,:,0,:].copy()
-        # tmp.shape = (tmp.shape[0], tmp.shape[1], 1, tmp.shape[2])
         d["data"] = prep[:,:,0:1,:].copy() * RAWDATA_SCALE / float(1.0)
         d["data_source"] = filename + '.combine'
         raws.append(DataRawCmrrSlaser(d))
@@ -130,7 +128,7 @@ class RawReaderSiemensTwixSlaserCmrrVbGulinLongWater(RawReaderSiemensTwixBjs):
         # dataset3 - scans 5-68 (64 total), metabolite data with WS
 
         d["data"] = data.copy() * RAWDATA_SCALE / float(navg)
-        d["data_source"] = filename + '.metab64'
+        d["data_source"] = filename + '.metab'
         raws.append(DataRawCmrrSlaser(d))
 
         return raws
