@@ -718,6 +718,8 @@ class NotebookDatasets(vespa_notebooks.VespaAuiNotebook):
                     names.append("CMRR%d." % count + "Water1")
                 elif ".metab64" in fname:
                     names.append("CMRR%d." % count + "Metab64")
+                elif ".metab" in fname:
+                    names.append("CMRR%d." % count + "Metab")
                 elif ".ecc2" in fname:
                     names.append("CMRR%d." % count + "Ecc2")
                 elif ".water2" in fname:

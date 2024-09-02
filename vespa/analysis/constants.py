@@ -634,8 +634,8 @@ class FitAmplitudeMultiplier(object):
 
 class FitBaselineBsplineOrder(object):
     """ Baseline B-Spline order constants """
-    MIN = 1.0
-    MAX = 5.0
+    MIN = 1
+    MAX = 5
 
 class FitBaselineLowessWindowSize(object):
     """ Baseline metabolites region Lowess window size (Hz) constants """

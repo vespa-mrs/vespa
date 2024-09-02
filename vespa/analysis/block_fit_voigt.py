@@ -344,10 +344,8 @@ class _Settings(object):
                               "initial_linewidth_fudge",
                               "initial_phase0_value", 
                               "initial_phase1_value", 
-                              "initial_ko_linewidth_minimum", 
                               "initial_phase1_fid_constant",
-                              "initial_lac_method",
-                              "baseline_smoothing_width", 
+                              "baseline_smoothing_width",
                               "baseline_smoothing_delta",
                               "baseline_underestimate", 
                               "baseline_underestimate_last", 
@@ -397,6 +395,8 @@ class _Settings(object):
 
             # ints
             for attribute in ("initial_ko_points",
+                              "initial_ko_linewidth_minimum",
+                              "initial_lac_method",
                               "initial_peak_negative_flag",
                               "baseline_underestimate_steps", 
                               "baseline_spline_nknots", 

@@ -42,7 +42,10 @@ class RawReaderSiemensTwixSvsEdit(RawReaderSiemensTwix):
         
         """
         twix, version_flag = self.get_twix(filename)
-        d = self._get_parameters(twix.current, index='echo')
+        d = self._get_parameters(twix, version_flag)
+
+        # NB. bjs 9/2024 - May be broken by update to twix_parser.py code, may
+        #   need local _get_parameters() method to properly organize data
 
         data = d['data']
 

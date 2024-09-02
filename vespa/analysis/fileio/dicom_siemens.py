@@ -233,6 +233,8 @@ def _get_parameters_dicom_sop(dataset):
                   section["SpectroscopyAcquisitionPhaseColumns"].value,
                   section["SpectroscopyAcquisitionDataColumns"].value, )
 
+    nframes = int(dataset.get('NumberOfFrames', 0))
+
     dataf =  convert_numbers(dataset['SpectroscopyData'].value, True, 'f') # (0x5600, 0x0020)
     data_iter = iter(dataf)
     data = [complex(r, i) for r, i in zip(data_iter, data_iter)]
