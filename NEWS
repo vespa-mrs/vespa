@@ -1,3 +1,7 @@
+Notes for updating IO Pages
+----------------------------------
+dep nifti-mrs -> from conda-forge for python311 env
+
 
 Version 1.1.1rc1 - 11 Feb, 2024
 ------------------------------------------------------------------------------
@@ -80,8 +84,8 @@ Version 1.0.0 - 14 April, 2021
 
 This is a Major udate to the Vespa package. The two most important changes are:
 
- 1) the Vespa code base has been updated to Python 3. 
- 2) the Vespa code repository and docs have moved to GitHub and GitHub Pages
+ 1) the Vespa code base has been updated to Python 3. 
+ 2) the Vespa code repository and docs have moved to GitHub and GitHub Pages
  
 Due to a lot of free time during the COVID-19 pandemic, Vespa has been 
 rewritten, refactored, and redesigned to work under Python 3.x. Due to numerous 
