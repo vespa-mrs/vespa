@@ -260,8 +260,8 @@ def analysis_cli(datasets, presets,
             with open(outcsv, 'r+') as f:
                 data = f.readlines()
                 if len(data)>1:
-                    nlast = len(data[-1].split(','))
-                    if nlast == len(hdr): hdr_flag = False
+                    #if len(data[0].split(',')) == len(hdr.split(',')): hdr_flag = False
+                    if data[0] == hdr: hdr_flag = False
 
         with open(outcsv, 'a') as f:
             if hdr_flag:
@@ -377,7 +377,14 @@ def analysis_kernel(param):
         r = util_file_import.get_datasets_cli(fdata[0], dformat, None)
 
         # only add in the datasets we want for next step
-        data_coil, data_ecc, data_water, data_ecc2, data_water2, data_metab = r
+        if len(r) == 6:
+            data_coil, data_ecc, data_water, data_ecc2, data_water2, data_metab = r
+        elif len(r) == 4:
+            data_coil, data_ecc, data_water, data_metab = r
+        else:
+            msg = 'Error: wrong number of datasets returned from input filename - returning.'
+            raise ValueError(msg)
+
         datasets = [data_coil, data_ecc, data_water, data_metab]
 
         dset_mmol, msg = util_file_import.open_viff_dataset_file([fbasis_mmol,]) 
@@ -433,7 +440,8 @@ def do_main():
                 'pad_inches' : 0.5
              }
 
-    dformats = ['siemens_twix_svs_slaser_cmrr_vb',
+    dformats = [
+                'siemens_twix_svs_slaser_cmrr_vb',
                 'siemens_twix_svs_slaser_cmrr_vb',
                 'siemens_twix_svs_slaser_cmrr_vb',
                 'siemens_twix_svs_slaser_cmrr_vb',
@@ -445,10 +453,10 @@ def do_main():
                 'siemens_twix_svs_slaser_cmrr_vb',
                 'siemens_twix_slaser_cmrr_ve',
                 'siemens_twix_slaser_cmrr_ve',
-                'siemens_twix_slaser_cmrr_ve',
-                'siemens_twix_slaser_cmrr_ve',
-                'siemens_twix_slaser_cmrr_ve',
-                'siemens_twix_slaser_cmrr_ve',
+                # 'siemens_twix_slaser_cmrr_ve',
+                # 'siemens_twix_slaser_cmrr_ve',
+                # 'siemens_twix_slaser_cmrr_ve',
+                # 'siemens_twix_slaser_cmrr_ve',
                 'siemens_twix_slaser_cmrr_ve',
                 'siemens_twix_slaser_cmrr_ve',
                 'siemens_twix_svs_slaser_cmrr_vb',
@@ -463,20 +471,20 @@ def do_main():
                ]
 
     fbase = 'D:\\Users\\bsoher\\projects\\2019_Priya_CNS_MRS\\data\\'
+    fpset = fbase + 'presets_slaser_vb_xa\\'
 
-    out_base  = fbase + '_results_v04\\'
+    out_base  = fbase + '_results_v05\\'
     out_label = 'presets_v2_'
 
-    fpset_coil  = fbase + 'preset_analysis_coil_v1.xml'
-    fpset_ecc   = fbase + 'preset_analysis_ecc_v1.xml'
-    fpset_water = fbase + 'preset_analysis_water_v1.xml'
-    fpset_metab = fbase + 'preset_analysis_metab_v2.xml'
-    fbasis_mmol = fbase + 'basis_mmol_from_datasim_sead2014_siemens.xml'
+    fpset_coil  = fpset + 'preset_analysis_coil_v1.xml'
+    fpset_ecc   = fpset + 'preset_analysis_ecc_v1.xml'
+    fpset_water = fpset + 'preset_analysis_water_v1.xml'
+    fpset_metab = fpset + 'preset_analysis_metab_v2.xml'
+    fbasis_mmol = fpset + 'basis_mmol_from_datasim_sead2014_siemens.xml'
 
     fpresets = [fpset_coil, fpset_ecc, fpset_water, fpset_metab]
 
     fdata = [
-
             [fbase + "camrd_452_006_year4_2020_01_08\\twix\\meas_MID00206_FID102846_1_slaser028_avg32_wref1_resolv.dat", ],
             [fbase + "camrd_452_006_year4_2020_01_08\\twix\\meas_MID00216_FID102856_2_slaser028_avg32_wref1_resolv.dat", ],
             [fbase + "camrd_452_006_year6_2021_03_17\\twix\\meas_MID01411_FID140476_1_slaser028_avg32_wref1_resolv.dat",],
@@ -489,10 +497,10 @@ def do_main():
             [fbase + "camrd_452_008_year5_2021_02_11\\twix\\meas_MID00039_FID137207_2_slaser028_avg32_wref1_resolv.dat",],
             [fbase + "camrd_452_008_year7_2023_05_11\\twix\\meas_MID00294_FID05387_1_sLASER028_avg32_wref1_HYPER.dat", ],
             [fbase + "camrd_452_008_year7_2023_05_11\\twix\\meas_MID00315_FID05408_2_sLASER028_avg32_wref1_GM.dat", ],
-            [fbase + "camrd_452_009_year3_2022_12_05\\twix\\meas_MID00071_FID10779_1_sLASER028_avg32_wref1_HYPER.dat",],
-            [fbase + "camrd_452_009_year3_2022_12_05\\twix\\meas_MID00078_FID10786_2_sLASER028_avg32_wref1_GM.dat",],
-            [fbase + "camrd_452_010_year4_2024_02_28\\twix\\meas_MID00367_FID09162_1_slaser_metab_avg32_hyper.dat", ],
-            [fbase + "camrd_452_010_year4_2024_02_28\\twix\\meas_MID00374_FID09169_2_slaser_metab_avg32_gm.dat", ],
+            # [fbase + "camrd_452_009_year3_2022_12_05\\twix\\meas_MID00071_FID10779_1_sLASER028_avg32_wref1_HYPER.dat",],      # manual workaround DICOM sLaser CMRR multiframe
+            # [fbase + "camrd_452_009_year3_2022_12_05\\twix\\meas_MID00078_FID10786_2_sLASER028_avg32_wref1_GM.dat",],         # manual workaround DICOM sLaser CMRR multiframe
+            # [fbase + "camrd_452_010_year4_2024_02_28\\twix\\meas_MID00367_FID09162_1_slaser_metab_avg32_hyper.dat", ],          # bad data quality
+            # [fbase + "camrd_452_010_year4_2024_02_28\\twix\\meas_MID00374_FID09169_2_slaser_metab_avg32_gm.dat", ],             # poor data, but no WM so push
             [fbase + "camrd_452_020_year3_2023_08_09\\twix\\meas_MID00258_FID14445_1_sLASER028_avg32_wref1_HYPER.dat", ],
             [fbase + "camrd_452_020_year3_2023_08_09\\twix\\meas_MID00267_FID14454_2_sLASER028_avg32_wref1_GM.dat", ],
             [fbase + "camrd_452_025_year2_2020_03_02\\twix\\meas_MID00117_FID107165_1_slaser028_avg32_wref1_resolv.dat",],

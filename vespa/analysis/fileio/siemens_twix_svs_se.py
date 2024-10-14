@@ -15,6 +15,8 @@ import numpy as np
 from vespa.common.mrs_data_raw import DataRawFidsum
 from vespa.analysis.fileio.siemens_twix import RawReaderSiemensTwix
 
+# RAWDATA_SCALE is based on ICE_RAWDATA_SCALE in SpecRoFtFunctor.cpp
+RAWDATA_SCALE = 131072.0 * 256.0
 
 
 class RawReaderSiemensTwixSvsSe(RawReaderSiemensTwix):
@@ -32,10 +34,11 @@ class RawReaderSiemensTwixSvsSe(RawReaderSiemensTwix):
 
         """
         twix, version_flag = self.get_twix(filename)
-        d = self._get_parameters(twix.current)
+        d = self._get_parameters(twix, version_flag)
+
+        navg = d["lAverages"]
         
         data = d['data']
-
         if d["remove_os"]:
             data = self._remove_oversampling_basic(data)
             d["sw"] = d["sw"] / 2.0
@@ -46,7 +49,7 @@ class RawReaderSiemensTwixSvsSe(RawReaderSiemensTwix):
         nrep = data.shape[0]
         raws = []
         for i in range(nrep):
-            d["data"] = data[i,:,:,:]
+            d["data"] = data[i,:,:,:] * RAWDATA_SCALE / float(navg)
             d["data_source"] = filename+'_rep'+str(i).zfill(2) if nrep > 1 else filename
             raws.append(DataRawFidsum(d))
 

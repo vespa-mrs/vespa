@@ -410,7 +410,9 @@ def get_datasets(reader, open_dataset=None):
                     dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1], datasets[2], datasets[3], datasets[4], datasets[5]])
                 elif len(datasets) == 3:
                     dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1], datasets[2]])
-    
+                elif len(datasets) == 4:
+                    dataset.blocks['raw'].set_associated_datasets([datasets[0], datasets[1], datasets[2], datasets[3]])
+
     return datasets, msg
 
 

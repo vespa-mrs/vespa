@@ -58,21 +58,21 @@ def analysis_cli(datasets, presets,
     
     # Sort datasets into variables ----------------------------------
     
-    data_coil, data_ecc, data_water, data_metab, basis_mmol = datasets
-    pset_coil, pset_ecc, pset_water, pset_metab = presets
+    data_water, data_metab, basis_mmol = datasets
+    pset_water, pset_metab = presets
 
     msg = ""
     
-    # Load and Process - Coil Combine Dataset -----------------------
+    # Load and Process - Coil Combine and Water Dataset -----------------------
 
-    if data_coil is not None:
-        if verbose: print(out_prefix+" - Apply Preset and Run Chain - Coil Combine")    
+    if data_water is not None:
+        if verbose: print(out_prefix+" - Apply Preset and Run Chain - Coil Combine")
         try:
-            msg = out_prefix+" - " + """applying preset - coil combine""" 
-            data_coil.apply_preset(pset_coil, voxel=(0,0,0))  # update dataset object with preset blocks and chains
+            msg = out_prefix+" - " + """applying preset - coil combine"""
+            data_water.apply_preset(pset_water, voxel=(0,0,0))  # update dataset object with preset blocks and chains
 
-            msg = out_prefix+" - " + """running chain - coil combine""" 
-            _process_all_blocks(data_coil)
+            msg = out_prefix+" - " + """running chain - coil combine"""
+            _process_all_blocks(data_water)
 
         except:
             if not in_gui:
@@ -84,61 +84,25 @@ def analysis_cli(datasets, presets,
     # Load Preset - Ecc, Water and Metab Datasets -------------------
 
     try:
-        # Apply presets to ecc, water and metab datasets
+        # Apply preset to metab dataset
       
-        msg = "Apply Preset - Ecc, Water and Metab Datasets"
+        msg = "Apply Preset - Water and Metab Datasets"
         if verbose: print(msg)    
-
-        if data_ecc is not None and pset_ecc is not None:
-            msg = out_prefix+" - " + """applying preset - ecc""" 
-            data_ecc.apply_preset(pset_ecc, voxel=(0,0,0))      # chain  
-
-        if data_water is not None and pset_water is not None:
-            msg = out_prefix+" - " + """applying preset - water""" 
-            data_water.apply_preset(pset_water, voxel=(0,0,0))  
 
         if data_metab is not None and pset_metab is not None:
             msg = out_prefix+" - " + """applying preset - metab""" 
             data_metab.apply_preset(pset_metab, voxel=(0,0,0)) 
 
         #----------------------------------------------------------------------
-        # Attach coil combine to ecc, water and metab datasets - run chain ecc
+        # Attach coil combine, mmol_basis and water to metab - run chain metab
 
-        if data_coil is not None:
-            msg = out_prefix+" - " + """attaching coil combine to - ecc, water and metab"""
-            for dset in [data_ecc, data_water, data_metab]:
-                if dset is not None:
-                    dset.set_associated_dataset_combine(data_coil)
-        
-        if data_ecc is not None:
-            msg = out_prefix+" - " + """running chain - ecc"""
-            if verbose: print(msg)
-            _process_all_blocks(data_ecc)       # get combined FID for next steps
-        
-        #----------------------------------------------------------------------
-        # Attach ecc to water and metab datasets - run chain water
-
-        if data_ecc is not None:
-            msg = out_prefix+" - " + """attaching ecc to - water and metab"""
-            for dset in [data_water, data_metab]:
-                if dset is not None:
-                    dset.set_associated_dataset_ecc(data_ecc)
-        
+        msg = out_prefix+" - " + """attaching combine, mmol_basis and water to - metab"""
         if data_water is not None:
-            msg = out_prefix+" - " + """running chain - water"""
-            if verbose: print(msg)
-            _process_all_blocks(data_water)
-
-        #----------------------------------------------------------------------
-        # Attach mmol_basis and water to metab dataset - run chain metab
-
-        msg = out_prefix+" - " + """attaching mmol_basis and water to - metab"""
-        for dset in [data_metab,]:
-            if basis_mmol is not None:
-                if dset is not None:
-                    dset.set_associated_dataset_mmol(basis_mmol)
-            if data_water is not None:
-                dset.set_associated_dataset_quant(data_water)
+            data_metab.set_associated_dataset_combine(data_water)
+        if basis_mmol is not None:
+            data_metab.set_associated_dataset_mmol(basis_mmol)
+        if data_water is not None:
+            data_metab.set_associated_dataset_quant(data_water)
 
         msg = out_prefix+" - " + """running chain - metab"""
         if verbose: print(msg)
@@ -356,29 +320,27 @@ def analysis_kernel(param):
         debug   = False
         verbose = True
 
-        fpset_coil, fpset_ecc, fpset_water, fpset_metab = fpresets
+        fpset_water, fpset_metab = fpresets
     
         # Use file names to create unique prefix for output files
         parts = os.path.normpath(fdata[0]).split(os.sep)
-        if '_1_slaser' in fdata[0].lower():
-            out_prefix = out_label+parts[-3]+'_deepWM'    # Ex. twix_2020_01_08_camrd_452_006_year4_deepWM
+        if 'hyper' in fdata[0].lower():
+            out_prefix = out_label+parts[-3]+'_deepWM_press'    # Ex. twix_2020_01_08_camrd_452_006_year4_deepWM
         else:
-            out_prefix = out_label+parts[-3]+'_normGM'
+            out_prefix = out_label+parts[-3]+'_normGM_press'
 
         if verbose:
             print('Begin - '+out_prefix)
     
-        pset_coil  = load_preset(fpset_coil,  verbose=True, debug=debug)
-        pset_ecc   = load_preset(fpset_ecc,   verbose=True, debug=debug)
         pset_water = load_preset(fpset_water, verbose=True, debug=debug)
         pset_metab = load_preset(fpset_metab, verbose=True, debug=debug) 
-        presets = [pset_coil, pset_ecc, pset_water, pset_metab]
+        presets = [pset_water, pset_metab]
 
-        r = util_file_import.get_datasets_cli(fdata[0], dformat[0], None)
+        data_water = util_file_import.get_datasets_cli(fdata[0], dformat[0], None)
+        data_metab = util_file_import.get_datasets_cli(fdata[1], dformat[0], None)
 
         # only add in the datasets we want for next step
-        data_coil, data_ecc, data_water, data_ecc2, data_water2, data_metab = r
-        datasets = [data_coil, data_ecc, data_water, data_metab]
+        datasets = [data_water[0], data_metab[0]]
 
         dset_mmol, msg = util_file_import.open_viff_dataset_file([fbasis_mmol,]) 
         for item in dset_mmol:
@@ -421,7 +383,7 @@ def do_main():
 
     debug          = False
     verbose        = True
-    single_process = False
+    single_process = True
     nprocess       = 8
 
     out_set = { 'savetype' : 'lcm_multi',
@@ -436,25 +398,24 @@ def do_main():
     dformat = ['siemens_twix_svs_se',]
 
     fbase = 'D:\\Users\\bsoher\\projects\\2019_Priya_CNS_MRS\\data\\'
+    fpset = fbase + 'presets_press\\'
 
-    out_base  = fbase + '_results_v04\\'
+    out_base  = fbase + '_results_v05\\'
     out_label = 'presets_v2_'
 
-    fpset_coil  = fbase + 'preset_analysis_coil_v1.xml'
-    fpset_ecc   = fbase + 'preset_analysis_ecc_v1.xml'
-    fpset_water = fbase + 'preset_analysis_water_v1.xml'
-    fpset_metab = fbase + 'preset_analysis_metab_v2.xml'
-    fbasis_mmol   = fbase + 'basis_mmol_from_datasim_sead2014_siemens.xml'
+    fpset_water = fpset + 'preset_analysis_press_water_v2.xml'
+    fpset_metab = fpset + 'preset_analysis_press_metab_v2.xml'
+    fbasis_mmol = fpset + 'basis_mmol_from_datasim_sead2014_siemens_forPRESS.xml'
 
-    fpresets = [fpset_coil, fpset_ecc, fpset_water, fpset_metab]
+    fpresets = [fpset_water, fpset_metab]
 
 
     fdata = [
 
-            [fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00382_FID18674_PRESS_TE35ms_water_hyper.dat",
-             fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00385_FID18677_PRESS_TE35ms_metab_hyper.dat"],
-            [fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00389_FID18681_PRESS_TE35ms_water_gm.dat",
-             fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00392_FID18684_PRESS_TE35ms_metab_gm.dat"],
+            # [fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00382_FID18674_PRESS_TE35ms_water_hyper.dat",
+            #  fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00385_FID18677_PRESS_TE35ms_metab_hyper.dat"],
+            # [fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00389_FID18681_PRESS_TE35ms_water_gm.dat",
+            #  fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00392_FID18684_PRESS_TE35ms_metab_gm.dat"],
             [fbase + "camrd_452_006_year7_2023_08_01\\twix\\meas_MID00186_FID13597_PRESS_TE35ms_water_hyper.dat",
              fbase + "camrd_452_006_year7_2023_08_01\\twix\\meas_MID00189_FID13600_PRESS_TE35ms_metab_hyper.dat"],
             [fbase + "camrd_452_006_year7_2023_08_01\\twix\\meas_MID00193_FID13604_PRESS_TE35ms_water_gm.dat",
@@ -467,10 +428,10 @@ def do_main():
              fbase + "camrd_452_019_year5_2023_07_12\\twix\\meas_MID00209_FID11999_PRESS_TE35ms_metab_hyper.dat"],
             [fbase + "camrd_452_019_year5_2023_07_12\\twix\\meas_MID00213_FID12003_PRESS_TE35ms_water_gm.dat",
              fbase + "camrd_452_019_year5_2023_07_12\\twix\\meas_MID00216_FID12006_PRESS_TE35ms_metab_gm.dat"],
-            [fbase + "camrd_452_019_year6_2021_11_30\\twix\\meas_MID00308_FID13823_PRESS_TE35ms_water_hyper.dat",
-             fbase + "camrd_452_019_year6_2021_11_30\\twix\\meas_MID00311_FID13826_PRESS_TE35ms_metab_hyper.dat"],
-            [fbase + "camrd_452_019_year6_2021_11_30\\twix\\meas_MID00315_FID13830_PRESS_TE35ms_water_gm.dat",
-             fbase + "camrd_452_019_year6_2021_11_30\\twix\\meas_MID00318_FID13833_PRESS_TE35ms_metab_gm.dat"],
+            [fbase + "camrd_452_019_year6_2021_11_30_onlyTwixMRS\\twix\\meas_MID00308_FID13823_PRESS_TE35ms_water_hyper.dat",
+             fbase + "camrd_452_019_year6_2021_11_30_onlyTwixMRS\\twix\\meas_MID00311_FID13826_PRESS_TE35ms_metab_hyper.dat"],
+            [fbase + "camrd_452_019_year6_2021_11_30_onlyTwixMRS\\twix\\meas_MID00315_FID13830_PRESS_TE35ms_water_gm.dat",
+             fbase + "camrd_452_019_year6_2021_11_30_onlyTwixMRS\\twix\\meas_MID00318_FID13833_PRESS_TE35ms_metab_gm.dat"],
             [fbase + "camrd_452_055_year1_2022_06_15\\twix\\meas_MID00036_FID30012_PRESS_TE35ms_water_hyper.dat",
              fbase + "camrd_452_055_year1_2022_06_15\\twix\\meas_MID00039_FID30015_PRESS_TE35ms_metab_hyper.dat"],
             [fbase + "camrd_452_055_year1_2022_06_15\\twix\\meas_MID00043_FID30019_PRESS_TE35ms_water_gm.dat",

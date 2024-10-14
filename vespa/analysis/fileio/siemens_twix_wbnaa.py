@@ -65,7 +65,10 @@ class RawReaderSiemensTwixWbnaa(raw_reader.RawReader):
         """
         twix, version_flag = self.get_twix(filename)
 
-        d = self._get_parameters(twix.current, index='scan')
+        d = self._get_parameters(twix, version_flag)
+
+        # NB. bjs 9/2024 - May be broken by update to twix_parser.py code, may
+        #   need local _get_parameters() method to properly organize data
 
         # Create a DataRawWbnaa out of the first set of data in the list.
         datas = d["data"]       # this is a list of numpy arrays [1,ncoil,nfids,npts]
@@ -113,6 +116,9 @@ class RawReaderSiemensTwixWbnaa(raw_reader.RawReader):
 
     def _get_parameters(self, twix, index='rep'):
         """ Return parameters and data from a Siemens Twix """
+
+        msg = 'NB. bjs - broken by Aug 2024 twix update, fix please!'
+        raise ValueError(msg)
 
         evps = twix.evps
 
