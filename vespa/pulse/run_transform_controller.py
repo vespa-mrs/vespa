@@ -405,7 +405,10 @@ def _create_temporary_module(module_name, description, code):
     # Check the run function's args. It's allowed to have multiple args, but
     # only one can be required (i.e. all the other must have default
     # values).
-    args, _, _, defaults = inspect.getargspec(run_function)
+    if sys.version_info[1] < 11:
+        args, _, _, defaults = inspect.getargspec(run_function)
+    else:
+        args, _, _, defaults, _, _, _ = inspect.getfullargspec(run_function)
 
     # defaults is None if there's no default args.
     if not defaults:
