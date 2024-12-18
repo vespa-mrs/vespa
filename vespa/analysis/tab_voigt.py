@@ -932,7 +932,7 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
                                 facecolor='w', 
                                 edgecolor='w',
                                 orientation='portrait', 
-                                papertype='letter', 
+                                #papertype='letter',
                                 format=None,
                                 transparent=False)
             except IOError:

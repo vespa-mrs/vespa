@@ -489,7 +489,7 @@ class DialogPulseSequenceEditor(pulse_sequence_editor.MyDialog):
                         facecolor='w',
                         edgecolor='w',
                         orientation='portrait',
-                        papertype='letter',
+                        #papertype='letter',
                         format=None,
                         transparent=False)
 

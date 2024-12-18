@@ -313,7 +313,7 @@ class TabPrepTimeseries(tab_base.Tab, timeseries.PanelPrepTimeseriesUI):
                                     facecolor='w', 
                                     edgecolor='w',
                                     orientation='portrait', 
-                                    papertype='letter', 
+                                    #papertype='letter', 
                                     format=None,
                                     transparent=False)
                 except IOError:

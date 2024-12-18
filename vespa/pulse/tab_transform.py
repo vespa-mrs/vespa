@@ -425,7 +425,7 @@ class TabTransform(panel_tab_transform.PanelTabTransform):
                                     facecolor='w', 
                                     edgecolor='w',
                                     orientation='portrait', 
-                                    papertype='letter', 
+                                    #papertype='letter', 
                                     format=None,
                                     transparent=False)
                 except IOError:

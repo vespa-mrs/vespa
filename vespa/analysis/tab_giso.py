@@ -731,7 +731,7 @@ class TabGiso(tab_base.Tab, giso.PanelGisoUI):
                                 facecolor='w', 
                                 edgecolor='w',
                                 orientation='portrait', 
-                                papertype='letter', 
+                                #papertype='letter', 
                                 format=None,
                                 transparent=False)
             except IOError:
