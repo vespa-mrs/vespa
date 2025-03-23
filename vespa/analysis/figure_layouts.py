@@ -263,9 +263,9 @@ def lcm_like(   dataset,
     # Layout for an LCModel-like landscape report
 
     left, bottom    = 0.06, 0.07        # set up for 8.5x11 landscape printout
-    w1, w2          = 0.55, 0.35
+    w1, w2          = 0.52, 0.35        # orig 0.55 0.35
     h1, h2          = 0.73, 0.07
-    hpad, vpad      = 0.001, 0.001
+    hpad, vpad      = 0.02, 0.001       # orig 0.001  0.001
 
     rect1 = [left,         bottom+h1, w1, h2]    # xmin, ymin, dx, and dy
     rect2 = [left,         bottom,    w1, h1]
@@ -413,6 +413,30 @@ def lcm_like(   dataset,
                             fontsize=8,
                             fontname=fontname)
     fig.canvas.draw()
+
+    # # BJS 3/22/2025 added this code to create realistic Vespa LCM output for FIRE test
+    # import io
+    # import zlib
+    # import base64
+    #
+    # NUMERIC_LIST_ENCODING = "npy zlib base64"
+    # res = []
+    # for data in [dat1, dat2, dat2b, dat2c]:
+    #     for transform in NUMERIC_LIST_ENCODING.strip().split():
+    #         if transform == "npy":
+    #             buf = io.BytesIO()
+    #             np.save(buf, data)  # data still numpy array here
+    #             data = buf.getvalue()  # returns a 'byte' representation of buffer
+    #         elif transform == "zlib":
+    #             data = zlib.compress(data, 9)  # in py27 'str' input returns type(data)='str'
+    #         elif transform == "base64":
+    #             data = base64.b64encode(data)  # in py27 'str' input returns type(data)='str'
+    #         else:
+    #             raise ValueError("Unrecognized data format '%s'" % transform)
+    #
+    #     data = data.decode('utf-8')  # new with Py3 since some steps above now return 'byte' instead of 'str'
+    #
+    #     res.append(data)
 
     return [fig, ]
 
@@ -1860,10 +1884,10 @@ def analysis_brp_generic(   dataset,
 #
 #     ncols, nrows = fig.canvas.get_width_height()
 #     
-#     cbuf = np.fromstring(buf, dtype=np.uint8)
+#     cbuf = np.fromstring(buf, dtype=np.uint8)  BJS deprecated, use frombuffer()
 #     cbuf = tuple([int(item) for item in cbuf])
 #     
-#     bob = np.fromstring(buf, dtype=np.uint8).reshape(int(nrows*ncols*3/16),16)
+#     bob = np.fromstring(buf, dtype=np.uint8).reshape(int(nrows*ncols*3/16),16)  BJS deprecated, use frombuffer()
 # 
 #     fname1 = "D:\\Users\\bsoher\\_test1.txt"
 #     fname2 = "D:\\Users\\bsoher\\_test1.bin"
