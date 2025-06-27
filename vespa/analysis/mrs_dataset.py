@@ -1292,7 +1292,7 @@ class Dataset(object):
 
     def fit_results_in_table(self, voxel, lw=0.0, lwmin=0.0, lwmax=0.0,
                                    nozeros=False, noppm=False, fixphase=False,
-                                   no_conf=False, places=5, pad=2,
+                                   no_conf=False, places=5, pad=1,
                                    short_form=False, format_float=False):
         """
         Given a voxel, linewidth params, and a data source (often a filename), 
