@@ -1,3 +1,9 @@
+Version 1.1.1rc2 - 27 June, 2025
+------------------------------------------------------------------------------
+Analysis
+- bugfix for deprecated 'getiterator' call for moving to Python 3.9 as base version
+- also allowing wxPython to 4.2.1 for dependency check
+
 Notes for updating IO Pages
 ----------------------------------
 dep nifti-mrs -> from conda-forge for python311 env
