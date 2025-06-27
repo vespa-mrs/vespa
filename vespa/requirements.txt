@@ -23,7 +23,7 @@ matplotlib>3.1.0
 
 # working with a recent version as of September 2020. Found that 4.1.0 throws 
 # an exception, maybe with wxGlade, will have to debug
-wxPython>=4.0.4,<4.1.0
+wxPython>=4.0.4,<4.2.1
 
 # LMFit. Any version will work.
 lmfit
