@@ -1,4 +1,4 @@
-﻿# Python modules
+# Python modules
 
 
 # 3rd party modules
