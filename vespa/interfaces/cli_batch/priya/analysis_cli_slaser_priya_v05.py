@@ -41,7 +41,7 @@ class CliError(Exception):
 
 
 def analysis_cli(datasets, presets, 
-                 out_base, out_prefix, out_set=None,
+                 out_base, out_prefix, datdir, out_set=None,
                  verbose=False, debug=False, in_gui=False):
     
     # Test for keyword values ---------------------------------------
@@ -239,18 +239,21 @@ def analysis_cli(datasets, presets,
     
     voxel  = (0,0,0)
     outcsv = out_base+'csv_results_collated.csv'
+    outcsv_fit = out_base + 'csv_results_collated_fit.csv'
 
     if verbose: print(out_prefix+" - " + """Saving Results to CSV "%s". """ % outcsv)
 
     try:
         raw    = data_metab.blocks["raw"]
         fit    = data_metab.blocks["fit"]
-            
+
+        # Save quantified fit results from Quant tab
         val, hdr = data_metab.quant_results_as_csv(voxel, lw = fit.chain.fitted_lw, 
                                                    lwmin     = fit.chain.minmaxlw[0], 
                                                    lwmax     = fit.chain.minmaxlw[1], 
                                                    source    = raw.get_data_source(voxel),
-                                                   dsetname  = data_metab.dataset_filename,
+                                                   dsetname  = datdir,
+                                                   #dsetname=data_metab.dataset_filename,
                                                    decor1    = False)
         val = ",".join(val) + "\n"
         hdr = ",".join(hdr) + "\n"
@@ -267,6 +270,30 @@ def analysis_cli(datasets, presets,
             if hdr_flag:
                 f.write(hdr)
             f.write(val)
+
+        # Save fitted area results from Voigt tab
+        val1, hdr1 = data_metab.fit_results_as_csv(voxel, lw=fit.chain.fitted_lw,
+                                                   lwmin=fit.chain.minmaxlw[0],
+                                                   lwmax=fit.chain.minmaxlw[1],
+                                                   source=raw.get_data_source(voxel),
+                                                   dsetname=datdir,
+                                                   #dsetname=data_metab.dataset_filename,
+                                                   decor1=False)
+        val1 = ",".join(val1) + "\n"
+        hdr1 = ",".join(hdr1) + "\n"
+
+        hdr_flag1 = True
+        if os.path.isfile(outcsv_fit):
+            with open(outcsv_fit, 'r+') as f:
+                data = f.readlines()
+                if len(data) > 1:
+                    if data[0] == hdr1: hdr_flag1 = False
+
+        with open(outcsv_fit, 'a') as f:
+            if hdr_flag1:
+                f.write(hdr1)
+            f.write(val1)
+
 
     except Exception as e:
         msg = """Failure to create/write file "%s".""" % outcsv
@@ -360,6 +387,7 @@ def analysis_kernel(param):
     
         # Use file names to create unique prefix for output files
         parts = os.path.normpath(fdata[0]).split(os.sep)
+        datdir = parts[-3]
         if '_1_slaser' in fdata[0].lower():
             out_prefix = out_label+parts[-3]+'_deepWM'    # Ex. twix_2020_01_08_camrd_452_006_year4_deepWM
         else:
@@ -400,6 +428,7 @@ def analysis_kernel(param):
                                           presets,
                                           out_base,
                                           out_prefix,
+                                          datdir,
                                           out_set=out_set,
                                           verbose=True)
         else:
@@ -470,7 +499,7 @@ def do_main():
                 'siemens_twix_slaser_cmrr_ve',
                ]
 
-    fbase = 'D:\\Users\\bsoher\\projects\\2019_Priya_CNS_MRS\\data\\'
+    fbase = 'D:\\Users\\bsoher\\projects\\2019_Priya_CNS_MRS\\data_cohort1\\'
     fpset = fbase + 'presets_slaser_vb_xa\\'
 
     out_base  = fbase + '_results_v05\\'
