@@ -426,6 +426,8 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
         wx_util.configure_spin(self.FloatOptimizeWeightsWaterEnd,    70, 3, 0.5, ppmlim)
         wx_util.configure_spin(self.FloatOptimizeWeightsLipidStart,  70, 3, 0.5, ppmlim)
         wx_util.configure_spin(self.FloatOptimizeWeightsLipidEnd,    70, 3, 0.5, ppmlim)
+        wx_util.configure_spin(self.FloatOptimizeWeightsOtherStart,  70, 3, 0.5, ppmlim)
+        wx_util.configure_spin(self.FloatOptimizeWeightsOtherEnd,    70, 3, 0.5, ppmlim)
         wx_util.configure_spin(self.FloatOptimizeWeightsSmallPeakFactor, 70, 3, 0.5, (0.001,1000.0))
         
         wx_util.configure_spin(self.FloatConfidenceAlpha,            70, 5, 0.1,
@@ -755,6 +757,9 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
         self.CheckOptimizeWeightsLipidFlag.SetValue(      fit.set.optimize_weights_lipid_flag)
         self.FloatOptimizeWeightsLipidStart.SetValue(     fit.set.optimize_weights_lipid_start)
         self.FloatOptimizeWeightsLipidEnd.SetValue(       fit.set.optimize_weights_lipid_end)
+        self.CheckOptimizeWeightsOtherFlag.SetValue(      fit.set.optimize_weights_other_flag)
+        self.FloatOptimizeWeightsOtherStart.SetValue(     fit.set.optimize_weights_other_start)
+        self.FloatOptimizeWeightsOtherEnd.SetValue(       fit.set.optimize_weights_other_end)
         self.FloatOptimizeWeightsSmallPeakFactor.SetValue(fit.set.optimize_weights_small_peak_factor)
 
         if fit.set.optimize_weights_method == constants.FitOptimizeWeightsMethod.LOCAL_WEIGHTING:
@@ -1929,7 +1934,26 @@ class TabVoigt(tab_base.Tab, voigt.PanelVoigtUI):
         self.block.set.optimize_weights_lipid_start = min
         self.block.set.optimize_weights_lipid_end = max
         self.process_and_plot()
-        
+
+    def on_optimize_weights_other_flag(self, event):
+        val = event.GetEventObject().GetValue()
+        self.block.set.optimize_weights_other_flag = val
+        self.process_and_plot()
+
+    def on_optimize_weights_other_start(self, event):
+        min, max = _paired_event(self.FloatOptimizeWeightsOtherStart,
+                                 self.FloatOptimizeWeightsOtherEnd)
+        self.block.set.optimize_weights_other_start = min
+        self.block.set.optimize_weights_other_end = max
+        self.process_and_plot()
+
+    def on_optimize_weights_other_end(self, event):
+        min, max = _paired_event(self.FloatOptimizeWeightsOtherStart,
+                                 self.FloatOptimizeWeightsOtherEnd)
+        self.block.set.optimize_weights_other_start = min
+        self.block.set.optimize_weights_other_end = max
+        self.process_and_plot()
+
     def on_optimize_weights_small_peak_factor(self, event): 
         val = event.GetEventObject().GetValue()
         self.block.set.optimize_weights_small_peak_factor = val

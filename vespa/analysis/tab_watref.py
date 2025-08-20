@@ -24,41 +24,8 @@ import vespa.common.util.misc as util_misc
 
 from matplotlib.backends.backend_pdf import PdfPages
 
-#------------------------------------------------------------------------------
-
-_HLSVD_RESULTS_DISPLAY_SIZE = 6
-
-class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ColumnSorterMixin):
-    def __init__(self, _inner_notebook, tab):
-        style = wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES
-        wx.ListCtrl.__init__(self, _inner_notebook, -1, style=style)
-        CheckListCtrlMixin.__init__(self)
-        ColumnSorterMixin.__init__(self, _HLSVD_RESULTS_DISPLAY_SIZE)
-        self.itemDataMap = {}
-        self._tab_dataset = _inner_notebook
-        self.tab = tab
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
-
-    def GetListCtrl(self):
-        return self
-
-    def OnItemActivated(self, evt):
-        self.ToggleItem(evt.m_itemIndex)
-
-    # this is called by the base class when an item is checked/unchecked
-    def OnCheckItem(self, index, flag):
-        self.tab.on_check_item(self, index, flag)
 
 
-#------------------------------------------------------------------------------
-
-def _configure_combo(control, choices, selection=''):
-        lines = list(choices.values())
-        control.SetItems(lines)
-        if selection in lines:
-            control.SetStringSelection(selection)
-        else:
-            control.SetStringSelection(lines[0])
 
 
 #------------------------------------------------------------------------------

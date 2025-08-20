@@ -125,6 +125,9 @@ class _Settings(object):
         self.optimize_weights_lipid_flag        = False         # Off/On zero lipid region
         self.optimize_weights_lipid_start       = -0.5          # region with lipid - lower weight here
         self.optimize_weights_lipid_end         = 1.1           #  start/end in ppm
+        self.optimize_weights_other_flag        = False         # Off/On zero lipid region
+        self.optimize_weights_other_start       = 1.8           # some other region - lower weight here
+        self.optimize_weights_other_end         = 2.2           #  start/end in ppm
         self.optimize_weights_small_peak_factor = 1.0           # scale multiple for small peak regions
         
         self.optimize_bounds_area_max           = 150.0                 
@@ -246,6 +249,9 @@ class _Settings(object):
                     "optimize_weights_lipid_flag",
                     "optimize_weights_lipid_start",
                     "optimize_weights_lipid_end",
+                    "optimize_weights_other_flag",
+                    "optimize_weights_other_start",
+                    "optimize_weights_other_end",
                     "optimize_weights_small_peak_factor",
                     "optimize_bounds_area_max", 
                     "optimize_bounds_area_min", 
@@ -311,8 +317,9 @@ class _Settings(object):
                               "optimize_enable_bounds_area_small",
                               "optimize_enable_bounds_ppm_small",
                               "optimize_scaling_flag",                              
-                              "optimize_weights_lipid_flag",
                               "optimize_weights_water_flag",
+                              "optimize_weights_lipid_flag",
+                              "optimize_weights_other_flag",
                               "optimize_constrain_ppm_naa_naag",
                               "optimize_constrain_ppm_cr_pcr",
                               "optimize_constrain_ppm_gpc_pcho",
@@ -373,7 +380,9 @@ class _Settings(object):
                               "optimize_weights_water_end",
                               "optimize_weights_lipid_start",
                               "optimize_weights_lipid_end",
-                              "optimize_weights_small_peak_factor", 
+                              "optimize_weights_other_start",
+                              "optimize_weights_other_end",
+                              "optimize_weights_small_peak_factor",
                               "confidence_alpha",
                               "cramer_rao_ppm_start", 
                               "cramer_rao_ppm_end",

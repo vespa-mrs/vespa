@@ -211,7 +211,7 @@ def svd_filter(chain):
         fshift = chain.svd_output.frequencies + (chain.frequency_shift / 1000.0)
         ppms   = chain.resppm - (fshift * 1000.0 / chain.frequency)
 
-        if set.svd_apply_threshold or set.svd_exclude_lipid:
+        if set.svd_apply_threshold:
             chain.svd_output.in_model.fill(False)
             
         if set.svd_apply_threshold:

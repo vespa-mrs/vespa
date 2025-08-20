@@ -167,6 +167,12 @@ def set_weight_array(chain, lwidth=None, wtmult=None, wtmax=None):
             we = np.clip(int(np.round(dataset.ppm2pts(set.optimize_weights_lipid_start))),0,dim0)
             wtarr[ws:we] = 1.0 / set.optimize_weights_scale_factor
 
+        # set pks in other area low
+        if set.optimize_weights_other_flag == 1:
+            ws = np.clip(int(np.round(dataset.ppm2pts(set.optimize_weights_other_end))),0,dim0)
+            we = np.clip(int(np.round(dataset.ppm2pts(set.optimize_weights_other_start))),0,dim0)
+            wtarr[ws:we] = 1.0 / set.optimize_weights_scale_factor
+
         wtarr = wtarr / max(wtarr)
 
     return wtarr

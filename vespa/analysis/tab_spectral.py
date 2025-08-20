@@ -47,27 +47,31 @@ HLSVD_MIN_DATA_POINTS = 128
 _HLSVD_RESULTS_DISPLAY_SIZE = 6
 
 
-
-class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ColumnSorterMixin):
+class CheckListCtrl(wx.ListCtrl, ColumnSorterMixin):
     def __init__(self, _inner_notebook, tab):
         style = wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES
         wx.ListCtrl.__init__(self, _inner_notebook, -1, style=style)
-        CheckListCtrlMixin.__init__(self)
         ColumnSorterMixin.__init__(self, _HLSVD_RESULTS_DISPLAY_SIZE)
         self.itemDataMap = {}
         self._tab_dataset = _inner_notebook
         self.tab = tab
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
+        self.Bind(wx.EVT_LIST_ITEM_CHECKED, self.OnCheckItem)
+        self.Bind(wx.EVT_LIST_ITEM_UNCHECKED, self.OnCheckItem)
 
     def GetListCtrl(self):
         return self
 
     def OnItemActivated(self, evt):
-        self.ToggleItem(evt.Index)
+        item_index = evt.GetIndex()
+        if self.IsItemChecked(item_index):
+            self.CheckItem(item_index, False)
+        else:
+            self.CheckItem(item_index, True)
 
     # this is called by the base class when an item is checked/unchecked
-    def OnCheckItem(self, index, flag):
-        self.tab.on_check_item(self, index, flag)
+    def OnCheckItem(self, evt):
+        self.tab.on_check_item(self, evt.Index, evt.Label, self.IsItemChecked(evt.Index))
 
 
 #------------------------------------------------------------------------------
@@ -651,6 +655,8 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
         self.list_svd_results.SetColumnWidth(3, 80)
         self.list_svd_results.SetColumnWidth(4, 80)
         self.list_svd_results.SetColumnWidth(5, 80)
+
+        self.list_svd_results.EnableCheckBoxes(enable=True)
 
         # Manual selection is the default
         self.RadioSvdManual.SetValue(True)
@@ -1891,7 +1897,7 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
         # between interacting with the control and seeing it actually change.
         wx.CallAfter(self._apply_hlsvd)
 
-    def on_check_item(self, listctrl, index, flag):
+    def on_check_item(self, listctrl, index, item_text, flag):
         # Clicking on a check box in the table causes both the Threshold and
         # Exclude Lipid automatic calculations to be turned off. If you are
         # clicking you obviously want a 'manual' mode. No other boxes are set
@@ -1902,7 +1908,7 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
         # because the user can sort the list using any column, we need to
         # get the rank value for the item at index that is causing the event,
         # this is the actual index of the line in the block
-        block_index = int(self.list_svd_results.GetItemText(index))-1
+        block_index = int(item_text)-1
 
         svd_output = self.block.get_svd_output(voxel)
         svd_output.in_model[block_index] = flag
@@ -2023,7 +2029,10 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
         self.FloatSvdExcludeLipidStart.Disable()
         self.FloatSvdExcludeLipidEnd.Disable()
 
+#        self.set_check_boxes()
+
         self.process_and_plot()
+
 
     def on_all_off(self, event):
         # Spectral water filter HLSVD threshold value will take precedence
@@ -2042,6 +2051,10 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
         self.CheckSvdExcludeLipid.SetValue(False)
         self.FloatSvdExcludeLipidStart.Disable()
         self.FloatSvdExcludeLipidEnd.Disable()
+
+#        self.set_check_boxes()
+
+        self.process_and_plot()
 
 
 
@@ -2232,14 +2245,22 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
         This method only refreshes the checkboxes in the current checklist
         widget.
 
+        NB. Bind/Unbind prevents process_plot from being called for each CheckItem()
+
         """
+        self.list_svd_results.Unbind(wx.EVT_LIST_ITEM_CHECKED, handler=self.list_svd_results.OnCheckItem)
+        self.list_svd_results.Unbind(wx.EVT_LIST_ITEM_UNCHECKED, handler=self.list_svd_results.OnCheckItem)
+
         voxel   = self._tab_dataset.voxel
         num     = self.list_svd_results.GetItemCount()
         svd_output = self.block.get_svd_output(voxel)
         for i in range(num):
             if i < self.list_svd_results.GetItemCount():
                 index = int(self.list_svd_results.GetItemText(i))-1
-                self.list_svd_results.SetItemImage(i, svd_output.in_model[index])
+                self.list_svd_results.CheckItem(i, svd_output.in_model[index])
+
+        self.list_svd_results.Bind(wx.EVT_LIST_ITEM_CHECKED, self.list_svd_results.OnCheckItem)
+        self.list_svd_results.Bind(wx.EVT_LIST_ITEM_UNCHECKED, self.list_svd_results.OnCheckItem)
 
 
     def set_chop(self, value):
@@ -2319,6 +2340,7 @@ class TabSpectral(tab_base.Tab, spectral.PanelSpectralUI):
         self.SliderSingularValues.SetValue(self.block.get_signal_singular_value_count(voxel))
 
         self.svd_checklist_update()
+
 
 
 
