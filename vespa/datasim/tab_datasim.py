@@ -611,7 +611,7 @@ class TabDatasim(datasim_ui.DatasimUI):
             nrow = self.GridMmol.GetNumberRows() - 1
             for i,val in enumerate(new_line):
                 self.GridMmol.SetCellValue(nrow, i, val)
-                self.GridMmol.SetCellAlignment(wx.ALIGN_CENTER, nrow, i)
+                self.GridMmol.SetCellAlignment(nrow, i, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
         self.mmol_update_basis()
         self.process_and_plot()
 
@@ -718,7 +718,7 @@ class TabDatasim(datasim_ui.DatasimUI):
             nrow = self.GridBase.GetNumberRows() - 1
             for i,val in enumerate(new_line):
                 self.GridBase.SetCellValue(nrow, i, val)
-                self.GridBase.SetCellAlignment(wx.ALIGN_CENTER, nrow, i)
+                self.GridBase.SetCellAlignment(nrow, i, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
         self.base_update_basis()
         self.process_and_plot()
 
@@ -831,7 +831,6 @@ class TabDatasim(datasim_ui.DatasimUI):
                     grid.SetCellValue(row, col, str(float(item)))
                     grid.SetCellEditor(row, col, gridlib.GridCellFloatEditor())
                     grid.SetReadOnly(row, col, isReadOnly=True)
-                # bjs grid.SetCellAlignment(wx.ALIGN_CENTER, row, col)
                 grid.SetCellAlignment(row, col, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
         grid.EndBatch()
 
