@@ -308,13 +308,15 @@ def _element_to_any_type(element):
         # It's a container type. Create the container and populate it with
         # the element's children via recursion.
         value = [ ]
-        for child in element.getchildren():
+        #for child in element.getchildren():
+        for child in list(element):
             value.append(_element_to_any_type(child))
     elif type_ == "dict":
         # It's a container type. Create the container and populate it with
         # the element's children via recursion.
         value = { }
-        for child in element.getchildren():
+        #for child in element.getchildren():
+        for child in list(element):
             value[child.tag] = _element_to_any_type(child)
     else:
         raise TypeError("Can't convert the type '%s'" % type_)
@@ -361,7 +363,8 @@ def element_to_dict(root):
     the corresponding dict.
     """
     d = { }
-    for element in root.getchildren():
+#    for element in root.getchildren():
+    for element in list(root):
         d[element.tag] = _element_to_any_type(element)
 
     return d
@@ -403,7 +406,8 @@ def element_to_list(root):
         return None
     
     d = []
-    for element in root.getchildren():
+    #for element in root.getchildren():
+    for element in list(root):
         d.append(_element_to_any_type(element))
 
     return d
