@@ -83,7 +83,8 @@ class RawReaderDicomSiemensXaEjaSvsMpress(raw_reader.RawReader):
         # information inside a private and very complicated header with its own
         # data storage format, we have to get that information out along with
         # the data. we start by reading in the DICOM file completely
-        dataset = pydicom.dicomio.read_file(filename)
+        #dataset = pydicom.dicomio.read_file(filename)
+        dataset = pydicom.dcmread(filename)
 
         sop_class_uid = pydicom.uid.UID(str(dataset['SOPClassUID'].value.upper()))
 
@@ -148,7 +149,8 @@ class RawReaderDicomSiemensXaEjaSvsMpressOnOff(RawReaderDicomSiemensXaEjaSvsMpre
         # information inside a private and very complicated header with its own
         # data storage format, we have to get that information out along with
         # the data. we start by reading in the DICOM file completely
-        dataset = pydicom.dicomio.read_file(filename)
+        #dataset = pydicom.dicomio.read_file(filename)
+        dataset = pydicom.dcmread(filename)
 
         sop_class_uid = pydicom.uid.UID(str(dataset['SOPClassUID'].value.upper()))
 
