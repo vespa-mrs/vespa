@@ -1036,7 +1036,7 @@ class TwixMeasurement(object):
         data = np.zeros([ncha, nscan, ncol], np.complex64)
         for i, scan in enumerate(self.scans):
             for j, chan in enumerate(scan.channels):
-                data[j, i, :] = np.array(chan[1])
+                data[j, i, 0:len(chan[1])] = np.array(chan[1])
 
         if prep:
             prep_arr = None
