@@ -482,10 +482,6 @@ def do_main():
                 'siemens_twix_svs_slaser_cmrr_vb',
                 'siemens_twix_slaser_cmrr_ve',
                 'siemens_twix_slaser_cmrr_ve',
-                # 'siemens_twix_slaser_cmrr_ve',
-                # 'siemens_twix_slaser_cmrr_ve',
-                # 'siemens_twix_slaser_cmrr_ve',
-                # 'siemens_twix_slaser_cmrr_ve',
                 'siemens_twix_slaser_cmrr_ve',
                 'siemens_twix_slaser_cmrr_ve',
                 'siemens_twix_svs_slaser_cmrr_vb',
@@ -514,35 +510,33 @@ def do_main():
     fpresets = [fpset_coil, fpset_ecc, fpset_water, fpset_metab]
 
     fdata = [
-            [fbase + "camrd_452_006_year4_2020_01_08\\twix\\meas_MID00206_FID102846_1_slaser028_avg32_wref1_resolv.dat", ],
-            [fbase + "camrd_452_006_year4_2020_01_08\\twix\\meas_MID00216_FID102856_2_slaser028_avg32_wref1_resolv.dat", ],
-            [fbase + "camrd_452_006_year6_2021_03_17\\twix\\meas_MID01411_FID140476_1_slaser028_avg32_wref1_resolv.dat",],
-            [fbase + "camrd_452_006_year6_2021_03_17\\twix\\meas_MID01418_FID140483_2_slaser028_avg32_wref1_resolv.dat",],
-            [fbase + "camrd_452_007_year4_2020_11_12\\twix\\meas_MID00355_FID130102_1_slaser028_avg32_wref1_resolv.dat",],
-            [fbase + "camrd_452_007_year4_2020_11_12\\twix\\meas_MID00364_FID130111_2_slaser028_avg32_wref1_resolv.dat",],
-            [fbase + "camrd_452_008_year4_2020_02_17\\twix\\meas_MID00114_FID105950_1_slaser028_avg32_wref1_resolv.dat",],
-            [fbase + "camrd_452_008_year4_2020_02_17\\twix\\meas_MID00127_FID105963_2_slaser028_avg32_wref1_resolv.dat",],
-            [fbase + "camrd_452_008_year5_2021_02_11\\twix\\meas_MID00032_FID137200_1_slaser028_avg32_wref1_resolv.dat",],
-            [fbase + "camrd_452_008_year5_2021_02_11\\twix\\meas_MID00039_FID137207_2_slaser028_avg32_wref1_resolv.dat",],
-            [fbase + "camrd_452_008_year7_2023_05_11\\twix\\meas_MID00294_FID05387_1_sLASER028_avg32_wref1_HYPER.dat", ],
-            [fbase + "camrd_452_008_year7_2023_05_11\\twix\\meas_MID00315_FID05408_2_sLASER028_avg32_wref1_GM.dat", ],
-            # [fbase + "camrd_452_009_year3_2022_12_05\\twix\\meas_MID00071_FID10779_1_sLASER028_avg32_wref1_HYPER.dat",],      # manual workaround DICOM sLaser CMRR multiframe
-            # [fbase + "camrd_452_009_year3_2022_12_05\\twix\\meas_MID00078_FID10786_2_sLASER028_avg32_wref1_GM.dat",],         # manual workaround DICOM sLaser CMRR multiframe
-            # [fbase + "camrd_452_010_year4_2024_02_28\\twix\\meas_MID00367_FID09162_1_slaser_metab_avg32_hyper.dat", ],          # bad data quality
-            # [fbase + "camrd_452_010_year4_2024_02_28\\twix\\meas_MID00374_FID09169_2_slaser_metab_avg32_gm.dat", ],             # poor data, but no WM so push
-            [fbase + "camrd_452_020_year3_2023_08_09\\twix\\meas_MID00258_FID14445_1_sLASER028_avg32_wref1_HYPER.dat", ],
-            [fbase + "camrd_452_020_year3_2023_08_09\\twix\\meas_MID00267_FID14454_2_sLASER028_avg32_wref1_GM.dat", ],
-            [fbase + "camrd_452_025_year2_2020_03_02\\twix\\meas_MID00117_FID107165_1_slaser028_avg32_wref1_resolv.dat",],
-            [fbase + "camrd_452_025_year2_2020_03_02\\twix\\meas_MID00126_FID107174_2_slaser028_avg32_wref1_resolv.dat",],
-            [fbase + "camrd_452_025_year4_2023_08_17\\twix\\meas_MID00496_FID15352_1_dkd_slaser_avg32_wref4x2.dat", ],
-            [fbase + "camrd_452_025_year4_2023_08_17\\twix\\meas_MID00517_FID15373_2_dkd_slaser_avg32_wref4x2.dat", ],
-            [fbase + "camrd_452_029_year3_2022_10_10\\twix\\meas_MID00107_FID06037_1_sLASER028_avg32_wref1_HYPER.dat",],
-            [fbase + "camrd_452_029_year3_2022_10_10\\twix\\meas_MID00116_FID06046_2_sLASER028_avg32_wref1_GM.dat",],
-            [fbase + "camrd_452_046_year1_2023_07_27\\twix\\meas_MID00222_FID13211_1_sLASER028_avg32_wref1_HYPER.dat",],
-            [fbase + "camrd_452_049_year1_2023_03_23\\twix\\meas_MID00039_FID00660_1_sLASER028_avg32_wref1_HYPER.dat",],
-            [fbase + "camrd_452_049_year1_2023_03_23\\twix\\meas_MID00047_FID00668_2_sLASER028_avg32_wref1_GM.dat",],
+            # [fbase + "camrd_452_006_year4_2020_01_08\\twix\\meas_MID00206_FID102846_1_slaser028_avg32_wref1_resolv.dat", ],
+            # [fbase + "camrd_452_006_year4_2020_01_08\\twix\\meas_MID00216_FID102856_2_slaser028_avg32_wref1_resolv.dat", ],
+            # [fbase + "camrd_452_006_year6_2021_03_17\\twix\\meas_MID01411_FID140476_1_slaser028_avg32_wref1_resolv.dat",],
+            # [fbase + "camrd_452_006_year6_2021_03_17\\twix\\meas_MID01418_FID140483_2_slaser028_avg32_wref1_resolv.dat",],
+            # [fbase + "camrd_452_007_year4_2020_11_12\\twix\\meas_MID00355_FID130102_1_slaser028_avg32_wref1_resolv.dat",],
+            # [fbase + "camrd_452_007_year4_2020_11_12\\twix\\meas_MID00364_FID130111_2_slaser028_avg32_wref1_resolv.dat",],
+            # [fbase + "camrd_452_008_year4_2020_02_17\\twix\\meas_MID00114_FID105950_1_slaser028_avg32_wref1_resolv.dat",],
+            # [fbase + "camrd_452_008_year4_2020_02_17\\twix\\meas_MID00127_FID105963_2_slaser028_avg32_wref1_resolv.dat",],
+            # [fbase + "camrd_452_008_year5_2021_02_11\\twix\\meas_MID00032_FID137200_1_slaser028_avg32_wref1_resolv.dat",],
+            # [fbase + "camrd_452_008_year5_2021_02_11\\twix\\meas_MID00039_FID137207_2_slaser028_avg32_wref1_resolv.dat",],
+            # [fbase + "camrd_452_008_year7_2023_05_11\\twix\\meas_MID00294_FID05387_1_sLASER028_avg32_wref1_HYPER.dat", ],
+            # [fbase + "camrd_452_008_year7_2023_05_11\\twix\\meas_MID00315_FID05408_2_sLASER028_avg32_wref1_GM.dat", ],
+            # [fbase + "camrd_452_020_year3_2023_08_09\\twix\\meas_MID00258_FID14445_1_sLASER028_avg32_wref1_HYPER.dat", ],
+            # [fbase + "camrd_452_020_year3_2023_08_09\\twix\\meas_MID00267_FID14454_2_sLASER028_avg32_wref1_GM.dat", ],
+            # [fbase + "camrd_452_025_year2_2020_03_02\\twix\\meas_MID00117_FID107165_1_slaser028_avg32_wref1_resolv.dat",],
+            # [fbase + "camrd_452_025_year2_2020_03_02\\twix\\meas_MID00126_FID107174_2_slaser028_avg32_wref1_resolv.dat",],
+            # [fbase + "camrd_452_025_year4_2023_08_17\\twix\\meas_MID00496_FID15352_1_dkd_slaser_avg32_wref4x2.dat", ],
+            # [fbase + "camrd_452_025_year4_2023_08_17\\twix\\meas_MID00517_FID15373_2_dkd_slaser_avg32_wref4x2.dat", ],
+            # [fbase + "camrd_452_029_year3_2022_10_10\\twix\\meas_MID00107_FID06037_1_sLASER028_avg32_wref1_HYPER.dat",],
+            # [fbase + "camrd_452_029_year3_2022_10_10\\twix\\meas_MID00116_FID06046_2_sLASER028_avg32_wref1_GM.dat",],
+            # [fbase + "camrd_452_046_year1_2023_07_27\\twix\\meas_MID00222_FID13211_1_sLASER028_avg32_wref1_HYPER.dat",],    # no GM, patient left scanner
+            # [fbase + "camrd_452_049_year1_2023_03_23\\twix\\meas_MID00039_FID00660_1_sLASER028_avg32_wref1_HYPER.dat",],
+            # [fbase + "camrd_452_049_year1_2023_03_23\\twix\\meas_MID00047_FID00668_2_sLASER028_avg32_wref1_GM.dat",],
+            # [fbase + "camrd_452_008_year8_2025_03_14\\twix\\meas_MID00877_FID19740_1_slaser_metab_avg32_hyper.dat", ],
+            # [fbase + "camrd_452_008_year8_2025_03_14\\twix\\meas_MID00882_FID19745_2_slaser_metab_avg32_gm.dat", ],
 
-            ]
+    ]
     
     datafiles = fdata[0:]
 

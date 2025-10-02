@@ -439,17 +439,36 @@ def do_main():
 
 
     fdata = [
-            # [fbase + "camrd_452_002_year6_2022_08_10\\dicom\\0027_PRESS_TE35MS_WATER_HYPER",
-            #  fbase + "camrd_452_002_year6_2022_08_10\\dicom\\0028_PRESS_TE35MS_METAB_HYPER"],
-            # [fbase + "camrd_452_002_year6_2022_08_10\\dicom\\0029_PRESS_TE35MS_WATER_GM",
-            #  fbase + "camrd_452_002_year6_2022_08_10\\dicom\\0030_PRESS_TE35MS_METAB_GM"],
-            # [fbase + "camrd_452_046_year2_2025_06_25\\dicom\\0017_PRESS_TE30MS_WATER_HYPER",
-            #  fbase + "camrd_452_046_year2_2025_06_25\\dicom\\0019_PRESS_TE30MS_METAB_HYPER_AVE"],
-            # [fbase + "camrd_452_046_year2_2025_06_25\\dicom\\0022_PRESS_TE30MS_WATER_GM",
-            #  fbase + "camrd_452_046_year2_2025_06_25\\dicom\\0024_PRESS_TE30MS_METAB_GM_AVE"],
 
-            # [fbase + "camrd_452_009_year3_2022_12_05\\twix\\meas_MID00071_FID10779_1_sLASER028_avg32_wref1_HYPER.dat",],        # VE manual workaround DICOM sLaser CMRR multiframe
-            # [fbase + "camrd_452_009_year3_2022_12_05\\twix\\meas_MID00078_FID10786_2_sLASER028_avg32_wref1_GM.dat",],           # VE manual workaround DICOM sLaser CMRR multiframe
+            [fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00382_FID18674_PRESS_TE35ms_water_hyper.dat",
+             fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00385_FID18677_PRESS_TE35ms_metab_hyper.dat"],
+            [fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00389_FID18681_PRESS_TE35ms_water_gm.dat",
+             fbase + "camrd_452_005_year6_2023_03_15\\twix\\meas_MID00392_FID18684_PRESS_TE35ms_metab_gm.dat"],
+            [fbase + "camrd_452_006_year7_2023_08_01\\twix\\meas_MID00186_FID13597_PRESS_TE35ms_water_hyper.dat",
+             fbase + "camrd_452_006_year7_2023_08_01\\twix\\meas_MID00189_FID13600_PRESS_TE35ms_metab_hyper.dat"],
+            [fbase + "camrd_452_006_year7_2023_08_01\\twix\\meas_MID00193_FID13604_PRESS_TE35ms_water_gm.dat",
+             fbase + "camrd_452_006_year7_2023_08_01\\twix\\meas_MID00196_FID13607_PRESS_TE35ms_metab_gm.dat"],
+            [fbase + "camrd_452_019_year4_2021_11_30\\twix\\meas_MID00308_FID13823_PRESS_TE35ms_water_hyper.dat",
+             fbase + "camrd_452_019_year4_2021_11_30\\twix\\meas_MID00311_FID13826_PRESS_TE35ms_metab_hyper.dat"],
+            [fbase + "camrd_452_019_year4_2021_11_30\\twix\\meas_MID00315_FID13830_PRESS_TE35ms_water_gm.dat",
+             fbase + "camrd_452_019_year4_2021_11_30\\twix\\meas_MID00318_FID13833_PRESS_TE35ms_metab_gm.dat"],
+            [fbase + "camrd_452_019_year5_2023_07_12\\twix\\meas_MID00206_FID11996_PRESS_TE35ms_water_hyper.dat",
+             fbase + "camrd_452_019_year5_2023_07_12\\twix\\meas_MID00209_FID11999_PRESS_TE35ms_metab_hyper.dat"],
+            [fbase + "camrd_452_019_year5_2023_07_12\\twix\\meas_MID00213_FID12003_PRESS_TE35ms_water_gm.dat",
+             fbase + "camrd_452_019_year5_2023_07_12\\twix\\meas_MID00216_FID12006_PRESS_TE35ms_metab_gm.dat"],
+            [fbase + "camrd_452_019_year6_2021_11_30\\twix\\meas_MID00308_FID13823_PRESS_TE35ms_water_hyper.dat",
+             fbase + "camrd_452_019_year6_2021_11_30\\twix\\meas_MID00311_FID13826_PRESS_TE35ms_metab_hyper.dat"],
+            [fbase + "camrd_452_019_year6_2021_11_30\\twix\\meas_MID00315_FID13830_PRESS_TE35ms_water_gm.dat",
+             fbase + "camrd_452_019_year6_2021_11_30\\twix\\meas_MID00318_FID13833_PRESS_TE35ms_metab_gm.dat"],
+            [fbase + "camrd_452_055_year1_2022_06_15\\twix\\meas_MID00036_FID30012_PRESS_TE35ms_water_hyper.dat",
+             fbase + "camrd_452_055_year1_2022_06_15\\twix\\meas_MID00039_FID30015_PRESS_TE35ms_metab_hyper.dat"],
+            [fbase + "camrd_452_055_year1_2022_06_15\\twix\\meas_MID00043_FID30019_PRESS_TE35ms_water_gm.dat",
+             fbase + "camrd_452_055_year1_2022_06_15\\twix\\meas_MID00046_FID30022_PRESS_TE35ms_metab_gm.dat"],
+            [fbase + "camrd_452_060_year1_2025_01_14\\twix\\meas_MID00037_FID13323_PRESS_TE35ms_water_hyper.dat",
+             fbase + "camrd_452_060_year1_2025_01_14\\twix\\meas_MID00040_FID13326_PRESS_TE35ms_metab_hyper.dat"],
+            [fbase + "camrd_452_060_year1_2025_01_14\\twix\\meas_MID00044_FID13330_PRESS_TE35ms_water_gm.dat",
+             fbase + "camrd_452_060_year1_2025_01_14\\twix\\meas_MID00047_FID13333_PRESS_TE35ms_metab_gm.dat"],
+
     ]
     
     datafiles = fdata[0:]
