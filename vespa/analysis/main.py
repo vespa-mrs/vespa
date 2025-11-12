@@ -818,3 +818,17 @@ if __name__ == "__main__":
     # p = ps.Stats(fname)
     # p.strip_dirs().sort_stats('cumulative').print_stats()
     #
+
+
+    # # import os
+    # import cProfile
+    # import pstats as ps
+    #
+    # fstats = r"D:\Users\bsoher\projects\2019_Priya_CNS_MRS\data_cohort1\_results_v05\_profile.data"
+    #
+    # if os.path.exists(fstats):
+    #     os.remove(fstats)
+    #
+    # cProfile.run('app.MainLoop()', fstats)
+    # p = ps.Stats(fstats)
+    # p.strip_dirs().sort_stats('cumulative').print_stats()
